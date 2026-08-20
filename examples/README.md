@@ -39,6 +39,17 @@ These examples answer the question: *"What does it actually look like when the f
 
 **Key takeaway:** All 8 agents ran in parallel and produced coherent, cross-referencing plans without coordination overhead. The output demonstrates the agency's ability to go from "find an opportunity" to "here's the full blueprint" in a single session.
 
+### [flyway-drive-listing.html](./flyway-drive-listing.html)
+
+**What:** A finished single-file web page for a vacation rental — a direct-booking listing and guest portal for "126 Flyway Drive" on Kiawah Island, managed by Sweetgrass.
+
+**The scenario:** A property manager wants to move a large family home off OTA platforms and onto a direct-booking page that also serves returning guests. The page has two modes, toggled in place:
+
+- **Booking** — hero, total-price quote with a direct-vs-Airbnb comparison, "who this home is for" (and who it's not for), distances from the front door, photo grid, and guest reviews
+- **Your stay** — door code and WiFi for the current guest, paid add-ons from local vendors (groceries, bikes, pontoon, baby gear), house notes, owner restaurant picks, and a rebooking offer for next year
+
+**Key takeaway:** Copywriting, conversion layout, and guest-experience upsells in one self-contained HTML file (Tailwind via CDN, no build step) — the kind of output the design and marketing agents produce together. Open it directly in a browser to view.
+
 ## Adding New Examples
 
 If you run an interesting multi-agent exercise, consider adding it here. Good examples show:
