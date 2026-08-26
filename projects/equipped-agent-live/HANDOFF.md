@@ -69,6 +69,18 @@ Delete the two dead stub projects (leftovers from the blocked file-deploys):
 - **Rotate keys** (PIN + presenter key) — one SQL statement on Supabase project `iwotispqqcnkrbcnvozq`:
   `update live_config set pin='<4 digits>', presenter_key='<long-random>' where id;`
   (attendees re-join; console URL becomes `/present/<new-key>`)
+- **Wipe the rehearsal room** — old jerseys, votes, and awards otherwise sit on
+  THE BOARD all night. One statement, same SQL editor:
+  ```sql
+  delete from live_votes where room='big-reveal';
+  delete from live_players where room='big-reveal';
+  delete from live_awards where room='big-reveal';
+  delete from live_stump where room='big-reveal';
+  delete from live_scores where room='big-reveal';
+  delete from live_leads where room='big-reveal';
+  delete from live_ai_guess where room='big-reveal';
+  update live_state set step=0, poll_state='closed' where room='big-reveal';
+  ```
 - **Swap Stump's fact sheet**: `src/lib/deck.ts` → `STUMP_FACTS` → a live listing's real sheet.
 - Push to this branch = auto-deploy. Run `npm run walkthrough` before pushing (all checks must stay green — fresh `npm run start` first; a server carrying state from a previous run fails the tally checks by design).
 
