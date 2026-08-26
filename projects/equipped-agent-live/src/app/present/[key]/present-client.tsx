@@ -482,6 +482,60 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
         <span className={snap.smsOnline ? "text-moss" : "text-faint"}>{snap.smsOnline ? "sms on" : "sms off"}</span>
       </div>
 
+      {/* ——— touch controls: the console drives from ANY device — laptop,
+             iPad, or a phone with no keyboard. The big button is the space
+             bar: it arms, opens, and reveals whatever game is on screen. ——— */}
+      <div className="absolute bottom-[3vh] left-1/2 z-20 flex -translate-x-1/2 items-center gap-3">
+        <button
+          onClick={() => void act("prev")}
+          aria-label="Previous slide"
+          className="rounded-2xl border border-rule bg-sheet-2/90 px-5 py-3 text-xl font-bold text-cream backdrop-blur active:border-gold"
+        >
+          ◀
+        </button>
+        {(poll || price) && (
+          <button
+            onClick={() => void act("poll")}
+            className={`rounded-2xl px-6 py-3 text-base font-bold tracking-wide backdrop-blur ${
+              snap.pollState === "closed"
+                ? "bg-gold text-sheet"
+                : snap.pollState === "open"
+                  ? "border border-gold bg-sheet-2/90 text-gold-bright"
+                  : "border border-rule bg-sheet-2/90 text-faint"
+            }`}
+          >
+            {snap.pollState === "closed"
+              ? price
+                ? "🎬 OPEN THE FLOOR"
+                : "🎬 OPEN THE POLL"
+              : snap.pollState === "open"
+                ? "👑 REVEAL"
+                : "revealed"}
+          </button>
+        )}
+        <button
+          onClick={() => void act("next")}
+          aria-label="Next slide"
+          className="rounded-2xl border border-rule bg-sheet-2/90 px-5 py-3 text-xl font-bold text-cream backdrop-blur active:border-gold"
+        >
+          ▶
+        </button>
+        <button
+          onClick={() => setShowQr((v) => !v)}
+          aria-label="Join QR"
+          className="rounded-2xl border border-rule bg-sheet-2/90 px-4 py-3 text-sm font-bold text-soft backdrop-blur"
+        >
+          QR
+        </button>
+        <button
+          onClick={() => setShowLeads((v) => !v)}
+          aria-label="Leads drawer"
+          className="rounded-2xl border border-rule bg-sheet-2/90 px-4 py-3 text-sm font-bold text-soft backdrop-blur"
+        >
+          L{snap.leads.length > 0 ? ` ${snap.leads.length}` : ""}
+        </button>
+      </div>
+
       {/* ——— always-on join badge: scan from any slide, in person or on a
              shared screen, and you're in — the QR carries the PIN. ——— */}
       {!showQr && !showLeads && (

@@ -332,6 +332,27 @@ function MirrorScreen({ state }: { state: StatePayload }) {
         </blockquote>
       )}
 
+      {/* A game slide that hasn't been opened yet says so — armed, not dead. */}
+      {(slide.poll || slide.price) && (
+        <div className="pop-in pop-d3 mt-6 rounded-2xl border border-gold/50 bg-sheet-2 p-4">
+          <p className="flex items-center gap-2 text-sm font-bold text-gold-bright">
+            <span className="ring-pulse inline-block h-2.5 w-2.5 rounded-full bg-moss" />
+            {slide.price ? "Game armed — sliders drop any second." : "Poll armed — buttons drop any second."}
+          </p>
+          {slide.price && (
+            <ul className="mt-2 flex flex-col gap-1 text-[13px] text-soft">
+              {slide.price.facts.map((f) => (
+                <li key={f}>· {f}</li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-2 text-[11px] text-faint">
+            The host opens the floor from the console — this phone fires the moment it happens.
+            {slide.poll ? " 🔒 Voting is anonymous." : " Closest three take 100 · 50 · 25."}
+          </p>
+        </div>
+      )}
+
       {slide.kind === "close" && state.board && state.board.top.length > 0 && (
         <div className="pop-in pop-d3 mt-6 rounded-2xl border border-gold/50 bg-sheet-2 p-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gold">Final board</p>
