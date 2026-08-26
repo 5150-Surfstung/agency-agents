@@ -14,36 +14,45 @@ the Vercel CLI and key files this cloud sandbox could not touch).**
 
 ## Finish list
 
-### 1. The one click that arms the engine (do this first)
+### 1. Arming the engine — where the key has to live
 
-`ANTHROPIC_API_KEY` is already in the project's **Production** environment bucket.
-The URL we've been serving (`...-git-claude-agent-co-dde968-...`) is technically a
-**Preview** deployment, because Vercel still has `main` set as the production
-branch — and Production env vars never reach Preview builds. That's the whole
-reason `engineOnline` reads `false`.
+Vercel still has `main` as this project's production branch, so every build off
+`claude/agent-connection-real-estate-ai-odi1e2` is a **Preview** deployment — and
+Production env vars never reach Preview builds. A key added with
+`vercel env add ANTHROPIC_API_KEY production` therefore sits in the right project
+and the wrong bucket, and `engineOnline` reads `false`.
 
-Fix, once, permanently:
-<https://vercel.com/surfstung-systems/the-equipped-agent/settings/git>
-→ **Production Branch** → `claude/agent-connection-real-estate-ai-odi1e2` → Save.
+So the key goes in the **preview** bucket:
 
-Then push any commit to this branch. The next build is a *Production* build, it
-inherits the key, and it lands on the clean URL:
-**https://the-equipped-agent-surfstung-systems.vercel.app**
+```bash
+cd $(mktemp -d) && npx vercel link --project the-equipped-agent --scope surfstung-systems --yes
+npx vercel env add ANTHROPIC_API_KEY preview
+```
 
-Verify: `/api/selftest?key=dev-presenter&deep=1` →
+Then push any commit to this branch to rebuild.
+
+Verify: `/api/selftest?key=<presenter-key>&deep=1` →
 `"engineOnline":true` **and** an `engine: grounded round-trip` check that passes.
 That check makes one real Haiku call against the demo fact sheet and fails unless
 the assistant both states a sheet fact (4 bed) and refuses an off-sheet one (roof
 year). It costs a fraction of a cent. Run it before every real room.
 
+> **Cosmetic, optional:** to serve the room from
+> `the-equipped-agent-surfstung-systems.vercel.app` instead of the long branch
+> alias, set the production branch to this branch under
+> Settings → **Environments → Production** (Vercel moved this out of the Git tab).
+> Do that and the key belongs in the `production` bucket instead. Nobody types
+> the URL in a live room — they scan the QR — so this is polish, not a blocker.
+
 ### 2. Optional — the speed-to-lead buzz
 
+Same bucket rule as above: `preview` while this branch is a preview branch.
+
 ```bash
-cd $(mktemp -d) && npx vercel link --project the-equipped-agent --scope surfstung-systems --yes
-npx vercel env add TWILIO_ACCOUNT_SID production
-npx vercel env add TWILIO_AUTH_TOKEN production
-npx vercel env add TWILIO_FROM production        # the Twilio number
-npx vercel env add LEAD_ALERT_TO production      # Mike's cell
+npx vercel env add TWILIO_ACCOUNT_SID preview
+npx vercel env add TWILIO_AUTH_TOKEN preview
+npx vercel env add TWILIO_FROM preview        # the Twilio number
+npx vercel env add LEAD_ALERT_TO preview      # Mike's cell
 ```
 
 Until those exist the console shows `sms: off` and the ladder still captures
