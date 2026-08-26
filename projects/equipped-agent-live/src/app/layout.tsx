@@ -15,9 +15,9 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: "The Equipped Agent — Live",
+  title: "The Equipped Agent — The Claude Course",
   description:
-    "The live room for The Equipped Agent: one hour, live polls, and AI tools you build on the spot. The AGENT Connection × Surfstung Systems.",
+    "The Claude Course, live: polls, games, and an AI assistant you build on your own account. Sponsored by Mike Olson with The Agent Connection. Mike Olson, REALTOR® · eXp Realty.",
   robots: { index: false },
 };
 

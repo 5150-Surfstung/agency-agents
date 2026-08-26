@@ -32,8 +32,97 @@ body {
   transition: width 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
+/* ——— the stage: vignette + grain so the projector feels printed, not flat */
+.stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 20%, transparent 55%, rgba(0, 0, 0, 0.45) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* ——— entrance choreography: eyebrow → headline → body, each a beat apart */
+.slide-enter .rise {
+  opacity: 0;
+  transform: translateY(2.5vh);
+  animation: rise 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+.slide-enter .d1 { animation-delay: 0.12s; }
+.slide-enter .d2 { animation-delay: 0.28s; }
+.slide-enter .d3 { animation-delay: 0.44s; }
+@keyframes rise {
+  to { opacity: 1; transform: none; }
+}
+
+/* the gold wipe under every headline — the deck's signature */
+.wipe {
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: wipe 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) 0.55s forwards;
+}
+@keyframes wipe {
+  to { transform: scaleX(1); }
+}
+
+/* reveals: rows arrive one at a time; the winner breathes */
+.bar-row {
+  opacity: 0;
+  transform: translateX(-1.5vw);
+  animation: rise 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+.winner-pulse {
+  animation: breathe 1.6s ease-in-out 1.4s 3;
+}
+@keyframes breathe {
+  50% { filter: brightness(1.35); }
+}
+
+/* histogram bars grow up; markers fade in after */
+.bar-grow {
+  transform: scaleY(0);
+  transform-origin: bottom;
+  animation: grow 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+@keyframes grow {
+  to { transform: scaleY(1); }
+}
+.marker {
+  opacity: 0;
+  animation: fadein 0.5s ease 0.9s forwards;
+}
+@keyframes fadein {
+  to { opacity: 1; }
+}
+
+/* live-vote heartbeat */
+.ring-pulse {
+  animation: ring 1.4s ease-in-out infinite;
+}
+@keyframes ring {
+  50% { box-shadow: 0 0 0 1.2vh rgba(111, 168, 126, 0.15); }
+}
+
+/* stump cards slide in as they land */
+.stump-in {
+  animation: rise 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .bar-fill {
-    transition: none;
+  .bar-fill { transition: none; }
+  .slide-enter .rise,
+  .bar-row,
+  .bar-grow,
+  .marker,
+  .stump-in,
+  .wipe {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .ring-pulse,
+  .winner-pulse {
+    animation: none;
   }
 }

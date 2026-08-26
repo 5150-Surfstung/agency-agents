@@ -11,8 +11,9 @@ export const DECK: Slide[] = [
     eyebrow: "The AGENT Connection™ × Surfstung Systems",
     heading: "The Equipped Agent",
     lines: [
+      "The Claude Course — sponsored by Mike Olson with The Agent Connection.",
       "Most agents can sell. A few can prompt. Almost none can build.",
-      "One hour. Two working systems. Three prompts you keep.",
+      "One hour. Working systems, live games, and an assistant you keep.",
     ],
     cue: "Doors open. PIN on screen. Phones welcome — they're part of the show.",
   },
@@ -74,6 +75,27 @@ export const DECK: Slide[] = [
     cue: "SWITCH TO: Stonoview Neighborhood Index + the 29466 seven-hood plan. Scroll it live.",
   },
   {
+    id: "price-game",
+    kind: "price",
+    eyebrow: "Game one \u00b7 The room vs. the homework",
+    heading: "What did it actually sell for?",
+    price: {
+      key: "price1",
+      facts: [
+        "Single-family resale \u00b7 Stonoview, Johns Island",
+        "4 bed \u00b7 3 bath \u00b7 two-story, built during the buildout years",
+        "Sold in the last twelve months \u00b7 51-day market average \u00b7 2\u20138 active listings a month",
+      ],
+      minK: 500,
+      maxK: 1200,
+      stepK: 5,
+      soldK: null,
+      anchorK: 824,
+      anchorLabel: "the index's trailing-12 median",
+    },
+    cue: "Slider goes live on space. Reveal shows the room's guesses as a histogram vs. the real closing vs. the index anchor. LOAD A REAL CLOSING (soldK + exact facts) BEFORE THE ROOM \u2014 the reveal stays honest and says 'awaiting the closing' until you do.",
+  },
+  {
     id: "poll-build",
     kind: "poll",
     eyebrow: "Check the room",
@@ -104,6 +126,18 @@ export const DECK: Slide[] = [
     cue: "SWITCH TO: live assistant. Audience scans, asks, watch the SMS land. Phone on loud. Sean can Break In from the console.",
   },
   {
+    id: "stump",
+    kind: "stump",
+    eyebrow: "Game two \u00b7 Try to break it",
+    heading: "Stump the assistant.",
+    lines: [
+      "Your phones can now interrogate the demo listing's assistant.",
+      "It knows ONLY the fact sheet. Make it guess \u2014 it won't.",
+      "Every honest refusal lights up gold. That's the feature.",
+    ],
+    cue: "Questions and answers stream onto this screen live. Call out the best refusal. If the engine key isn't loaded, this slide says so honestly \u2014 skip it.",
+  },
+  {
     id: "demo-t2k",
     kind: "demo",
     eyebrow: "Live demo · Track to Keys",
@@ -116,27 +150,24 @@ export const DECK: Slide[] = [
     cue: "SWITCH TO: Track to Keys. Run the wizard on a real-shaped deal. Show the client view on a phone.",
   },
   {
-    id: "arcade",
-    kind: "arcade",
-    eyebrow: "Your turn",
-    heading: "Phones out. Build one right now.",
-    lines: [
-      "Build YOUR OWN assistant — branded to you, tested here, installed in your own free Claude app tonight. Yours forever.",
-      "Or ground an assistant in a real listing's facts, or go ten rounds in the sparring ring.",
-    ],
-    cue: "Arcade unlocks on this slide. Push the take-home tile hard — the gasp is 'wait, I OWN this.' Everyone leaves with a /pack link.",
-  },
-  {
     id: "seed",
     kind: "seed",
-    eyebrow: "The one they'll talk about",
+    eyebrow: "Phones and laptops out \u00b7 the one they'll talk about",
     heading: "Build your own — on YOUR Claude, right now.",
     lines: [
       "1 — Your phone has a COPY button on it right now. Tap it.",
-      "2 — Open the free Claude app (or claude.ai) and paste into a new chat.",
-      "3 — It interviews YOU — six questions — then becomes your assistant. Take it for a sparring round.",
+      "2 — Open the free Claude app (or claude.ai) — phone or laptop — and paste into a new chat.",
+      "3 — It interviews YOU — six questions — then becomes your assistant. Take it for a sparring round and post your score.",
     ],
     cue: "The head-on-fire moment. Give it four full minutes. Walk the room. When the first person's assistant introduces itself by name, have them read it out loud.",
+  },
+  {
+    id: "leaderboard",
+    kind: "leaderboard",
+    eyebrow: "The ring \u00b7 standings",
+    heading: "Toughest agents in the room",
+    lines: ["Best sparring score takes the board. Three letters, immortalized."],
+    cue: "Scores come from THEIR OWN ring (the seed's spar move) \u2014 on their honor, posted from their phone on this slide. Crown the leader out loud.",
   },
   {
     id: "playbook",
@@ -194,8 +225,17 @@ export const DECK: Slide[] = [
   },
 ];
 
-/** Arcade unlocks at the arcade slide and stays open to the end. */
-export const ARCADE_FROM_STEP = DECK.findIndex((s) => s.kind === "arcade");
+/** The seed moment and everything after it — phones may act on their own. */
+export const SEED_FROM_STEP = DECK.findIndex((s) => s.kind === "seed");
+
+/** The fact sheet Stump the Assistant defends. SWAP for a live listing's
+ *  sheet before a real room — the game only ever speaks these lines. */
+export const STUMP_FACTS = `DEMO LISTING (labeled demo on purpose — swap with a live sheet)
+Address: 214 Demo Oak Ln, Johns Island
+Asking price: $612,000
+Bedrooms: 4 · Bathrooms: 2.5 · Square feet: 2,240
+Built: 2016 · HOA: $95/mo
+Showings: Sat–Sun 11–4 by appointment`;
 
 export function pollForStep(step: number) {
   return DECK[step]?.poll ?? null;

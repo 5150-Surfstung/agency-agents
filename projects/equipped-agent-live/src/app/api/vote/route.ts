@@ -22,16 +22,22 @@ export async function POST(req: NextRequest) {
     const state = await store.getState(sess.roomKey);
     const slide = DECK[state.step];
     const poll = slide?.poll;
+    const price = slide?.price;
 
-    // Votes only land on the poll that is actually open on screen — a stale
-    // phone can't stuff a closed poll.
-    if (!poll || poll.key !== pollKey) {
+    // Votes only land on the poll/game that is actually open on screen — a
+    // stale phone can't stuff a closed one. Price guesses ride the same rail
+    // as whole $thousands.
+    const current = poll?.key === pollKey ? "poll" : price?.key === pollKey ? "price" : null;
+    if (!current) {
       return NextResponse.json({ ok: false, error: "poll_not_current" }, { status: 409 });
     }
     if (state.pollState !== "open") {
       return NextResponse.json({ ok: false, error: "poll_not_open" }, { status: 409 });
     }
-    if (!Number.isInteger(choice) || choice < 0 || choice >= poll.options.length) {
+    if (current === "poll" && (!Number.isInteger(choice) || choice < 0 || choice >= (poll?.options.length ?? 0))) {
+      return NextResponse.json({ ok: false, error: "bad_choice" }, { status: 400 });
+    }
+    if (current === "price" && (!Number.isInteger(choice) || choice < (price?.minK ?? 0) || choice > (price?.maxK ?? 0))) {
       return NextResponse.json({ ok: false, error: "bad_choice" }, { status: 400 });
     }
 

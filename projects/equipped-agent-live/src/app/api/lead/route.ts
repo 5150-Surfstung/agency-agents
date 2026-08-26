@@ -3,6 +3,7 @@
 // is the same one the hour teaches: first reply before the room empties.
 
 import { NextRequest, NextResponse } from "next/server";
+import { notifyLead } from "@/lib/notify";
 import { sessionFromCookies } from "@/lib/room";
 import { getStore } from "@/lib/store";
 
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
 
   try {
     await getStore().addLead(sess.roomKey, { deviceId: sess.deviceId, name, cell, rung, at: Date.now() });
+    notifyLead({ name, cell, rung }); // fire-and-forget; capture never waits on a text
     return NextResponse.json({ ok: true });
   } catch {
     // A lead that didn't persist must never look captured.

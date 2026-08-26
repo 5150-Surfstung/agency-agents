@@ -99,18 +99,44 @@ check("attendee sees own vote", r.body.myVote === 3);
 r = await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "time", choice: 2 }) });
 check("vote after reveal → 409", r.status === 409);
 
-// Arcade is gated until its slide.
-r = await phones[0]("/api/tool/sparring", { method: "POST", body: JSON.stringify({ scenario: "fsbo", messages: [] }) });
-check("arcade locked early → 409", r.status === 409);
+// Price Is Right: slider guesses ride the vote rail as $thousands.
+snap = await control("goto", 5);
+check("on price slide", snap.step === 5);
+await control("poll");
+r = await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 824 }) });
+check("price guess accepted", r.status === 200);
+r = await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 300 }) });
+check("out-of-range guess → 400", r.status === 400);
+await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 760 }) });
 r = await phones[0]("/api/state");
-check("arcadeOpen false early", r.body.arcadeOpen === false);
+check("sold price hidden pre-reveal", JSON.stringify(r.body).includes("soldK") === false);
+snap = await control("poll");
+check("price values on console", Array.isArray(snap.priceValues) && snap.priceValues.some((v) => v.value === 824));
+r = await phones[0]("/api/state");
+check("price reveal on phone", r.body.priceReveal?.values?.length >= 2 && r.body.priceReveal.anchorK === 824);
+
+// Stump is gated to its slide; without a key it refuses honestly.
+r = await phones[0]("/api/stump", { method: "POST", body: JSON.stringify({ question: "roof year?" }) });
+check("stump off-slide → 409", r.status === 409);
+snap = await control("goto", 8);
+if (!process.env.ANTHROPIC_API_KEY) {
+  r = await phones[0]("/api/stump", { method: "POST", body: JSON.stringify({ question: "What year was the roof replaced?" }) });
+  check("stump engine offline → 503 (honest)", r.status === 503);
+}
+
+// Leaderboard: self-reported ring scores.
+snap = await control("goto", 11);
+r = await phones[0]("/api/score", { method: "POST", body: JSON.stringify({ initials: "MO", score: 9 }) });
+check("score posted", r.status === 200);
+r = await phones[1]("/api/score", { method: "POST", body: JSON.stringify({ initials: "X", score: 8 }) });
+check("1-letter initials → 400", r.status === 400);
+snap = await control("goto", 11);
+check("board shows MO 9/10", (snap.scoreboard ?? []).some((s) => s.initials === "MO" && s.best === 9));
 
 // Jump to the ladder poll, run the capture flow.
-const ladderStep = 12; // seed slide sits at 9; ladder moved down one
+const ladderStep = 14; // price 5 · stump 8 · seed 10 · board 11 · ladder 14
 snap = await control("goto", ladderStep);
 check("on ladder slide", snap.step === ladderStep);
-r = await phones[0]("/api/state");
-check("arcadeOpen true late", r.body.arcadeOpen === true);
 await control("poll");
 await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "ladder", choice: 3 }) });
 await control("poll");
@@ -144,34 +170,17 @@ check("bad pack code → 404", (await phones[0]("/api/pack?code=ZZZZZZ")).status
 const packPage = await fetch(`${BASE}/pack/${packCode}`);
 check("pack page renders", packPage.status === 200 && (await packPage.text()).includes("Jordan Test"));
 
-// Arcade honesty: with no ANTHROPIC_API_KEY the tool says offline, never fakes.
-if (!process.env.ANTHROPIC_API_KEY) {
-  r = await phones[0]("/api/tool/listing", {
+// With a live key, Stump proves grounding end-to-end (states facts, refuses unknowns).
+if (process.env.ANTHROPIC_API_KEY) {
+  await control("goto", 8);
+  r = await phones[0]("/api/stump", {
     method: "POST",
-    body: JSON.stringify({ facts: "123 Main St, $500,000", agentLabel: "Test", messages: [{ role: "user", content: "price?" }] }),
+    body: JSON.stringify({ question: "How many bedrooms, and what year was the roof replaced?" }),
   });
-  check("engine offline → 503 (honest)", r.status === 503 && r.body.error === "offline");
-} else {
-  r = await phones[0]("/api/tool/listing", {
-    method: "POST",
-    body: JSON.stringify({
-      facts: "123 Main St, Johns Island. $500,000. 3 bed, 2 bath, 1,800 sqft.",
-      agentLabel: "Test Agent",
-      messages: [{ role: "user", content: "How many bedrooms, and what year was the roof replaced?" }],
-    }),
-  });
-  const reply = r.body?.reply ?? "";
-  check("listing tool replies", r.status === 200 && reply.length > 0);
-  check("states the fact (3 bed)", /3 bed/i.test(reply) || /three bed/i.test(reply), reply.slice(0, 160));
-  check(
-    "refuses the unknown (roof)",
-    /don't (want to guess|know|have)/i.test(reply) || /confirm/i.test(reply),
-    reply.slice(0, 160)
-  );
-  r = await phones[0]("/api/tool/sparring", { method: "POST", body: JSON.stringify({ scenario: "interview", messages: [] }) });
-  check("ring opens in character", r.status === 200 && (r.body.reply ?? "").length > 0);
-  r = await phones[0]("/api/tool/mine", { method: "POST", body: JSON.stringify({ code: packCode, messages: [] }) });
-  check("take-home assistant introduces itself", r.status === 200 && /jordan/i.test(r.body.reply ?? ""), (r.body?.reply ?? "").slice(0, 120));
+  const reply = r.body?.answer ?? "";
+  check("stump replies", r.status === 200 && reply.length > 0);
+  check("states the fact (4 bed)", /4 bed|four bed/i.test(reply), reply.slice(0, 160));
+  check("refuses the unknown (roof)", r.body?.refused === true, reply.slice(0, 160));
 }
 
 // Back to the top for a clean room.

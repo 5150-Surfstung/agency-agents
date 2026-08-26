@@ -6,7 +6,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { presenterKey, roomPin } from "./room";
-import type { Lead, Pack, PollState, RoomState, ToolEvent, Vote } from "./types";
+import type { Lead, Pack, PollState, RoomState, ScoreRow, StumpEntry, ToolEvent, Vote } from "./types";
 
 export type Role = "presenter" | "attendee" | null;
 
@@ -37,6 +37,16 @@ export interface Store {
   savePack(key: string, p: Pack): Promise<void>;
   /** Pack pages are the product an agent keeps — public read by code. */
   getPack(code: string): Promise<Pack | null>;
+
+  /** Price-guess polls: every distinct guessed value with its count. */
+  rawTally(key: string, pollKey: string): Promise<{ value: number; n: number }[]>;
+
+  stumpAdd(key: string, deviceId: string, question: string): Promise<number>;
+  stumpAnswer(key: string, id: number, answer: string, refused: boolean): Promise<void>;
+  stumpList(key: string, limit: number): Promise<StumpEntry[]>;
+
+  scorePost(key: string, deviceId: string, initials: string, score: number): Promise<void>;
+  scoresTop(key: string): Promise<ScoreRow[]>;
 }
 
 // ---------------------------------------------------------------- memory
@@ -111,6 +121,51 @@ class MemoryStore implements Store {
   }
   async getPack(code: string) {
     return this.packs.get(code) ?? null;
+  }
+
+  async rawTally(_key: string, pollKey: string) {
+    const byValue = new Map<number, number>();
+    for (const v of this.votes.values()) {
+      if (v.pollKey === pollKey) byValue.set(v.choice, (byValue.get(v.choice) ?? 0) + 1);
+    }
+    return [...byValue.entries()].map(([value, n]) => ({ value, n })).sort((a, b) => a.value - b.value);
+  }
+
+  private stump: StumpEntry[] = [];
+  private stumpSeq = 0;
+  async stumpAdd(_key: string, _deviceId: string, question: string) {
+    const id = ++this.stumpSeq;
+    this.stump.push({ id, question, answer: "", refused: false, at: Date.now() });
+    return id;
+  }
+  async stumpAnswer(_key: string, id: number, answer: string, refused: boolean) {
+    const e = this.stump.find((s) => s.id === id);
+    if (e) {
+      e.answer = answer;
+      e.refused = refused;
+    }
+  }
+  async stumpList(_key: string, limit: number) {
+    return [...this.stump].sort((a, b) => b.at - a.at).slice(0, limit);
+  }
+
+  private scores = new Map<string, ScoreRow & { at: number }>();
+  async scorePost(_key: string, deviceId: string, initials: string, score: number) {
+    const prev = this.scores.get(deviceId);
+    const ini = initials.trim().slice(0, 3).toUpperCase() || prev?.initials || "";
+    this.scores.set(deviceId, {
+      initials: ini,
+      best: Math.max(prev?.best ?? 0, score),
+      rounds: (prev?.rounds ?? 0) + 1,
+      at: Date.now(),
+    });
+  }
+  async scoresTop(_key: string) {
+    return [...this.scores.values()]
+      .filter((s) => s.initials)
+      .sort((a, b) => b.best - a.best || a.at - b.at)
+      .slice(0, 10)
+      .map(({ initials, best, rounds }) => ({ initials, best, rounds }));
   }
 }
 
@@ -242,6 +297,42 @@ class RpcStore implements Store {
       tone: r.tone as Pack["tone"],
       createdAt: new Date(r.created_at).getTime(),
     };
+  }
+
+  async rawTally(key: string, pollKey: string) {
+    const rows = await this.call<{ value: number; n: number }[]>("live_tally_raw", { p_key: key, p_poll: pollKey });
+    return (rows ?? []).map((r) => ({ value: Number(r.value), n: Number(r.n) }));
+  }
+
+  async stumpAdd(key: string, deviceId: string, question: string) {
+    const id = await this.call<number>("live_stump_add", { p_key: key, p_device: deviceId, p_question: question });
+    return Number(id);
+  }
+  async stumpAnswer(key: string, id: number, answer: string, refused: boolean) {
+    await this.call("live_stump_answer", { p_key: key, p_id: id, p_answer: answer, p_refused: refused });
+  }
+  async stumpList(key: string, limit: number): Promise<StumpEntry[]> {
+    const rows = await this.call<{ id: number; question: string; answer: string; refused: boolean; at: string }[]>(
+      "live_stump_list",
+      { p_key: key, p_limit: limit }
+    );
+    return (rows ?? []).map((r) => ({
+      id: Number(r.id),
+      question: r.question,
+      answer: r.answer,
+      refused: r.refused,
+      at: new Date(r.at).getTime(),
+    }));
+  }
+
+  async scorePost(key: string, deviceId: string, initials: string, score: number) {
+    await this.call("live_score_post", { p_key: key, p_device: deviceId, p_initials: initials, p_score: score });
+  }
+  async scoresTop(key: string): Promise<ScoreRow[]> {
+    const rows = await this.call<{ initials: string; best: number; rounds: number }[]>("live_scores_top", {
+      p_key: key,
+    });
+    return (rows ?? []).map((r) => ({ initials: r.initials, best: Number(r.best), rounds: Number(r.rounds) }));
   }
 }
 

@@ -4,7 +4,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { engineOnline } from "@/lib/ai";
-import { ARCADE_FROM_STEP, DECK } from "@/lib/deck";
+import { DECK } from "@/lib/deck";
+import { smsOnline } from "@/lib/notify";
 import { getStore } from "@/lib/store";
 import type { PollState } from "@/lib/types";
 
@@ -25,6 +26,15 @@ async function snapshot(key: string) {
   let counts: number[] | null = null;
   if (slide.poll) counts = await store.tally(key, slide.poll.key, slide.poll.options.length);
 
+  let priceValues: { value: number; n: number }[] | null = null;
+  if (slide.price) priceValues = await store.rawTally(key, slide.price.key);
+
+  let stumpFeed = null;
+  if (slide.kind === "stump") stumpFeed = await store.stumpList(key, 8);
+
+  let scoreboard = null;
+  if (slide.kind === "leaderboard") scoreboard = await store.scoresTop(key);
+
   const [leads, present, spend] = await Promise.all([
     store.listLeads(key),
     store.activeDevices(key, 2 * 60 * 1000),
@@ -40,9 +50,12 @@ async function snapshot(key: string) {
     leads,
     present,
     spendUsd: Math.round(spend * 100) / 100,
-    arcadeOpen: state.step >= ARCADE_FROM_STEP,
     engineOnline: engineOnline(),
+    smsOnline: smsOnline(),
     backend: store.backend(),
+    priceValues,
+    stumpFeed,
+    scoreboard,
   };
 }
 
@@ -98,8 +111,8 @@ export async function POST(req: NextRequest) {
         pollState = "closed";
         break;
       case "poll": {
-        // Space bar on a poll slide: closed → open → revealed → (stays revealed).
-        if (!DECK[state.step]?.poll) {
+        // Space bar on a poll OR price slide: closed → open → revealed.
+        if (!DECK[state.step]?.poll && !DECK[state.step]?.price) {
           return NextResponse.json({ ok: false, error: "not_a_poll" }, { status: 409 });
         }
         pollState = state.pollState === "closed" ? "open" : "revealed";

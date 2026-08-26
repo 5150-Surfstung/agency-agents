@@ -4,6 +4,7 @@
 
 import type { Metadata } from "next";
 import { SEED_PROMPT } from "@/lib/prompts";
+import { signupMailto } from "@/lib/signup";
 import { SeedActions } from "./seed-actions";
 
 export const metadata: Metadata = {
@@ -49,8 +50,24 @@ export default function SeedPage() {
         {SEED_PROMPT}
       </pre>
 
+      <div className="mt-8 rounded-2xl border border-gold/50 bg-sheet-2 p-5">
+        <p className="font-[family-name:var(--font-display)] text-xl font-semibold text-cream">
+          Want the room where this is already running?
+        </p>
+        <p className="mt-1 text-sm text-soft">
+          One tap opens a pre-written email to Mike — your send button is the signature.
+        </p>
+        <a
+          href={signupMailto({ source: "seed page" })}
+          className="mt-3 block rounded-xl bg-gold px-4 py-3 text-center text-sm font-bold text-sheet"
+        >
+          ✉️ Email Mike — I'm in
+        </a>
+      </div>
+
       <footer className="mt-10 border-t border-rule pt-5 text-xs text-faint">
-        <p>The AGENT Connection™ × Surfstung Systems · built live at The Equipped Agent.</p>
+        <p>The Claude Course · sponsored by Mike Olson with The Agent Connection.</p>
+        <p className="mt-1">The AGENT Connection™ × Surfstung Systems · Mike Olson, REALTOR® · eXp Realty</p>
       </footer>
     </main>
   );

@@ -10,8 +10,10 @@ export default function JoinPage() {
       <h1 className="mt-3 text-center font-[family-name:var(--font-display)] text-4xl font-semibold leading-tight text-cream">
         The Equipped Agent
       </h1>
+      <p className="mt-1 text-center text-sm font-semibold text-gold-bright">The Claude Course</p>
       <p className="mt-2 max-w-xs text-center text-sm text-soft">
-        Your phone is part of the show. Enter the room PIN from the screen.
+        Sponsored by Mike Olson with The Agent Connection. Your phone is part of the show — enter the
+        room PIN from the screen.
       </p>
       <Suspense>
         <JoinCard />
@@ -19,6 +21,7 @@ export default function JoinPage() {
       <p className="mt-10 text-center text-[11px] text-faint">
         No account. No password. Your number is only asked for if you raise your hand at the end.
       </p>
+      <p className="mt-3 text-center text-[11px] text-faint">Mike Olson, REALTOR® · eXp Realty</p>
     </main>
   );
 }

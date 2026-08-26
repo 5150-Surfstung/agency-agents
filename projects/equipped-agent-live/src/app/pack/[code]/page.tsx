@@ -70,7 +70,7 @@ export default async function PackPage({ params }: { params: Promise<{ code: str
           Share it, rebuild it, brand it. The rules inside (never invent a number, grounded listings,
           fair housing always) are the whole method from the hour.
         </p>
-        <p className="mt-2">The AGENT Connection™ × Surfstung Systems</p>
+        <p className="mt-2">The AGENT Connection™ × Surfstung Systems · Mike Olson, REALTOR® · eXp Realty</p>
       </footer>
     </main>
   );

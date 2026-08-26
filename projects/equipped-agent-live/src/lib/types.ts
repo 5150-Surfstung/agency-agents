@@ -12,17 +12,47 @@ export interface PollDef {
   capture?: boolean;
 }
 
+/** The Price Is Right: guesses ride the votes table as whole $thousands. */
+export interface PriceDef {
+  key: string;
+  /** Listing facts shown on screen and phones — only what's defensible. */
+  facts: string[];
+  minK: number;
+  maxK: number;
+  stepK: number;
+  /** Real sold price in $thousands — null until a defensible closing is loaded. */
+  soldK: number | null;
+  /** The grounded anchor (e.g. the index's trailing-12 median), in $thousands. */
+  anchorK: number | null;
+  anchorLabel: string;
+}
+
 export interface Slide {
   id: string;
-  kind: "title" | "content" | "demo" | "poll" | "arcade" | "seed" | "close";
+  kind: "title" | "content" | "demo" | "poll" | "price" | "stump" | "arcade" | "seed" | "leaderboard" | "close";
   eyebrow?: string;
   heading: string;
   lines?: string[];
   stats?: { value: string; label: string }[];
   quote?: string;
   poll?: PollDef;
+  price?: PriceDef;
   /** Presenter-only cue line, never rendered to attendees. */
   cue?: string;
+}
+
+export interface StumpEntry {
+  id: number;
+  question: string;
+  answer: string;
+  refused: boolean;
+  at: number;
+}
+
+export interface ScoreRow {
+  initials: string;
+  best: number;
+  rounds: number;
 }
 
 export interface Vote {

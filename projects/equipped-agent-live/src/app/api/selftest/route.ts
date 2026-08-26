@@ -76,6 +76,17 @@ export async function GET(req: NextRequest) {
     if (p?.name !== "Self Test") throw new Error("pack roundtrip failed");
   });
 
+  await run("raw tally (price game)", async () => {
+    const rows = await store.rawTally(key, "selftest");
+    if (!rows.some((r) => r.value === 2)) throw new Error("raw tally missed the vote");
+  });
+
+  await run("score post/top", async () => {
+    // Blank initials keep selftest off the public board by design.
+    await store.scorePost(key, device, "", 7);
+    await store.scoresTop(key);
+  });
+
   await run("spend + caps read", async () => {
     await store.totalSpendUsd(key);
     await store.deviceToolCount(key, device, 60 * 1000);

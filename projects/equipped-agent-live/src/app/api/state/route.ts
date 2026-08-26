@@ -4,7 +4,7 @@
 
 import { NextResponse } from "next/server";
 import { engineOnline } from "@/lib/ai";
-import { ARCADE_FROM_STEP, DECK } from "@/lib/deck";
+import { DECK } from "@/lib/deck";
 import { sessionFromCookies } from "@/lib/room";
 import { getStore } from "@/lib/store";
 
@@ -23,10 +23,22 @@ export async function GET() {
 
     let myVote: number | null = null;
     let counts: number[] | null = null;
+    let priceReveal: { values: { value: number; n: number }[]; soldK: number | null; anchorK: number | null; anchorLabel: string } | null = null;
     if (slide.poll) {
       myVote = await store.getVote(sess.roomKey, slide.poll.key, sess.deviceId);
       if (state.pollState === "revealed") {
         counts = await store.tally(sess.roomKey, slide.poll.key, slide.poll.options.length);
+      }
+    }
+    if (slide.price) {
+      myVote = await store.getVote(sess.roomKey, slide.price.key, sess.deviceId);
+      if (state.pollState === "revealed") {
+        priceReveal = {
+          values: await store.rawTally(sess.roomKey, slide.price.key),
+          soldK: slide.price.soldK,
+          anchorK: slide.price.anchorK,
+          anchorLabel: slide.price.anchorLabel,
+        };
       }
     }
 
@@ -41,11 +53,15 @@ export async function GET() {
         poll: slide.poll
           ? { key: slide.poll.key, question: slide.poll.question, options: slide.poll.options, capture: !!slide.poll.capture }
           : null,
+        // The sold price never leaves the server before the reveal.
+        price: slide.price
+          ? { key: slide.price.key, facts: slide.price.facts, minK: slide.price.minK, maxK: slide.price.maxK, stepK: slide.price.stepK }
+          : null,
       },
       pollState: state.pollState,
       myVote,
       counts,
-      arcadeOpen: state.step >= ARCADE_FROM_STEP,
+      priceReveal,
       engineOnline: engineOnline(),
     });
   } catch {
