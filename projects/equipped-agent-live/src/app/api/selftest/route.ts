@@ -94,6 +94,11 @@ export async function GET(req: NextRequest) {
     await store.deviceToolCount(key, device, 60 * 1000);
   });
 
+  await run("room pin (join QR)", async () => {
+    const pin = await store.roomPin(key);
+    if (!pin) throw new Error("presenter key could not read the pin");
+  });
+
   // ?deep=1 — one real grounded model round-trip: must state a sheet fact and
   // refuse an off-sheet one. Costs a fraction of a cent; the pre-room proof.
   // If the engine is dark, this FAILS rather than quietly skipping — a green

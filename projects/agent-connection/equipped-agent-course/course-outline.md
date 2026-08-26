@@ -25,6 +25,13 @@ and end on the Agent Connection ladder. Teach first, recruit last — the teachi
 on the Price Is Right slider too) · `Q` throws the join QR up full-screen · `L`
 opens the leads drawer.
 
+**A join QR sits in the corner of every slide**, and the scan carries the PIN —
+one scan and a phone is in the room mid-slide, no typing. That covers walk-ins,
+late arrivals, and anyone virtual watching a shared screen: tell them once at
+the top, *"see the code in the corner? Any time tonight, scan it and you're in."*
+The QR reads the PIN from the database live, so it survives every PIN rotation
+untouched.
+
 **The HUD** (top right of the console) shows the live phone count, which slide
 you're on, whether the AI engine is armed and what it has spent, and whether SMS
 is live. If the engine is dark, the Stump slide says so honestly instead of

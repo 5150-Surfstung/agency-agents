@@ -13,6 +13,8 @@ export type Role = "presenter" | "attendee" | null;
 export interface Store {
   backend(): "memory" | "supabase";
   checkKey(key: string): Promise<Role>;
+  /** The current room PIN — presenter key only, for the join QR/badge. */
+  roomPin(key: string): Promise<string | null>;
 
   getState(key: string): Promise<RoomState>;
   setState(key: string, step: number, pollState: PollState): Promise<void>;
@@ -66,6 +68,9 @@ class MemoryStore implements Store {
     if (key === presenterKey()) return "presenter";
     if (key === roomPin()) return "attendee";
     return null;
+  }
+  async roomPin(key: string) {
+    return key === presenterKey() ? roomPin() : null;
   }
   async getState() {
     return this.state;
@@ -187,6 +192,10 @@ class RpcStore implements Store {
   async checkKey(key: string): Promise<Role> {
     const role = await this.call<string | null>("live_check_key", { p_key: key });
     return role === "presenter" || role === "attendee" ? role : null;
+  }
+  async roomPin(key: string) {
+    const pin = await this.call<string | null>("live_room_pin", { p_key: key });
+    return typeof pin === "string" && pin.length > 0 ? pin : null;
   }
   async getState(key: string): Promise<RoomState> {
     const rows = await this.call<{ step: number; poll_state: string }[]>("live_state_get", { p_key: key });

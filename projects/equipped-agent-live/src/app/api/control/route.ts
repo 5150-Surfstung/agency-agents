@@ -35,10 +35,11 @@ async function snapshot(key: string) {
   let scoreboard = null;
   if (slide.kind === "leaderboard") scoreboard = await store.scoresTop(key);
 
-  const [leads, present, spend] = await Promise.all([
+  const [leads, present, spend, pin] = await Promise.all([
     store.listLeads(key),
     store.activeDevices(key, 2 * 60 * 1000),
     store.totalSpendUsd(key),
+    store.roomPin(key),
   ]);
 
   return {
@@ -50,6 +51,7 @@ async function snapshot(key: string) {
     leads,
     present,
     spendUsd: Math.round(spend * 100) / 100,
+    pin,
     engineOnline: engineOnline(),
     smsOnline: smsOnline(),
     backend: store.backend(),

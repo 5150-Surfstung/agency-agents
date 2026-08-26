@@ -85,6 +85,12 @@ Delete the two dead stub projects (leftovers from the blocked file-deploys):
   (in the lines).
 - **Farming demo slide** now carries the index's real headline numbers: 466
   closings, 11 years, premium 28.6% → 20.5% in twelve months.
+- **Always-on join QR** in the corner of every projector slide (plus the big
+  `Q` overlay). The scan carries the PIN (`/?pin=…` auto-joins), so one scan
+  drops a phone into the room mid-slide — in person or off a shared screen.
+  The PIN comes from the sealed `live_config` row via the presenter-gated
+  `live_room_pin` RPC (migration `003_room_pin.sql`, applied), so the QR and
+  the on-screen PIN badge follow every rotation automatically.
 
 ## Everything else
 

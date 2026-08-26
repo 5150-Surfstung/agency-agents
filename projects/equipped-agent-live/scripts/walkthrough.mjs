@@ -161,6 +161,21 @@ check("CSV carries the lead", csvRes.status === 200 && csv.includes("Test Agent"
 check("CSV without key → 401", (await fetch(`${BASE}/api/leads.csv`)).status === 401);
 check("control without key → 401", (await fetch(`${BASE}/api/control?key=nope`)).status === 401);
 
+// The always-on join QR: presenter mints it, the console knows the PIN,
+// and a scanned ?pin= URL actually joins.
+check("console snapshot carries the PIN", snap.pin === PIN, String(snap.pin));
+const qrRes = await fetch(`${BASE}/api/qr?key=${encodeURIComponent(KEY)}`);
+check("QR mints for the presenter", qrRes.status === 200 && (qrRes.headers.get("content-type") ?? "").includes("image/png"));
+check("QR without key → 401", (await fetch(`${BASE}/api/qr`)).status === 401);
+{
+  const res = await fetch(`${BASE}/api/join`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pin: PIN }),
+  });
+  check("scan-link PIN joins (the ?pin= path)", res.status === 200);
+}
+
 // Assistant To Go: build a pack, fetch it publicly, wrong code 404s.
 r = await phones[0]("/api/pack", {
   method: "POST",

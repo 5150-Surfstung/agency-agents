@@ -25,6 +25,7 @@ interface Snapshot {
   leads: Lead[];
   present: number;
   spendUsd: number;
+  pin: string | null;
   engineOnline: boolean;
   smsOnline: boolean;
   backend: string;
@@ -375,6 +376,27 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
         <span className={snap.smsOnline ? "text-moss" : "text-faint"}>{snap.smsOnline ? "sms on" : "sms off"}</span>
       </div>
 
+      {/* ——— always-on join badge: scan from any slide, in person or on a
+             shared screen, and you're in — the QR carries the PIN. ——— */}
+      {!showQr && !showLeads && (
+        <div className="absolute bottom-[3vh] right-[2vw] z-10 flex flex-col items-center gap-[0.6vh]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/api/qr?key=${encodeURIComponent(presenterKey)}`}
+            alt="Scan to join the room"
+            className="w-[clamp(72px,9vw,150px)] rounded-lg"
+          />
+          <p className="text-[clamp(10px,0.85vw,13px)] font-bold uppercase tracking-[0.18em] text-gold">
+            scan · jump in
+          </p>
+          {snap.pin && (
+            <p className="text-[clamp(10px,0.85vw,13px)] font-semibold tracking-[0.25em] text-faint">
+              PIN {snap.pin}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* ——— leads drawer (L) ——— */}
       {showLeads && (
         <aside className="absolute bottom-0 right-0 top-0 z-20 w-[26rem] overflow-y-auto border-l border-rule bg-sheet-2/95 p-6 backdrop-blur">
@@ -419,7 +441,12 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
             alt="Join QR code"
             className="w-[min(46vh,80vw)] rounded-2xl"
           />
-          <p className="text-[clamp(13px,1.2vw,18px)] text-faint">Q closes this</p>
+          {snap.pin && (
+            <p className="text-[clamp(18px,2vw,32px)] font-bold tracking-[0.3em] text-cream">
+              PIN <span className="text-gold-bright">{snap.pin}</span>
+            </p>
+          )}
+          <p className="text-[clamp(13px,1.2vw,18px)] text-faint">the scan already carries it · Q closes this</p>
         </div>
       )}
     </main>
