@@ -127,6 +127,18 @@ export const DECK: Slide[] = [
     cue: "Arcade unlocks on this slide. Push the take-home tile hard — the gasp is 'wait, I OWN this.' Everyone leaves with a /pack link.",
   },
   {
+    id: "seed",
+    kind: "seed",
+    eyebrow: "The one they'll talk about",
+    heading: "Build your own — on YOUR Claude, right now.",
+    lines: [
+      "1 — Your phone has a COPY button on it right now. Tap it.",
+      "2 — Open the free Claude app (or claude.ai) and paste into a new chat.",
+      "3 — It interviews YOU — six questions — then becomes your assistant. Take it for a sparring round.",
+    ],
+    cue: "The head-on-fire moment. Give it four full minutes. Walk the room. When the first person's assistant introduces itself by name, have them read it out loud.",
+  },
+  {
     id: "playbook",
     kind: "content",
     eyebrow: "Builder",

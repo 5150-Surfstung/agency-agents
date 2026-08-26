@@ -1,31 +1,41 @@
-// One store interface, two homes. Memory carries dev and any single-node
-// deploy; Supabase carries serverless, where lambdas share nothing. The
-// selector is env-presence — no config flag to forget.
+// One store interface, two homes. Memory carries local dev; the database
+// carries production — reached ONLY through security-definer functions, so
+// the app ships zero secrets: every call proves itself with the key a human
+// typed (room PIN for attendees, presenter key for the console), checked
+// inside Postgres against the sealed live_config row.
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { presenterKey, roomPin } from "./room";
 import type { Lead, Pack, PollState, RoomState, ToolEvent, Vote } from "./types";
 
+export type Role = "presenter" | "attendee" | null;
+
 export interface Store {
-  getState(): Promise<RoomState>;
-  setState(step: number, pollState: PollState): Promise<void>;
+  backend(): "memory" | "supabase";
+  checkKey(key: string): Promise<Role>;
+
+  getState(key: string): Promise<RoomState>;
+  setState(key: string, step: number, pollState: PollState): Promise<void>;
 
   /** Upsert — a device may change its vote while the poll is open. */
-  castVote(v: Vote): Promise<void>;
-  getVote(pollKey: string, deviceId: string): Promise<number | null>;
-  tally(pollKey: string, optionCount: number): Promise<number[]>;
+  castVote(key: string, v: Vote): Promise<void>;
+  getVote(key: string, pollKey: string, deviceId: string): Promise<number | null>;
+  tally(key: string, pollKey: string, optionCount: number): Promise<number[]>;
 
-  addLead(l: Lead): Promise<void>;
-  listLeads(): Promise<Lead[]>;
+  addLead(key: string, l: Lead): Promise<void>;
+  listLeads(key: string): Promise<Lead[]>;
+  deleteLead(key: string, deviceId: string): Promise<void>;
 
-  addToolEvent(e: ToolEvent): Promise<void>;
-  deviceToolCount(deviceId: string, sinceMs: number): Promise<number>;
-  totalSpendUsd(): Promise<number>;
+  addToolEvent(key: string, e: ToolEvent): Promise<void>;
+  deviceToolCount(key: string, deviceId: string, sinceMs: number): Promise<number>;
+  totalSpendUsd(key: string): Promise<number>;
 
   /** Presence: called on every state poll; counted for the HUD. */
-  touchDevice(deviceId: string): Promise<void>;
-  activeDevices(withinMs: number): Promise<number>;
+  touchDevice(key: string, deviceId: string): Promise<void>;
+  activeDevices(key: string, withinMs: number): Promise<number>;
 
-  savePack(p: Pack): Promise<void>;
+  savePack(key: string, p: Pack): Promise<void>;
+  /** Pack pages are the product an agent keeps — public read by code. */
   getPack(code: string): Promise<Pack | null>;
 }
 
@@ -37,28 +47,36 @@ class MemoryStore implements Store {
   private leads: Lead[] = [];
   private events: ToolEvent[] = [];
   private seen = new Map<string, number>();
+  private packs = new Map<string, Pack>();
 
+  backend() {
+    return "memory" as const;
+  }
+  async checkKey(key: string): Promise<Role> {
+    if (key === presenterKey()) return "presenter";
+    if (key === roomPin()) return "attendee";
+    return null;
+  }
   async getState() {
     return this.state;
   }
-  async setState(step: number, pollState: PollState) {
+  async setState(_key: string, step: number, pollState: PollState) {
     this.state = { step, pollState, updatedAt: Date.now() };
   }
-  async castVote(v: Vote) {
+  async castVote(_key: string, v: Vote) {
     this.votes.set(`${v.pollKey}:${v.deviceId}`, v);
   }
-  async getVote(pollKey: string, deviceId: string) {
+  async getVote(_key: string, pollKey: string, deviceId: string) {
     return this.votes.get(`${pollKey}:${deviceId}`)?.choice ?? null;
   }
-  async tally(pollKey: string, optionCount: number) {
+  async tally(_key: string, pollKey: string, optionCount: number) {
     const counts = new Array<number>(optionCount).fill(0);
     for (const v of this.votes.values()) {
       if (v.pollKey === pollKey && v.choice >= 0 && v.choice < optionCount) counts[v.choice]++;
     }
     return counts;
   }
-  async addLead(l: Lead) {
-    // One lead per device — a resubmit updates rather than duplicates.
+  async addLead(_key: string, l: Lead) {
     const i = this.leads.findIndex((x) => x.deviceId === l.deviceId);
     if (i >= 0) this.leads[i] = l;
     else this.leads.push(l);
@@ -66,27 +84,29 @@ class MemoryStore implements Store {
   async listLeads() {
     return [...this.leads].sort((a, b) => b.at - a.at);
   }
-  async addToolEvent(e: ToolEvent) {
+  async deleteLead(_key: string, deviceId: string) {
+    this.leads = this.leads.filter((l) => l.deviceId !== deviceId);
+  }
+  async addToolEvent(_key: string, e: ToolEvent) {
     this.events.push(e);
   }
-  async deviceToolCount(deviceId: string, sinceMs: number) {
+  async deviceToolCount(_key: string, deviceId: string, sinceMs: number) {
     const cutoff = Date.now() - sinceMs;
     return this.events.filter((e) => e.deviceId === deviceId && e.at >= cutoff).length;
   }
   async totalSpendUsd() {
     return this.events.reduce((s, e) => s + e.costUsd, 0);
   }
-  async touchDevice(deviceId: string) {
+  async touchDevice(_key: string, deviceId: string) {
     this.seen.set(deviceId, Date.now());
   }
-  async activeDevices(withinMs: number) {
+  async activeDevices(_key: string, withinMs: number) {
     const cutoff = Date.now() - withinMs;
     let n = 0;
     for (const t of this.seen.values()) if (t >= cutoff) n++;
     return n;
   }
-  private packs = new Map<string, Pack>();
-  async savePack(p: Pack) {
+  async savePack(_key: string, p: Pack) {
     this.packs.set(p.code, p);
   }
   async getPack(code: string) {
@@ -94,85 +114,64 @@ class MemoryStore implements Store {
   }
 }
 
-// -------------------------------------------------------------- supabase
+// ------------------------------------------------------------------ rpc
 
-const ROOM = "big-reveal"; // single-room product; the slug scopes every row
-
-class SupabaseStore implements Store {
+class RpcStore implements Store {
   constructor(private sb: SupabaseClient) {}
 
-  async getState(): Promise<RoomState> {
-    const { data } = await this.sb
-      .from("live_state")
-      .select("step, poll_state, updated_at")
-      .eq("room", ROOM)
-      .maybeSingle();
-    if (!data) return { step: 0, pollState: "closed", updatedAt: Date.now() };
-    return {
-      step: data.step,
-      pollState: data.poll_state as PollState,
-      updatedAt: new Date(data.updated_at).getTime(),
-    };
+  backend() {
+    return "supabase" as const;
   }
-  async setState(step: number, pollState: PollState) {
-    await this.sb
-      .from("live_state")
-      .upsert({ room: ROOM, step, poll_state: pollState, updated_at: new Date().toISOString() });
+
+  private async call<T>(fn: string, args: Record<string, unknown>): Promise<T> {
+    const { data, error } = await this.sb.rpc(fn, args);
+    if (error) throw new Error(`${fn}: ${error.message}`);
+    return data as T;
   }
-  async castVote(v: Vote) {
-    await this.sb.from("live_votes").upsert(
-      {
-        room: ROOM,
-        poll_key: v.pollKey,
-        device_id: v.deviceId,
-        choice: v.choice,
-        at: new Date(v.at).toISOString(),
-      },
-      { onConflict: "room,poll_key,device_id" }
-    );
+
+  async checkKey(key: string): Promise<Role> {
+    const role = await this.call<string | null>("live_check_key", { p_key: key });
+    return role === "presenter" || role === "attendee" ? role : null;
   }
-  async getVote(pollKey: string, deviceId: string) {
-    const { data } = await this.sb
-      .from("live_votes")
-      .select("choice")
-      .eq("room", ROOM)
-      .eq("poll_key", pollKey)
-      .eq("device_id", deviceId)
-      .maybeSingle();
-    return data?.choice ?? null;
+  async getState(key: string): Promise<RoomState> {
+    const rows = await this.call<{ step: number; poll_state: string }[]>("live_state_get", { p_key: key });
+    const r = rows?.[0];
+    if (!r) return { step: 0, pollState: "closed", updatedAt: Date.now() };
+    return { step: r.step, pollState: r.poll_state as PollState, updatedAt: Date.now() };
   }
-  async tally(pollKey: string, optionCount: number) {
-    const { data } = await this.sb
-      .from("live_votes")
-      .select("choice")
-      .eq("room", ROOM)
-      .eq("poll_key", pollKey);
+  async setState(key: string, step: number, pollState: PollState) {
+    await this.call("live_state_set", { p_key: key, p_step: step, p_poll_state: pollState });
+  }
+  async castVote(key: string, v: Vote) {
+    await this.call("live_vote_cast", { p_key: key, p_device: v.deviceId, p_poll: v.pollKey, p_choice: v.choice });
+  }
+  async getVote(key: string, pollKey: string, deviceId: string) {
+    const v = await this.call<number | null>("live_vote_get", { p_key: key, p_device: deviceId, p_poll: pollKey });
+    return typeof v === "number" ? v : null;
+  }
+  async tally(key: string, pollKey: string, optionCount: number) {
+    const rows = await this.call<{ choice: number; n: number }[]>("live_tally", { p_key: key, p_poll: pollKey });
     const counts = new Array<number>(optionCount).fill(0);
-    for (const row of data ?? []) {
-      if (row.choice >= 0 && row.choice < optionCount) counts[row.choice]++;
+    for (const r of rows ?? []) {
+      if (r.choice >= 0 && r.choice < optionCount) counts[r.choice] = Number(r.n);
     }
     return counts;
   }
-  async addLead(l: Lead) {
-    await this.sb.from("live_leads").upsert(
-      {
-        room: ROOM,
-        device_id: l.deviceId,
-        name: l.name,
-        cell: l.cell,
-        rung: l.rung,
-        at: new Date(l.at).toISOString(),
-      },
-      { onConflict: "room,device_id" }
-    );
+  async addLead(key: string, l: Lead) {
+    await this.call("live_lead_add", {
+      p_key: key,
+      p_device: l.deviceId,
+      p_name: l.name,
+      p_cell: l.cell,
+      p_rung: l.rung,
+    });
   }
-  async listLeads(): Promise<Lead[]> {
-    const { data } = await this.sb
-      .from("live_leads")
-      .select("device_id, name, cell, rung, at")
-      .eq("room", ROOM)
-      .order("at", { ascending: false });
-    return (data ?? []).map((r) => ({
+  async listLeads(key: string): Promise<Lead[]> {
+    const rows = await this.call<{ device_id: string; name: string; cell: string; rung: string; at: string }[]>(
+      "live_leads_list",
+      { p_key: key }
+    );
+    return (rows ?? []).map((r) => ({
       deviceId: r.device_id,
       name: r.name,
       cell: r.cell,
@@ -180,79 +179,79 @@ class SupabaseStore implements Store {
       at: new Date(r.at).getTime(),
     }));
   }
-  async addToolEvent(e: ToolEvent) {
-    await this.sb.from("live_tool_events").insert({
-      room: ROOM,
-      device_id: e.deviceId,
-      tool: e.tool,
-      in_tokens: e.inTokens,
-      out_tokens: e.outTokens,
-      cost_usd: e.costUsd,
-      at: new Date(e.at).toISOString(),
+  async deleteLead(key: string, deviceId: string) {
+    await this.call("live_lead_delete", { p_key: key, p_device: deviceId });
+  }
+  async addToolEvent(key: string, e: ToolEvent) {
+    await this.call("live_tool_event_add", {
+      p_key: key,
+      p_device: e.deviceId,
+      p_tool: e.tool,
+      p_in: e.inTokens,
+      p_out: e.outTokens,
+      p_cost: e.costUsd,
     });
   }
-  async deviceToolCount(deviceId: string, sinceMs: number) {
-    const cutoff = new Date(Date.now() - sinceMs).toISOString();
-    const { count } = await this.sb
-      .from("live_tool_events")
-      .select("*", { count: "exact", head: true })
-      .eq("room", ROOM)
-      .eq("device_id", deviceId)
-      .gte("at", cutoff);
-    return count ?? 0;
+  async deviceToolCount(key: string, deviceId: string, sinceMs: number) {
+    const n = await this.call<number>("live_tool_count", {
+      p_key: key,
+      p_device: deviceId,
+      p_seconds: Math.max(1, Math.round(sinceMs / 1000)),
+    });
+    return Number(n) || 0;
   }
-  async totalSpendUsd() {
-    const { data } = await this.sb.from("live_tool_events").select("cost_usd").eq("room", ROOM);
-    return (data ?? []).reduce((s, r) => s + Number(r.cost_usd || 0), 0);
+  async totalSpendUsd(key: string) {
+    const s = await this.call<number>("live_spend", { p_key: key });
+    return Number(s) || 0;
   }
-  async touchDevice(deviceId: string) {
-    await this.sb
-      .from("live_presence")
-      .upsert({ room: ROOM, device_id: deviceId, at: new Date().toISOString() }, { onConflict: "room,device_id" });
+  async touchDevice(key: string, deviceId: string) {
+    await this.call("live_touch", { p_key: key, p_device: deviceId });
   }
-  async activeDevices(withinMs: number) {
-    const cutoff = new Date(Date.now() - withinMs).toISOString();
-    const { count } = await this.sb
-      .from("live_presence")
-      .select("*", { count: "exact", head: true })
-      .eq("room", ROOM)
-      .gte("at", cutoff);
-    return count ?? 0;
+  async activeDevices(key: string, withinMs: number) {
+    const n = await this.call<number>("live_active", {
+      p_key: key,
+      p_seconds: Math.max(1, Math.round(withinMs / 1000)),
+    });
+    return Number(n) || 0;
   }
-  async savePack(p: Pack) {
-    await this.sb.from("live_packs").upsert({
-      code: p.code,
-      room: ROOM,
-      device_id: p.deviceId,
-      name: p.name,
-      brokerage: p.brokerage,
-      area: p.area,
-      specialty: p.specialty,
-      tone: p.tone,
-      created_at: new Date(p.createdAt).toISOString(),
+  async savePack(key: string, p: Pack) {
+    await this.call("live_pack_save", {
+      p_key: key,
+      p_code: p.code,
+      p_device: p.deviceId,
+      p_name: p.name,
+      p_brokerage: p.brokerage,
+      p_area: p.area,
+      p_specialty: p.specialty,
+      p_tone: p.tone,
     });
   }
   async getPack(code: string): Promise<Pack | null> {
-    const { data } = await this.sb
-      .from("live_packs")
-      .select("code, device_id, name, brokerage, area, specialty, tone, created_at")
-      .eq("code", code)
-      .maybeSingle();
-    if (!data) return null;
+    const rows = await this.call<
+      { code: string; device_id: string; name: string; brokerage: string; area: string; specialty: string; tone: string; created_at: string }[]
+    >("live_pack_get", { p_code: code });
+    const r = rows?.[0];
+    if (!r) return null;
     return {
-      code: data.code,
-      deviceId: data.device_id,
-      name: data.name,
-      brokerage: data.brokerage,
-      area: data.area,
-      specialty: data.specialty,
-      tone: data.tone,
-      createdAt: new Date(data.created_at).getTime(),
+      code: r.code,
+      deviceId: r.device_id,
+      name: r.name,
+      brokerage: r.brokerage,
+      area: r.area,
+      specialty: r.specialty,
+      tone: r.tone as Pack["tone"],
+      createdAt: new Date(r.created_at).getTime(),
     };
   }
 }
 
 // -------------------------------------------------------------- selector
+
+// The Supabase URL and anon key are publishable by design — safe as defaults.
+// They only kick in on Vercel; local dev stays on memory unless env says so.
+const DEFAULT_SUPABASE_URL = "https://iwotispqqcnkrbcnvozq.supabase.co";
+const DEFAULT_SUPABASE_ANON =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3b3Rpc3BxcWNua3JiY252b3pxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5ODk5MTQsImV4cCI6MjA5NzU2NTkxNH0.cnvrHhZkrygCNuxMQitqsS9TBqC_1Uy0h6ymh9jmppY";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -261,20 +260,12 @@ declare global {
 
 export function getStore(): Store {
   if (!globalThis.__eaStore) {
-    const url = process.env.SUPABASE_URL;
-    // Service-role key when we have it; otherwise the anon key paired with the
-    // x-ea-secret header that the RLS policies demand. Either way the browser
-    // never talks to Supabase — only this server does.
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
-    const dbSecret = process.env.LIVE_DB_SECRET;
+    const onVercel = Boolean(process.env.VERCEL);
+    const url = process.env.SUPABASE_URL || (onVercel ? DEFAULT_SUPABASE_URL : undefined);
+    const key = process.env.SUPABASE_ANON_KEY || (onVercel ? DEFAULT_SUPABASE_ANON : undefined);
     globalThis.__eaStore =
       url && key
-        ? new SupabaseStore(
-            createClient(url, key, {
-              auth: { persistSession: false },
-              global: dbSecret ? { headers: { "x-ea-secret": dbSecret } } : undefined,
-            })
-          )
+        ? new RpcStore(createClient(url, key, { auth: { persistSession: false } }))
         : new MemoryStore();
   }
   return globalThis.__eaStore;

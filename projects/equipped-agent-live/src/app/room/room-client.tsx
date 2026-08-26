@@ -11,6 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Arcade } from "./arcade";
+import { SeedScreen } from "./seed-screen";
 
 interface StatePayload {
   ok: boolean;
@@ -214,6 +215,9 @@ export function RoomClient() {
             </div>
           )}
         </section>
+      ) : slide.kind === "seed" ? (
+        /* ——— The seed: build your own, on your own Claude ——— */
+        <SeedScreen />
       ) : state.arcadeOpen ? (
         /* ——— Arcade ——— */
         <Arcade engineOnline={state.engineOnline} />

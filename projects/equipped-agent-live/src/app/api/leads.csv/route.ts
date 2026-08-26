@@ -1,7 +1,6 @@
 // The night's leads as a CSV — one click from the console drawer.
 
 import { NextRequest, NextResponse } from "next/server";
-import { isPresenter } from "@/lib/room";
 import { getStore } from "@/lib/store";
 
 function esc(v: string): string {
@@ -9,21 +8,27 @@ function esc(v: string): string {
 }
 
 export async function GET(req: NextRequest) {
-  if (!isPresenter(req.nextUrl.searchParams.get("key"))) {
-    return NextResponse.json({ ok: false, error: "not_presenter" }, { status: 401 });
+  const key = req.nextUrl.searchParams.get("key");
+  try {
+    const store = getStore();
+    if (!key || (await store.checkKey(key)) !== "presenter") {
+      return NextResponse.json({ ok: false, error: "not_presenter" }, { status: 401 });
+    }
+
+    const leads = await store.listLeads(key);
+    const rows = [
+      "name,cell,next_step,captured_at",
+      ...leads.map((l) => [esc(l.name), esc(l.cell), esc(l.rung), new Date(l.at).toISOString()].join(",")),
+    ].join("\n");
+
+    return new NextResponse(rows, {
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="equipped-agent-leads.csv"`,
+        "Cache-Control": "no-store",
+      },
+    });
+  } catch {
+    return NextResponse.json({ ok: false, error: "store_error" }, { status: 502 });
   }
-
-  const leads = await getStore().listLeads();
-  const rows = [
-    "name,cell,next_step,captured_at",
-    ...leads.map((l) => [esc(l.name), esc(l.cell), esc(l.rung), new Date(l.at).toISOString()].join(",")),
-  ].join("\n");
-
-  return new NextResponse(rows, {
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="equipped-agent-leads.csv"`,
-      "Cache-Control": "no-store",
-    },
-  });
 }

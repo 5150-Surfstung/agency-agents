@@ -34,6 +34,7 @@ export type ArcadeResult =
   | { ok: false; reason: "offline" | "device_cap" | "room_cap" | "error" };
 
 export async function runArcadeTurn(opts: {
+  roomKey: string;
   deviceId: string;
   tool: "listing" | "sparring" | "mine";
   system: string;
@@ -44,8 +45,8 @@ export async function runArcadeTurn(opts: {
   const store = getStore();
   // Caps first — a call that shouldn't happen is cheaper never made.
   const [deviceCount, spend] = await Promise.all([
-    store.deviceToolCount(opts.deviceId, 24 * 60 * 60 * 1000),
-    store.totalSpendUsd(),
+    store.deviceToolCount(opts.roomKey, opts.deviceId, 24 * 60 * 60 * 1000),
+    store.totalSpendUsd(opts.roomKey),
   ]);
   if (deviceCount >= deviceMsgCap()) return { ok: false, reason: "device_cap" };
   if (spend >= spendCapUsd()) return { ok: false, reason: "room_cap" };
@@ -70,7 +71,7 @@ export async function runArcadeTurn(opts: {
     const rate = PRICING[ARCADE_MODEL];
     const inTokens = resp.usage.input_tokens ?? 0;
     const outTokens = resp.usage.output_tokens ?? 0;
-    await store.addToolEvent({
+    await store.addToolEvent(opts.roomKey, {
       deviceId: opts.deviceId,
       tool: opts.tool,
       inTokens,

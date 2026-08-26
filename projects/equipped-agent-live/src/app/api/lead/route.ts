@@ -3,12 +3,12 @@
 // is the same one the hour teaches: first reply before the room empties.
 
 import { NextRequest, NextResponse } from "next/server";
-import { deviceFromCookies } from "@/lib/room";
+import { sessionFromCookies } from "@/lib/room";
 import { getStore } from "@/lib/store";
 
 export async function POST(req: NextRequest) {
-  const deviceId = await deviceFromCookies();
-  if (!deviceId) return NextResponse.json({ ok: false, error: "join_first" }, { status: 401 });
+  const sess = await sessionFromCookies();
+  if (!sess) return NextResponse.json({ ok: false, error: "join_first" }, { status: 401 });
 
   let name = "";
   let cell = "";
@@ -26,6 +26,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "need_name_and_cell" }, { status: 400 });
   }
 
-  await getStore().addLead({ deviceId, name, cell, rung, at: Date.now() });
-  return NextResponse.json({ ok: true });
+  try {
+    await getStore().addLead(sess.roomKey, { deviceId: sess.deviceId, name, cell, rung, at: Date.now() });
+    return NextResponse.json({ ok: true });
+  } catch {
+    // A lead that didn't persist must never look captured.
+    return NextResponse.json({ ok: false, error: "store_error" }, { status: 502 });
+  }
 }

@@ -6,14 +6,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { runArcadeTurn, type ChatMsg } from "@/lib/ai";
 import { ARCADE_FROM_STEP } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
-import { deviceFromCookies } from "@/lib/room";
+import { sessionFromCookies } from "@/lib/room";
 import { getStore } from "@/lib/store";
 
 export async function POST(req: NextRequest) {
-  const deviceId = await deviceFromCookies();
-  if (!deviceId) return NextResponse.json({ ok: false, error: "join_first" }, { status: 401 });
+  const sess = await sessionFromCookies();
+  if (!sess) return NextResponse.json({ ok: false, error: "join_first" }, { status: 401 });
 
-  const state = await getStore().getState();
+  const state = await getStore().getState(sess.roomKey);
   if (state.step < ARCADE_FROM_STEP) {
     return NextResponse.json({ ok: false, error: "arcade_locked" }, { status: 409 });
   }
@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
   }
 
   const result = await runArcadeTurn({
-    deviceId,
+    roomKey: sess.roomKey,
+    deviceId: sess.deviceId,
     tool: "listing",
     system: listingAssistantSystem(facts, agentLabel),
     messages,

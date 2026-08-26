@@ -14,7 +14,7 @@ export interface PollDef {
 
 export interface Slide {
   id: string;
-  kind: "title" | "content" | "demo" | "poll" | "arcade" | "close";
+  kind: "title" | "content" | "demo" | "poll" | "arcade" | "seed" | "close";
   eyebrow?: string;
   heading: string;
   lines?: string[];

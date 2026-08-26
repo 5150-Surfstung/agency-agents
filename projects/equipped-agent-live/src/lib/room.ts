@@ -1,5 +1,7 @@
-// Room auth. Attendees: PIN once → signed device cookie, no accounts, no
-// passwords (house rule). Presenter: a key in the URL they already have.
+// Room auth. Attendees: PIN once → signed device cookie that also carries the
+// key they joined with, so every later request can prove itself to the
+// database's gated functions. No accounts, no passwords (house rule).
+// Presenter: a key in the URL they already have.
 
 import { createHmac, randomUUID, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
@@ -10,6 +12,8 @@ function secret(): string {
   return process.env.LIVE_SESSION_SECRET || "dev-only-secret";
 }
 
+/** Local/dev fallbacks — in production the database's live_config row is the
+ *  single source of truth, consulted through Store.checkKey. */
 export function roomPin(): string {
   return process.env.LIVE_ROOM_PIN || "1054";
 }
@@ -18,47 +22,44 @@ export function presenterKey(): string {
   return process.env.LIVE_PRESENTER_KEY || "dev-presenter";
 }
 
-function sign(deviceId: string): string {
-  return createHmac("sha256", secret()).update(deviceId).digest("hex").slice(0, 32);
+function mac(payload: string): string {
+  return createHmac("sha256", secret()).update(payload).digest("hex").slice(0, 32);
 }
 
-export function mintSession(): { deviceId: string; cookieValue: string } {
+export interface RoomSession {
+  deviceId: string;
+  /** The key this device joined with — passed to the DB's gated functions. */
+  roomKey: string;
+}
+
+export function mintSession(roomKey: string): { deviceId: string; cookieValue: string } {
   const deviceId = randomUUID();
-  return { deviceId, cookieValue: `${deviceId}.${sign(deviceId)}` };
+  const keyB64 = Buffer.from(roomKey, "utf8").toString("base64url");
+  return { deviceId, cookieValue: `v2.${deviceId}.${keyB64}.${mac(`${deviceId}.${keyB64}`)}` };
 }
 
 export function sessionCookieName(): string {
   return COOKIE;
 }
 
-/** Returns the deviceId for a valid session cookie, else null. */
-export async function deviceFromCookies(): Promise<string | null> {
+/** Returns the session for a valid cookie, else null. */
+export async function sessionFromCookies(): Promise<RoomSession | null> {
   const jar = await cookies();
   const raw = jar.get(COOKIE)?.value;
   if (!raw) return null;
-  const dot = raw.lastIndexOf(".");
-  if (dot <= 0) return null;
-  const deviceId = raw.slice(0, dot);
-  const mac = raw.slice(dot + 1);
-  const expect = sign(deviceId);
-  if (mac.length !== expect.length) return null;
+  const parts = raw.split(".");
+  if (parts.length !== 4 || parts[0] !== "v2") return null;
+  const [, deviceId, keyB64, gotMac] = parts;
+  const expect = mac(`${deviceId}.${keyB64}`);
+  if (gotMac.length !== expect.length) return null;
   try {
-    if (!timingSafeEqual(Buffer.from(mac), Buffer.from(expect))) return null;
+    if (!timingSafeEqual(Buffer.from(gotMac), Buffer.from(expect))) return null;
   } catch {
     return null;
   }
-  return deviceId;
-}
-
-export function isPresenter(key: string | null | undefined): boolean {
-  if (!key) return false;
-  const expect = presenterKey();
-  const a = Buffer.from(key);
-  const b = Buffer.from(expect);
-  if (a.length !== b.length) return false;
   try {
-    return timingSafeEqual(a, b);
+    return { deviceId, roomKey: Buffer.from(keyB64, "base64url").toString("utf8") };
   } catch {
-    return false;
+    return null;
   }
 }

@@ -106,7 +106,7 @@ r = await phones[0]("/api/state");
 check("arcadeOpen false early", r.body.arcadeOpen === false);
 
 // Jump to the ladder poll, run the capture flow.
-const ladderStep = 11;
+const ladderStep = 12; // seed slide sits at 9; ladder moved down one
 snap = await control("goto", ladderStep);
 check("on ladder slide", snap.step === ladderStep);
 r = await phones[0]("/api/state");

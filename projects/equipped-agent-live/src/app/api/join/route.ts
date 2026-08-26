@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mintSession, roomPin, sessionCookieName } from "@/lib/room";
+import { mintSession, sessionCookieName } from "@/lib/room";
+import { getStore } from "@/lib/store";
 
 export async function POST(req: NextRequest) {
   let pin = "";
@@ -10,11 +11,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
   }
 
-  if (pin !== roomPin()) {
+  // The database (or local defaults in dev) is the judge — the app holds no pin.
+  let role = null;
+  try {
+    role = await getStore().checkKey(pin);
+  } catch {
+    return NextResponse.json({ ok: false, error: "store_unreachable" }, { status: 502 });
+  }
+  if (!role) {
     return NextResponse.json({ ok: false, error: "wrong_pin" }, { status: 401 });
   }
 
-  const { cookieValue } = mintSession();
+  const { cookieValue } = mintSession(pin);
   const res = NextResponse.json({ ok: true });
   res.cookies.set(sessionCookieName(), cookieValue, {
     httpOnly: true,

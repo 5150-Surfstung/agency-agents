@@ -4,7 +4,7 @@
 
 import { randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { deviceFromCookies } from "@/lib/room";
+import { sessionFromCookies } from "@/lib/room";
 import { getStore } from "@/lib/store";
 import type { Pack } from "@/lib/types";
 
@@ -18,8 +18,8 @@ function mintCode(): string {
 }
 
 export async function POST(req: NextRequest) {
-  const deviceId = await deviceFromCookies();
-  if (!deviceId) return NextResponse.json({ ok: false, error: "join_first" }, { status: 401 });
+  const sess = await sessionFromCookies();
+  if (!sess) return NextResponse.json({ ok: false, error: "join_first" }, { status: 401 });
 
   let name = "";
   let brokerage = "";
@@ -39,21 +39,29 @@ export async function POST(req: NextRequest) {
 
   if (!name) return NextResponse.json({ ok: false, error: "need_name" }, { status: 400 });
 
-  const store = getStore();
-  // A tiny mint-collision loop; 31^6 codes makes a second pass vanishingly rare.
-  let code = mintCode();
-  for (let i = 0; i < 3 && (await store.getPack(code)); i++) code = mintCode();
+  try {
+    const store = getStore();
+    // A tiny mint-collision loop; 31^6 codes makes a second pass vanishingly rare.
+    let code = mintCode();
+    for (let i = 0; i < 3 && (await store.getPack(code)); i++) code = mintCode();
 
-  const pack: Pack = { code, deviceId, name, brokerage, area, specialty, tone, createdAt: Date.now() };
-  await store.savePack(pack);
-  return NextResponse.json({ ok: true, code });
+    const pack: Pack = { code, deviceId: sess.deviceId, name, brokerage, area, specialty, tone, createdAt: Date.now() };
+    await store.savePack(sess.roomKey, pack);
+    return NextResponse.json({ ok: true, code });
+  } catch {
+    return NextResponse.json({ ok: false, error: "store_error" }, { status: 502 });
+  }
 }
 
 export async function GET(req: NextRequest) {
   const code = String(req.nextUrl.searchParams.get("code") ?? "").toUpperCase();
   if (!code) return NextResponse.json({ ok: false, error: "need_code" }, { status: 400 });
-  const pack = await getStore().getPack(code);
-  if (!pack) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
-  const { deviceId: _omit, ...pub } = pack;
-  return NextResponse.json({ ok: true, pack: pub });
+  try {
+    const pack = await getStore().getPack(code);
+    if (!pack) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+    const { deviceId: _omit, ...pub } = pack;
+    return NextResponse.json({ ok: true, pack: pub });
+  } catch {
+    return NextResponse.json({ ok: false, error: "store_error" }, { status: 502 });
+  }
 }
