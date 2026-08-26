@@ -18,6 +18,19 @@ export const DECK: Slide[] = [
     cue: "Doors open. PIN on screen. Phones welcome — they're part of the show.",
   },
   {
+    id: "host",
+    kind: "content",
+    eyebrow: "Your host",
+    heading: "Mike Olson",
+    lines: [
+      "Technology & Innovation Director \u00b7 The Agent Connection",
+      "Inspector \u2192 Agent \u2192 Multifamily \u2192 Technology \u2014 every system tonight was built from inside the business, not sold into it.",
+      "Builder of the tools you're about to watch run live: the neighborhood index, the AI assistant, Track to Keys.",
+      "REALTOR\u00ae \u00b7 eXp Realty",
+    ],
+    cue: "Thirty seconds, first person: crawlspaces taught me what agents miss, multifamily taught me scale, tech taught me leverage. Then straight into the poll.",
+  },
+  {
     id: "poll-time",
     kind: "poll",
     eyebrow: "First — an honest question",
