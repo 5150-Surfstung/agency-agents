@@ -51,3 +51,5 @@ To split this into its own repo later: `git subtree split -P projects/equipped-a
 - Memory-store path: exercised end-to-end by `scripts/walkthrough.mjs`.
 - Supabase-store path: written to the same interface, **not yet run against a live project** — provisioning is a deploy-time step. Exercise the walkthrough against a deployed URL before the first real room.
 - Arcade with a live key: the walkthrough runs grounding checks (states a fact, refuses an unknown) when `ANTHROPIC_API_KEY` is set.
+
+<!-- vercel: linked as the-equipped-agent; previews build from this branch -->
