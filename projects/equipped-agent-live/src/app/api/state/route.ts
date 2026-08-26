@@ -71,9 +71,9 @@ export async function GET() {
       }
     }
 
-    // House score on the stump slide; THE BOARD on board/close slides.
-    let stumpStats: { asked: number; refused: number } | null = null;
-    if (slide.kind === "stump") stumpStats = await store.stumpStats(sess.roomKey);
+    // The room's running score in the build/duel act; THE BOARD at the end.
+    let duelStats: { fired: number; held: number; flagged: number; built: number } | null = null;
+    if (slide.kind === "duel" || slide.kind === "build") duelStats = await store.duelStats(sess.roomKey);
 
     let board: { top: { initials: string; emoji: string; points: number; me: boolean }[]; myPoints: number; myRank: number | null } | null =
       null;
@@ -113,7 +113,7 @@ export async function GET() {
       myVote,
       counts,
       priceReveal,
-      stumpStats,
+      duelStats,
       board,
       engineOnline: engineOnline(),
     });

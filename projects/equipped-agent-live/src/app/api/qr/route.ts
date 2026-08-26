@@ -8,6 +8,31 @@ import QRCode from "qrcode";
 import { getStore } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
+  const proto0 = req.headers.get("x-forwarded-proto") ?? "http";
+  const host0 = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "localhost:3000";
+
+  // ?a=CODE — the QR for an attendee's deployed assistant. Public on purpose:
+  // this is the code that goes on a rider sign, and strangers must be able to
+  // scan it. Only codes that actually exist mint.
+  const code = req.nextUrl.searchParams.get("a");
+  if (code) {
+    try {
+      const a = await getStore().assistantGet(code);
+      if (!a) return NextResponse.json({ ok: false, error: "no_assistant" }, { status: 404 });
+    } catch {
+      return NextResponse.json({ ok: false, error: "store_error" }, { status: 502 });
+    }
+    const png = await QRCode.toBuffer(`${proto0}://${host0}/a/${code.toUpperCase()}`, {
+      type: "png",
+      width: 640,
+      margin: 1,
+      color: { dark: "#071320", light: "#f2efe7" },
+    });
+    return new NextResponse(new Uint8Array(png), {
+      headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=300" },
+    });
+  }
+
   const key = req.nextUrl.searchParams.get("key");
   let pin: string | null = null;
   try {

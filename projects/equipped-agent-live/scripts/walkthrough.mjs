@@ -151,14 +151,63 @@ check("my rank on my phone (AAA = #1)", r.body.priceReveal?.myRank === 1, String
 r = await phones[2]("/api/state");
 check("farthest guess ranks #3", r.body.priceReveal?.myRank === 3, String(r.body.priceReveal?.myRank));
 
-// Stump is gated to its slide; without a key it refuses honestly.
-r = await phones[0]("/api/stump", { method: "POST", body: JSON.stringify({ question: "roof year?" }) });
-check("stump off-slide → 409", r.status === 409);
+// THE TROPHY: each phone deploys a real assistant with a real QR.
 snap = await control("goto", 12);
-if (!process.env.ANTHROPIC_API_KEY) {
-  r = await phones[0]("/api/stump", { method: "POST", body: JSON.stringify({ question: "What year was the roof replaced?" }) });
-  check("stump engine offline → 503 (honest)", r.status === 503);
+check("on the build slide", snap.step === 12);
+r = await phones[0]("/api/assistant", { method: "POST", body: JSON.stringify({ agentName: "A Agent", facts: "too thin" }) });
+check("thin fact sheet refused → 400", r.status === 400 && r.body.error === "need_facts");
+const FACTS = "Address: 42 Marsh Wren Ln\nAsking: $784,000\nBedrooms: 3 · Baths: 2.5 · 2,180 sqft\nBuilt: 2019 · HOA $88/mo\nShowings: Sat-Sun 12-3";
+const codes = [];
+for (let i = 0; i < 2; i++) {
+  r = await phones[i]("/api/assistant", {
+    method: "POST",
+    body: JSON.stringify({
+      agentName: `Agent ${i + 1}`, brokerage: "Test Realty", cell: "843-555-010" + i,
+      headline: `${42 + i} Marsh Wren Ln`, facts: FACTS, voice: i ? "luxury" : "warm",
+    }),
+  });
+  check(`phone ${i + 1} deployed an assistant`, r.status === 200 && typeof r.body.code === "string", JSON.stringify(r.body));
+  codes.push(r.body.code);
 }
+snap = await control("goto", 12);
+check("console counts them live", snap.duelStats?.built === 2, JSON.stringify(snap.duelStats));
+
+// The QR and the public page work with no session at all — that's the point.
+const aqr = await fetch(`${BASE}/api/qr?a=${codes[0]}`);
+check("assistant QR mints publicly", aqr.status === 200 && (aqr.headers.get("content-type") ?? "").includes("image/png"));
+check("QR for a fake code → 404", (await fetch(`${BASE}/api/qr?a=ZZZZZZ`)).status === 404);
+const apub = await fetch(`${BASE}/a/${codes[0]}`);
+const apubHtml = await apub.text();
+check("public assistant page renders cold", apub.status === 200 && apubHtml.includes("42 Marsh Wren Ln"));
+check("owner's cell never reaches the public page", !apubHtml.includes("843-555-0100"));
+check("unknown assistant page → 404", (await fetch(`${BASE}/a/ZZZZZZ`)).status === 404);
+
+// A stranger with no cookie leaves a lead; the owner sees it.
+const slead = await fetch(`${BASE}/api/ask`, {
+  method: "PUT", headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ code: codes[0], name: "Dana Buyer", cell: "843-555-0199", question: "still available?" }),
+});
+check("stranger leaves a lead", slead.status === 200);
+check("lead on a fake code → 404", (await fetch(`${BASE}/api/ask`, {
+  method: "PUT", headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ code: "ZZZZZZ", name: "x", cell: "y" }),
+})).status === 404);
+r = await phones[0]("/api/assistant");
+check("owner sees their assistant + lead", r.body.assistant?.code === codes[0] && r.body.leads?.length === 1);
+
+// THE DUEL: you can only shoot at somebody else's, and only when it's open.
+r = await phones[0]("/api/ask", { method: "POST", body: JSON.stringify({ code: codes[1], question: "roof year?", duel: true }) });
+check("duel shot off-slide → 409", r.status === 409);
+snap = await control("goto", 13);
+check("on the duel slide", snap.step === 13);
+r = await phones[0]("/api/duel");
+check("roster excludes my own assistant", (r.body.roster ?? []).every((x) => x.code !== codes[0]) && (r.body.roster ?? []).some((x) => x.code === codes[1]), JSON.stringify(r.body.roster));
+if (!process.env.ANTHROPIC_API_KEY) {
+  r = await phones[0]("/api/ask", { method: "POST", body: JSON.stringify({ code: codes[1], question: "roof year?", duel: true }) });
+  check("duel engine offline → 503 (honest)", r.status === 503);
+}
+r = await phones[0]("/api/duel", { method: "POST", body: JSON.stringify({ attackId: 999999 }) });
+check("flagging works only on real shots", r.status === 200 || r.status === 502);
 
 // Leaderboard: self-reported ring scores.
 snap = await control("goto", 15);
@@ -169,19 +218,19 @@ check("1-letter initials → 400", r.status === 400);
 snap = await control("goto", 15);
 check("ring board shows MO 9/10", (snap.scoreboard ?? []).some((s) => s.initials === "MO" && s.best === 9));
 
-// THE BOARD: AAA = time 10 + price1 10 + podium 100 + ring 90 = 210.
+// THE BOARD: AAA = time 10 + price1 10 + podium 100 + built 25 + ring 90 = 235.
 check(
-  "THE BOARD crowns AAA at 210",
-  (snap.standings ?? [])[0]?.initials === "AAA" && (snap.standings ?? [])[0]?.points === 210,
+  "THE BOARD crowns AAA at 235",
+  (snap.standings ?? [])[0]?.initials === "AAA" && (snap.standings ?? [])[0]?.points === 235,
   JSON.stringify((snap.standings ?? []).slice(0, 3))
 );
 check("THE BOARD lists all three jerseys", (snap.standings ?? []).length === 3);
 r = await phones[0]("/api/state");
-check("phone sees its own rank and points", r.body.board?.myRank === 1 && r.body.board?.myPoints === 210,
+check("phone sees its own rank and points", r.body.board?.myRank === 1 && r.body.board?.myPoints === 235,
   JSON.stringify(r.body.board));
 
 // Jump to the ladder poll, run the capture flow.
-const ladderStep = 18; // host 1 · comfort 2 · using 3 · floor 4 · time 5 · price 9 · stump 12 · seed 14 · board 15 · ladder 18
+const ladderStep = 18; // comfort 2 · using 3 · floor 4 · time 5 · price 9 · build 12 · duel 13 · board 15 · ladder 18
 snap = await control("goto", ladderStep);
 check("on ladder slide", snap.step === ladderStep);
 check("ladder opens on arrival", snap.pollState === "open", snap.pollState);

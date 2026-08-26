@@ -196,16 +196,28 @@ export const DECK: Slide[] = [
     cue: "SWITCH TO: live assistant. Audience scans, asks, watch the SMS land. Phone on loud. Sean can Break In from the console.",
   },
   {
-    id: "stump",
-    kind: "stump",
-    eyebrow: "Game two \u00b7 The room vs. the house",
-    heading: "Stump the assistant.",
+    id: "build",
+    kind: "build",
+    eyebrow: "Phones out \u00b7 ninety seconds",
+    heading: "Now build YOUR listing's assistant.",
     lines: [
-      "Your phones can now interrogate the listing's assistant. It knows ONLY the fact sheet.",
-      "Make it guess \u2014 just once \u2014 and the room wins. Every honest refusal is a point for the house.",
-      "Best question on the big screen gets called out by name.",
+      "Paste a real fact sheet \u2014 your listing, your pocket listing, or the demo one on screen.",
+      "Pick your voice. Tap Deploy. You get a live web page and a QR code that is yours.",
+      "Put it on a rider tomorrow morning. It answers at 11pm and it never invents a fact.",
     ],
-    cue: "The wager, out loud: 'If ANYONE makes it invent a fact tonight, lunch is on me.' Refusal counter runs big on this screen; every question shows the asker's jersey. If the engine key isn't loaded, this slide says so honestly \u2014 skip it.",
+    cue: "THE TROPHY MOMENT \u2014 give it five full minutes and WALK THE ROOM. This is not a prompt they could have typed: it is a deployed page with their name on it and a QR they can print tonight. Watch the built counter climb on this screen. When the first one lands, put their QR on the projector and scan it yourself from the stage.",
+  },
+  {
+    id: "duel",
+    kind: "duel",
+    eyebrow: "Game two \u00b7 the room vs. the room",
+    heading: "Now try to break each other's.",
+    lines: [
+      "Pick somebody else's assistant. Ask it something their fact sheet does not cover.",
+      "Every honest refusal is +15 to the agent who BUILT it \u2014 defending yours is the skill.",
+      "Think you made one invent something? Hit I BROKE IT and I'll rule on it from up here.",
+    ],
+    cue: "The wager out loud: 'if anyone makes one invent a fact tonight, lunch is on me.' Flagged shots land on this screen for you to judge \u2014 award or dismiss from the console. The lesson to say plainly when it holds: the assistant is only as good as the fact sheet behind it, and THAT is the part they control.",
   },
   {
     id: "demo-t2k",
@@ -218,18 +230,6 @@ export const DECK: Slide[] = [
       "The agent sees an attention queue: overdue, waiting-on-others, quiet.",
     ],
     cue: "SWITCH TO: Track to Keys. Run the wizard on a real-shaped deal. Show the client view on a phone.",
-  },
-  {
-    id: "seed",
-    kind: "seed",
-    eyebrow: "Phones and laptops out \u00b7 the one they'll talk about",
-    heading: "Build your own — on YOUR Claude, right now.",
-    lines: [
-      "1 — Your phone has a COPY button on it right now. Tap it.",
-      "2 — Open the free Claude app (or claude.ai) — phone or laptop — and paste into a new chat.",
-      "3 — Five questions in, it shows you your own voice. By the end it names itself, prints your operating card, and hands you three texts you could send tonight.",
-    ],
-    cue: "The head-on-fire moment. Give it FIVE full minutes and walk the room. Two beats to call out loud: when the first person gets their three voice-test texts ('that's YOUR market in three voices — pick one'), and when the first assistant introduces itself by name — have them read the name out. Then: 'now say spar — your board move is waiting.'",
   },
   {
     id: "leaderboard",
@@ -298,16 +298,16 @@ export const DECK: Slide[] = [
   },
 ];
 
-/** The seed moment and everything after it — phones may act on their own. */
-export const SEED_FROM_STEP = DECK.findIndex((s) => s.kind === "seed");
+/** The build moment and everything after it — phones may act on their own. */
+export const BUILD_FROM_STEP = DECK.findIndex((s) => s.kind === "build");
 
 /** Every real poll/price key in the deck — THE BOARD only counts these. */
 export const ALL_POLL_KEYS = DECK.flatMap((s) => [s.poll?.key, s.price?.key]).filter(
   (k): k is string => typeof k === "string"
 );
 
-/** The fact sheet Stump the Assistant defends. SWAP for a live listing's
- *  sheet before a real room — the game only ever speaks these lines. */
+/** The starter fact sheet on the build slide — for anyone who walks in
+ *  without a listing of their own. Everyone else pastes their real one. */
 export const STUMP_FACTS = `DEMO LISTING (labeled demo on purpose — swap with a live sheet)
 Address: 214 Demo Oak Ln, Johns Island
 Asking price: $612,000

@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DECK } from "@/lib/deck";
-import type { Lead, Player, ScoreRow, StumpEntry } from "@/lib/types";
+import type { Attack, Lead, Player, ScoreRow } from "@/lib/types";
 
 interface Snapshot {
   ok: boolean;
@@ -22,8 +22,8 @@ interface Snapshot {
   priceValues: { value: number; n: number }[] | null;
   aiGuess: { guessK: number; reasoning: string } | null;
   podium: { initials: string; emoji: string; value: number; offBy: number; points: number }[] | null;
-  stumpFeed: StumpEntry[] | null;
-  stumpStats: { asked: number; refused: number } | null;
+  attackFeed: Attack[] | null;
+  duelStats: { fired: number; held: number; flagged: number; built: number } | null;
   scoreboard: ScoreRow[] | null;
   standings: Player[] | null;
   leads: Lead[];
@@ -321,55 +321,73 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
           </div>
         )}
 
-        {/* ——— stump feed ——— */}
-        {slide.kind === "stump" && (
+        {/* ——— the build: a counter that climbs as the room ships ——— */}
+        {slide.kind === "build" && (
+          <div className="rise d2 mt-[3vh] w-full max-w-[90ch]">
+            <div className="flex items-baseline gap-[1.5vw]">
+              <span className="font-[family-name:var(--font-display)] text-[clamp(48px,7vw,120px)] font-bold text-gold-bright">
+                {snap.duelStats?.built ?? 0}
+              </span>
+              <span className="text-[clamp(18px,2vw,34px)] font-semibold text-cream">
+                assistants live in this room
+                <span className="block text-[clamp(13px,1.2vw,19px)] text-faint">
+                  each one a real page, a real QR, a real fact sheet
+                </span>
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* ——— the duel: shots fired at the room's real assistants ——— */}
+        {slide.kind === "duel" && (
           <div className="rise d2 mt-[2vh] w-full max-w-[110ch]">
-            {/* The house score — big, honest, and running. */}
-            {snap.stumpStats && snap.stumpStats.asked > 0 && (
+            {snap.duelStats && snap.duelStats.fired > 0 && (
               <div className="mb-[2vh] flex items-baseline gap-[1.5vw]">
                 <span className="font-[family-name:var(--font-display)] text-[clamp(36px,4.5vw,76px)] font-bold text-gold-bright">
-                  {snap.stumpStats.refused}
+                  {snap.duelStats.held}
                 </span>
                 <span className="text-[clamp(16px,1.7vw,28px)] font-semibold text-cream">
-                  honest refusal{snap.stumpStats.refused === 1 ? "" : "s"} ·{" "}
-                  <span className="text-faint">the house hasn&apos;t guessed once</span>
+                  of {snap.duelStats.fired} shots held the line
+                  {snap.duelStats.flagged > 0 && (
+                    <span className="ml-[1vw] text-clay">· {snap.duelStats.flagged} flagged for your ruling</span>
+                  )}
                 </span>
               </div>
             )}
             <div className="grid grid-cols-1 gap-[1.2vh] lg:grid-cols-2">
-            {!snap.engineOnline && (
-              <p className="rounded-xl border border-clay/60 bg-sheet-2 px-[1.2vw] py-[1.2vh] text-[clamp(14px,1.3vw,20px)] text-clay">
-                Engine key not loaded — this game sits out tonight, honestly.
-              </p>
-            )}
-            {(snap.stumpFeed ?? []).map((e) => (
-              <div
-                key={e.id}
-                className={`stump-in rounded-2xl border px-[1.2vw] py-[1.2vh] ${
-                  e.refused ? "border-gold bg-sheet-2" : "border-rule bg-sheet-2"
-                }`}
-              >
-                <p className="text-[clamp(14px,1.3vw,21px)] font-semibold text-cream">
-                  {(e.initials || e.emoji) && (
-                    <span className="mr-[0.6vw] rounded-full border border-rule bg-sheet px-[0.7vw] py-[0.2vh] text-[clamp(11px,1vw,15px)] font-bold tracking-[0.15em] text-gold-bright">
-                      {e.emoji} {e.initials}
-                    </span>
-                  )}
-                  “{e.question}”
+              {!snap.engineOnline && (
+                <p className="rounded-xl border border-clay/60 bg-sheet-2 px-[1.2vw] py-[1.2vh] text-[clamp(14px,1.3vw,20px)] text-clay">
+                  Engine key not loaded — this game sits out tonight, honestly.
                 </p>
-                <p className="mt-[0.4vh] text-[clamp(13px,1.15vw,18px)] leading-snug text-soft">
-                  {e.answer || "…thinking"}
-                </p>
-                {e.refused && (
-                  <p className="mt-[0.4vh] text-[clamp(11px,0.95vw,15px)] font-bold uppercase tracking-widest text-gold-bright">
-                    honest refusal ✓
+              )}
+              {(snap.attackFeed ?? []).map((e) => (
+                <div
+                  key={e.id}
+                  className={`stump-in rounded-2xl border px-[1.2vw] py-[1.2vh] ${
+                    e.flagged ? "border-clay bg-sheet-2" : e.refused ? "border-gold bg-sheet-2" : "border-rule bg-sheet-2"
+                  }`}
+                >
+                  <p className="text-[clamp(11px,1vw,15px)] font-bold uppercase tracking-wider text-faint">
+                    {e.emoji} {e.initials || "someone"} → {e.agentName}&apos;s assistant
                   </p>
-                )}
-              </div>
-            ))}
-            {snap.engineOnline && (snap.stumpFeed ?? []).length === 0 && (
-              <p className="text-[clamp(15px,1.4vw,22px)] text-faint">Phones are loaded. First question incoming…</p>
-            )}
+                  <p className="mt-[0.3vh] text-[clamp(14px,1.3vw,21px)] font-semibold text-cream">“{e.question}”</p>
+                  <p className="mt-[0.4vh] text-[clamp(13px,1.15vw,18px)] leading-snug text-soft">
+                    {e.answer || "…thinking"}
+                  </p>
+                  {e.flagged ? (
+                    <p className="mt-[0.4vh] text-[clamp(11px,0.95vw,15px)] font-bold uppercase tracking-widest text-clay">
+                      ⚑ claimed broken — your call
+                    </p>
+                  ) : e.refused ? (
+                    <p className="mt-[0.4vh] text-[clamp(11px,0.95vw,15px)] font-bold uppercase tracking-widest text-gold-bright">
+                      held the line ✓
+                    </p>
+                  ) : null}
+                </div>
+              ))}
+              {snap.engineOnline && (snap.attackFeed ?? []).length === 0 && (
+                <p className="text-[clamp(15px,1.4vw,22px)] text-faint">Targets are up. First shot incoming…</p>
+              )}
             </div>
           </div>
         )}

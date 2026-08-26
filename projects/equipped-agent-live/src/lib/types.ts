@@ -33,7 +33,10 @@ export interface PriceDef {
 
 export interface Slide {
   id: string;
-  kind: "title" | "content" | "demo" | "poll" | "price" | "stump" | "arcade" | "seed" | "leaderboard" | "close";
+  kind:
+    | "title" | "content" | "demo" | "poll" | "price"
+    | "build" | "duel"
+    | "stump" | "arcade" | "seed" | "leaderboard" | "close";
   eyebrow?: string;
   heading: string;
   lines?: string[];
@@ -118,4 +121,48 @@ export interface Pack {
   specialty: string;
   tone: "warm" | "luxury" | "energy";
   createdAt: number;
+}
+
+/** THE TROPHY — a real, deployed, branded listing assistant an attendee
+ *  builds in the room. Public by code; the owner's cell stays server-side. */
+export interface Assistant {
+  code: string;
+  agentName: string;
+  brokerage: string;
+  headline: string;
+  facts: string;
+  voice: "warm" | "luxury" | "energy";
+}
+
+/** A rival's assistant, as the duel picker sees it. */
+export interface RosterEntry {
+  code: string;
+  agentName: string;
+  headline: string;
+  initials: string;
+  emoji: string;
+  deviceId: string;
+}
+
+/** One shot fired in the duel. `refused` is read from the reply's own words;
+ *  `flagged` is a human claiming it invented something — judged from stage. */
+export interface Attack {
+  id: number;
+  code: string;
+  agentName: string;
+  question: string;
+  answer: string;
+  refused: boolean;
+  flagged: boolean;
+  initials: string;
+  emoji: string;
+  at: number;
+}
+
+/** A stranger who scanned an attendee's QR and asked a real question. */
+export interface AssistantLead {
+  name: string;
+  cell: string;
+  question: string;
+  at: number;
 }

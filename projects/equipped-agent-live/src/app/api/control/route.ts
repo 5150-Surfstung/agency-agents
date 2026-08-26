@@ -99,11 +99,11 @@ async function snapshot(key: string) {
     if (state.pollState === "revealed") podium = await podiumWithJerseys(key, slide.price);
   }
 
-  let stumpFeed = null;
-  let stumpStats = null;
-  if (slide.kind === "stump") {
-    stumpFeed = await store.stumpList(key, 8);
-    stumpStats = await store.stumpStats(key);
+  let attackFeed = null;
+  let duelStats = null;
+  if (slide.kind === "duel" || slide.kind === "build") {
+    attackFeed = slide.kind === "duel" ? await store.attackList(key, 8) : null;
+    duelStats = await store.duelStats(key);
   }
 
   let scoreboard = null;
@@ -136,8 +136,8 @@ async function snapshot(key: string) {
     priceValues,
     aiGuess,
     podium,
-    stumpFeed,
-    stumpStats,
+    attackFeed,
+    duelStats,
     scoreboard,
     standings,
   };

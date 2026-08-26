@@ -6,15 +6,16 @@
 //   jersey gate   → pick initials + emoji once; the whole night wears it
 //   poll open     → big buttons (+10 on THE BOARD)   revealed → bars + you
 //   price open    → the slider     revealed → YOUR result card (rank, machine)
-//   stump slide   → interrogate the fact sheet, house score running
-//   seed slide    → copy the seed, build on YOUR Claude
+//   build slide   → deploy YOUR real assistant; QR + lead inbox come back
+//   duel slide    → attack a rival's real assistant; refusals pay its builder
 //   leaderboard   → THE BOARD + post your ring score
 //   ladder reveal → name + cell → Mike's phone, then make-it-official email
 // Phones poll every 1.5s. A dropped request just means the next one catches up.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signupMailto } from "@/lib/signup";
-import { SeedScreen } from "./seed-screen";
+import { BuildScreen } from "./build-screen";
+import { DuelScreen } from "./duel-screen";
 
 interface BoardRow {
   initials: string;
@@ -53,7 +54,7 @@ interface StatePayload {
     myRank: number | null;
     guessers: number;
   } | null;
-  stumpStats: { asked: number; refused: number } | null;
+  duelStats: { fired: number; held: number; flagged: number; built: number } | null;
   board: { top: BoardRow[]; myPoints: number; myRank: number | null } | null;
   engineOnline: boolean;
 }
@@ -170,8 +171,8 @@ export function RoomClient() {
   const gameOn =
     (slide.poll && pollState !== "closed") ||
     (slide.price && pollState !== "closed") ||
-    slide.kind === "stump" ||
-    slide.kind === "seed" ||
+    slide.kind === "build" ||
+    slide.kind === "duel" ||
     slide.kind === "leaderboard";
 
   return (
@@ -201,10 +202,23 @@ export function RoomClient() {
         <PollScreen state={state} onVote={castVote} onRefresh={() => void tick()} />
       ) : slide.price && pollState !== "closed" ? (
         <PriceScreen state={state} onVote={castVote} onPodium={celebrate} />
-      ) : slide.kind === "stump" ? (
-        <StumpScreen engineOnline={state.engineOnline} stats={state.stumpStats} me={state.me} onToast={showToast} />
-      ) : slide.kind === "seed" ? (
-        <SeedScreen />
+      ) : slide.kind === "build" ? (
+        <BuildScreen
+          onBuilt={() => {
+            showToast("+25 · it's LIVE");
+            celebrate();
+            void tick();
+          }}
+        />
+      ) : slide.kind === "duel" ? (
+        <DuelScreen
+          engineOnline={state.engineOnline}
+          stats={state.duelStats}
+          onFired={(refused) => {
+            buzz(25);
+            showToast(refused ? "It held \u2014 +15 to the builder" : "+10 fired");
+          }}
+        />
       ) : slide.kind === "leaderboard" ? (
         <BoardScreen state={state} onPosted={() => { showToast("Ring score on THE BOARD"); void tick(); }} />
       ) : (
@@ -693,118 +707,7 @@ function PriceScreen({
   );
 }
 
-// ------------------------------------------------------------------ stump
-
-function StumpScreen({
-  engineOnline,
-  stats,
-  me,
-  onToast,
-}: {
-  engineOnline: boolean;
-  stats: { asked: number; refused: number } | null;
-  me: { initials: string; emoji: string };
-  onToast: (msg: string) => void;
-}) {
-  const [q, setQ] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [log, setLog] = useState<{ q: string; a: string; refused: boolean }[]>([]);
-  const [notice, setNotice] = useState<string | null>(null);
-
-  async function ask() {
-    const question = q.trim();
-    if (!question || busy) return;
-    setBusy(true);
-    setNotice(null);
-    setQ("");
-    try {
-      const res = await fetch("/api/stump", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
-      const data = await res.json();
-      if (res.ok && data.ok) {
-        setLog((l) => [{ q: question, a: data.answer, refused: data.refused }, ...l].slice(0, 5));
-        buzz(25);
-        onToast("+15 on THE BOARD");
-      } else {
-        setNotice(
-          data?.error === "offline"
-            ? "The engine isn't switched on — this game needs the key."
-            : data?.error === "not_stump_time"
-              ? "The game's not open yet — eyes up front."
-              : "Hiccup — try again."
-        );
-      }
-    } catch {
-      setNotice("Hiccup — try again.");
-    }
-    setBusy(false);
-  }
-
-  return (
-    <section className="mt-6 flex flex-1 flex-col">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">Game two — the room vs. the house</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight">
-        Stump the assistant.
-      </h1>
-      {stats && stats.asked > 0 && (
-        <p className="mt-2 rounded-xl border border-gold/40 bg-sheet-2 px-4 py-2.5 text-sm font-semibold text-cream">
-          🏛 {stats.refused} honest refusal{stats.refused === 1 ? "" : "s"} witnessed · the house hasn&apos;t guessed once
-        </p>
-      )}
-      <p className="mt-2 text-sm text-soft">
-        It knows ONLY the fact sheet on screen. Make it invent something — anything — and the room wins lunch. Your
-        question hits the projector as {me.emoji} {me.initials}.
-      </p>
-      {!engineOnline && (
-        <p className="mt-3 rounded-xl border border-clay/50 bg-sheet-2 px-4 py-3 text-sm text-clay">
-          The engine isn&apos;t switched on tonight — watch the screen.
-        </p>
-      )}
-      <div className="mt-4 flex items-end gap-2">
-        <textarea
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              void ask();
-            }
-          }}
-          rows={2}
-          placeholder="What year was the roof replaced?"
-          aria-label="Your question"
-          className="w-full resize-none rounded-2xl border border-rule bg-sheet-2 px-4 py-3 text-[15px] text-cream placeholder:text-faint focus:border-gold focus:outline-none"
-        />
-        <button
-          onClick={() => void ask()}
-          disabled={busy || !q.trim()}
-          className="shrink-0 rounded-2xl bg-gold px-4 py-3 text-sm font-bold text-sheet disabled:opacity-40"
-        >
-          {busy ? "…" : "Fire"}
-        </button>
-      </div>
-      {notice && <p className="mt-2 rounded-xl border border-clay/50 bg-sheet-2 px-4 py-3 text-sm text-clay">{notice}</p>}
-      <div className="mt-4 flex flex-col gap-3">
-        {log.map((e, i) => (
-          <div key={i} className={`rounded-2xl border p-4 ${e.refused ? "border-gold bg-sheet-2" : "border-rule bg-sheet-2"}`}>
-            <p className="text-sm font-semibold text-cream">“{e.q}”</p>
-            <p className="mt-1 text-sm text-soft">{e.a}</p>
-            {e.refused && (
-              <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-gold-bright">
-                honest refusal ✓ — that&apos;s the feature
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// -------------------------------------------------- THE BOARD + the ring
+// ---------------------------------------------------------- THE BOARD + the ring
 
 function BoardScreen({ state, onPosted }: { state: StatePayload; onPosted: () => void }) {
   const [score, setScore] = useState<number | null>(null);

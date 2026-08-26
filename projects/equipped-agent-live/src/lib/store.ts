@@ -6,7 +6,10 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { presenterKey, roomPin } from "./room";
-import type { AiGuess, Lead, Pack, Player, PollState, RoomState, ScoreRow, StumpEntry, ToolEvent, Vote } from "./types";
+import type {
+  AiGuess, Assistant, AssistantLead, Attack, Lead, Pack, Player, PollState,
+  RosterEntry, RoomState, ScoreRow, StumpEntry, ToolEvent, Vote,
+} from "./types";
 
 export type Role = "presenter" | "attendee" | null;
 
@@ -67,6 +70,21 @@ export interface Store {
 
   /** House score for Stump: questions asked, honest refusals witnessed. */
   stumpStats(key: string): Promise<{ asked: number; refused: number }>;
+
+  // ---- THE TROPHY: a real deployed assistant per attendee ----
+  assistantCreate(key: string, deviceId: string, a: Assistant & { cell: string }): Promise<void>;
+  /** Public read — the assistant page is meant to be scanned by strangers. */
+  assistantGet(code: string): Promise<Assistant | null>;
+  assistantMine(key: string, deviceId: string): Promise<Assistant | null>;
+  assistantRoster(key: string): Promise<RosterEntry[]>;
+  assistantLeadAdd(code: string, name: string, cell: string, question: string): Promise<void>;
+  assistantLeadsMine(key: string, deviceId: string): Promise<AssistantLead[]>;
+
+  // ---- THE DUEL ----
+  attackAdd(key: string, deviceId: string, code: string, q: string, a: string, refused: boolean): Promise<number>;
+  attackFlag(key: string, id: number): Promise<void>;
+  attackList(key: string, limit: number): Promise<Attack[]>;
+  duelStats(key: string): Promise<{ fired: number; held: number; flagged: number; built: number }>;
 }
 
 // ---------------------------------------------------------------- memory
@@ -197,8 +215,10 @@ class MemoryStore implements Store {
     const p = this.players.get(deviceId);
     return p ? { initials: p.initials, emoji: p.emoji } : null;
   }
-  // Same formula as the database's live_standings — points derive from real
-  // artifacts: 10/poll voted, 15/stump question (first 3), best ring x10, awards.
+  // MUST match the database's live_standings exactly, or local and production
+  // disagree about who is winning: 10/poll voted, 25/assistant shipped,
+  // 10/shot fired (first 3), 15 per honest refusal YOUR assistant made,
+  // best ring x10, plus awards from the stage.
   async standings(_key: string, pollKeys: string[]) {
     const rows: Player[] = [];
     for (const [deviceId, p] of this.players) {
@@ -206,10 +226,18 @@ class MemoryStore implements Store {
       const votedKeys = new Set(
         [...this.votes.values()].filter((v) => v.deviceId === deviceId && pollKeys.includes(v.pollKey)).map((v) => v.pollKey)
       );
-      const stumps = Math.min(this.stump.filter((s) => s.deviceId === deviceId).length, 3);
+      const built = [...this.assistants.values()].filter((a) => a.deviceId === deviceId);
+      const fired = Math.min(this.attacks.filter((t) => t.attacker === deviceId).length, 3);
+      const myCodes = new Set(built.map((a) => a.code));
+      const held = this.attacks.filter((t) => t.refused && myCodes.has(t.code)).length;
       const best = this.scores.get(deviceId)?.best ?? 0;
       const bonus = this.awards.filter((a) => a.deviceId === deviceId).reduce((s, a) => s + a.points, 0);
-      rows.push({ deviceId, initials: p.initials, emoji: p.emoji, points: votedKeys.size * 10 + stumps * 15 + best * 10 + bonus });
+      rows.push({
+        deviceId,
+        initials: p.initials,
+        emoji: p.emoji,
+        points: votedKeys.size * 10 + built.length * 25 + fired * 10 + held * 15 + best * 10 + bonus,
+      });
     }
     return rows.sort((a, b) => b.points - a.points).slice(0, 60);
   }
@@ -229,6 +257,77 @@ class MemoryStore implements Store {
   }
   async aiGuessGet(_key: string, pollKey: string) {
     return this.aiGuesses.get(pollKey) ?? null;
+  }
+
+  private assistants = new Map<string, Assistant & { deviceId: string; cell: string; at: number }>();
+  private aLeads: (AssistantLead & { code: string })[] = [];
+  private attacks: (Attack & { attacker: string })[] = [];
+  private attackSeq = 0;
+
+  async assistantCreate(_key: string, deviceId: string, a: Assistant & { cell: string }) {
+    this.assistants.set(a.code.toUpperCase(), { ...a, code: a.code.toUpperCase(), deviceId, at: Date.now() });
+  }
+  async assistantGet(code: string) {
+    const a = this.assistants.get(code.toUpperCase());
+    if (!a) return null;
+    const { deviceId, cell, at, ...pub } = a; // cell never leaves the server
+    void deviceId; void cell; void at;
+    return pub;
+  }
+  async assistantMine(_key: string, deviceId: string) {
+    const mine = [...this.assistants.values()].filter((a) => a.deviceId === deviceId).sort((x, y) => y.at - x.at)[0];
+    if (!mine) return null;
+    const { deviceId: d, cell, at, ...pub } = mine;
+    void d; void cell; void at;
+    return pub;
+  }
+  async assistantRoster(_key: string): Promise<RosterEntry[]> {
+    return [...this.assistants.values()]
+      .sort((a, b) => a.at - b.at)
+      .map((a) => ({
+        code: a.code,
+        agentName: a.agentName,
+        headline: a.headline,
+        initials: this.players.get(a.deviceId)?.initials ?? "",
+        emoji: this.players.get(a.deviceId)?.emoji ?? "",
+        deviceId: a.deviceId,
+      }));
+  }
+  async assistantLeadAdd(code: string, name: string, cell: string, question: string) {
+    if (!this.assistants.has(code.toUpperCase())) throw new Error("no_assistant");
+    this.aLeads.push({ code: code.toUpperCase(), name, cell, question, at: Date.now() });
+  }
+  async assistantLeadsMine(_key: string, deviceId: string) {
+    const codes = new Set([...this.assistants.values()].filter((a) => a.deviceId === deviceId).map((a) => a.code));
+    return this.aLeads.filter((l) => codes.has(l.code)).sort((a, b) => b.at - a.at).slice(0, 25)
+      .map(({ code, ...l }) => { void code; return l; });
+  }
+
+  async attackAdd(_key: string, deviceId: string, code: string, q: string, a: string, refused: boolean) {
+    const id = ++this.attackSeq;
+    const target = this.assistants.get(code.toUpperCase());
+    this.attacks.push({
+      id, code: code.toUpperCase(), agentName: target?.agentName ?? "", question: q, answer: a,
+      refused, flagged: false, initials: this.players.get(deviceId)?.initials ?? "",
+      emoji: this.players.get(deviceId)?.emoji ?? "", at: Date.now(), attacker: deviceId,
+    });
+    return id;
+  }
+  async attackFlag(_key: string, id: number) {
+    const t = this.attacks.find((x) => x.id === id);
+    if (t) t.flagged = true;
+  }
+  async attackList(_key: string, limit: number): Promise<Attack[]> {
+    return [...this.attacks].sort((a, b) => b.at - a.at).slice(0, limit)
+      .map(({ attacker, ...t }) => { void attacker; return t; });
+  }
+  async duelStats(_key: string) {
+    return {
+      fired: this.attacks.length,
+      held: this.attacks.filter((t) => t.refused).length,
+      flagged: this.attacks.filter((t) => t.flagged).length,
+      built: this.assistants.size,
+    };
   }
 
   private scores = new Map<string, ScoreRow & { at: number }>();
@@ -460,6 +559,75 @@ class RpcStore implements Store {
     });
     const r = rows?.[0];
     return r ? { guessK: Number(r.guess_k), reasoning: r.reasoning ?? "" } : null;
+  }
+
+  async assistantCreate(key: string, deviceId: string, a: Assistant & { cell: string }) {
+    await this.call("live_assistant_create", {
+      p_key: key, p_device: deviceId, p_code: a.code, p_name: a.agentName,
+      p_brokerage: a.brokerage, p_cell: a.cell, p_headline: a.headline,
+      p_facts: a.facts, p_voice: a.voice,
+    });
+  }
+  private rowToAssistant(r: { code: string; agent_name: string; brokerage: string; headline: string; facts: string; voice: string }): Assistant {
+    return {
+      code: r.code, agentName: r.agent_name, brokerage: r.brokerage ?? "",
+      headline: r.headline ?? "", facts: r.facts, voice: (r.voice as Assistant["voice"]) ?? "warm",
+    };
+  }
+  async assistantGet(code: string) {
+    const rows = await this.call<{ code: string; agent_name: string; brokerage: string; headline: string; facts: string; voice: string }[]>(
+      "live_assistant_get", { p_code: code }
+    );
+    return rows?.[0] ? this.rowToAssistant(rows[0]) : null;
+  }
+  async assistantMine(key: string, deviceId: string) {
+    const rows = await this.call<{ code: string; agent_name: string; brokerage: string; headline: string; facts: string; voice: string }[]>(
+      "live_assistant_mine", { p_key: key, p_device: deviceId }
+    );
+    return rows?.[0] ? this.rowToAssistant(rows[0]) : null;
+  }
+  async assistantRoster(key: string): Promise<RosterEntry[]> {
+    const rows = await this.call<{ code: string; agent_name: string; headline: string; initials: string; emoji: string; device_id: string }[]>(
+      "live_assistant_roster", { p_key: key }
+    );
+    return (rows ?? []).map((r) => ({
+      code: r.code, agentName: r.agent_name, headline: r.headline ?? "",
+      initials: r.initials ?? "", emoji: r.emoji ?? "", deviceId: r.device_id,
+    }));
+  }
+  async assistantLeadAdd(code: string, name: string, cell: string, question: string) {
+    await this.call("live_assistant_lead_add", { p_code: code, p_name: name, p_cell: cell, p_question: question });
+  }
+  async assistantLeadsMine(key: string, deviceId: string): Promise<AssistantLead[]> {
+    const rows = await this.call<{ name: string; cell: string; question: string; at: string }[]>(
+      "live_assistant_leads_mine", { p_key: key, p_device: deviceId }
+    );
+    return (rows ?? []).map((r) => ({ name: r.name, cell: r.cell, question: r.question ?? "", at: new Date(r.at).getTime() }));
+  }
+
+  async attackAdd(key: string, deviceId: string, code: string, q: string, a: string, refused: boolean) {
+    const id = await this.call<number>("live_attack_add", {
+      p_key: key, p_device: deviceId, p_code: code, p_question: q, p_answer: a, p_refused: refused,
+    });
+    return Number(id);
+  }
+  async attackFlag(key: string, id: number) {
+    await this.call("live_attack_flag", { p_key: key, p_id: id });
+  }
+  async attackList(key: string, limit: number): Promise<Attack[]> {
+    const rows = await this.call<{ id: number; code: string; agent_name: string; question: string; answer: string; refused: boolean; flagged: boolean; initials: string; emoji: string; at: string }[]>(
+      "live_attack_list", { p_key: key, p_limit: limit }
+    );
+    return (rows ?? []).map((r) => ({
+      id: Number(r.id), code: r.code, agentName: r.agent_name ?? "", question: r.question,
+      answer: r.answer ?? "", refused: r.refused, flagged: r.flagged,
+      initials: r.initials ?? "", emoji: r.emoji ?? "", at: new Date(r.at).getTime(),
+    }));
+  }
+  async duelStats(key: string) {
+    const rows = await this.call<{ fired: number; held: number; flagged: number; built: number }[]>("live_duel_stats", { p_key: key });
+    const r = rows?.[0];
+    return { fired: Number(r?.fired) || 0, held: Number(r?.held) || 0, flagged: Number(r?.flagged) || 0, built: Number(r?.built) || 0 };
   }
 
   async scorePost(key: string, deviceId: string, initials: string, score: number) {

@@ -126,8 +126,8 @@ export async function GET(req: NextRequest) {
     if (g?.guessK !== 815) throw new Error(`guess read back ${JSON.stringify(g)}`);
   });
 
-  await run("stump stats", async () => {
-    await store.stumpStats(key);
+  await run("duel stats", async () => {
+    await store.duelStats(key);
   });
 
   await run("game slides open on arrival (no dead 'armed' slide)", async () => {
