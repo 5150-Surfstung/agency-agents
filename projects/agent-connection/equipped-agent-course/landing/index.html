@@ -1,0 +1,657 @@
+<title>The Equipped Agent</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Dark-first: bare :root carries the committed dark palette (The AGENT Connection night tokens) */
+  :root {
+    --ground: #12161E;
+    --panel: #1A2029;
+    --panel-2: #202836;
+    --line: #2C3442;
+    --ink: #EAE6DC;
+    --soft: #A6ADBB;
+    --faint: #77808F;
+    --gold: #C99A55;
+    --gold-bright: #D8AE6C;
+    --gold-dim: #8A6A3B;
+    --sky: #8FB0D4;
+    --good: #6FA87E;
+    --serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: "Instrument Sans", -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --ground: #FBFAF6;
+      --panel: #FFFFFF;
+      --panel-2: #F4F1E9;
+      --line: #E4E0D5;
+      --ink: #1B222C;
+      --soft: #4A5361;
+      --faint: #8A93A1;
+      --gold: #9C6B2F;
+      --gold-bright: #7E5423;
+      --gold-dim: #C9A768;
+      --sky: #24405E;
+      --good: #43724F;
+    }
+  }
+  :root[data-theme="light"] {
+    --ground: #FBFAF6;
+    --panel: #FFFFFF;
+    --panel-2: #F4F1E9;
+    --line: #E4E0D5;
+    --ink: #1B222C;
+    --soft: #4A5361;
+    --faint: #8A93A1;
+    --gold: #9C6B2F;
+    --gold-bright: #7E5423;
+    --gold-dim: #C9A768;
+    --sky: #24405E;
+    --good: #43724F;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 0 1.4rem; }
+  section { padding: 4.5rem 0 0; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 1rem;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(2.6rem, 8.5vw, 4.1rem);
+    line-height: 1.03;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.7rem, 5vw, 2.3rem);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  h3 { font-size: 1.02rem; font-weight: 700; margin: 0 0 0.3rem; }
+  p { margin: 0 0 1rem; max-width: 62ch; }
+  .soft { color: var(--soft); }
+  strong { font-weight: 700; color: var(--ink); }
+  em { font-family: var(--serif); }
+
+  /* ————— hero ————— */
+  .hero { padding: 5.5rem 0 4rem; border-bottom: 1px solid var(--line); }
+  .hero .gold-line {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--gold-bright);
+  }
+  .hero .lede {
+    font-size: 1.15rem;
+    color: var(--soft);
+    margin: 1.4rem 0 0;
+    max-width: 54ch;
+  }
+  .hero-meta {
+    display: flex; flex-wrap: wrap; gap: 0.55rem;
+    margin-top: 2.1rem;
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    background: var(--panel);
+  }
+  .chip b { color: var(--gold-bright); font-weight: 600; }
+
+  /* ————— stats ————— */
+  .hero-figure {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(4rem, 14vw, 6.5rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--gold-bright);
+    margin: 0.5rem 0 0.2rem;
+  }
+  .hero-figure-label { color: var(--soft); max-width: 34ch; margin: 0; }
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.8rem;
+    margin: 1.8rem 0 0.6rem;
+  }
+  .tile {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+  }
+  .tile .value {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 1.85rem;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+  .tile .label {
+    font-size: 0.82rem;
+    color: var(--soft);
+    margin-top: 0.3rem;
+    line-height: 1.4;
+  }
+  .source {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    color: var(--faint);
+    margin-top: 0.9rem;
+  }
+
+  /* ————— agenda timeline ————— */
+  .agenda { display: flex; flex-direction: column; margin-top: 1.6rem; }
+  .slot {
+    display: grid;
+    grid-template-columns: 4.6rem 1fr;
+    gap: 1.1rem;
+    padding: 1.05rem 0;
+    border-top: 1px solid var(--line);
+  }
+  .slot:last-child { border-bottom: 1px solid var(--line); }
+  .slot .t {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--gold);
+    padding-top: 0.2rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .slot h3 { margin: 0 0 0.15rem; }
+  .slot p { margin: 0; font-size: 0.93rem; color: var(--soft); }
+
+  /* ————— lesson blocks ————— */
+  .lesson-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ground);
+    background: var(--gold);
+    border-radius: 3px;
+    padding: 0.25rem 0.6rem;
+    margin-bottom: 1rem;
+  }
+  blockquote {
+    margin: 1.6rem 0;
+    padding: 0.2rem 0 0.2rem 1.2rem;
+    border-left: 2px solid var(--gold);
+    font-family: var(--serif);
+    font-size: 1.22rem;
+    line-height: 1.45;
+    font-style: italic;
+    color: var(--ink);
+    max-width: 46ch;
+  }
+  .rules { list-style: none; margin: 1.2rem 0; padding: 0; display: grid; gap: 0.7rem; }
+  .rules li {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    display: grid;
+    grid-template-columns: 1.6rem 1fr;
+    gap: 0.7rem;
+    font-size: 0.95rem;
+  }
+  .rules .n {
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--gold-bright);
+    font-size: 0.85rem;
+    padding-top: 0.1rem;
+  }
+  .rules b { display: block; margin-bottom: 0.15rem; }
+  .rules span.d { color: var(--soft); }
+
+  /* ————— chat replay ————— */
+  .demo-label {
+    display: flex; align-items: center; gap: 0.6rem;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 1.8rem 0 0.7rem;
+  }
+  .demo-label::before {
+    content: "";
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gold); flex: none;
+  }
+  .phone {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.2rem;
+    display: flex; flex-direction: column; gap: 0.8rem;
+    max-width: 30rem;
+  }
+  .msg {
+    padding: 0.65rem 0.95rem;
+    border-radius: 12px;
+    font-size: 0.93rem;
+    line-height: 1.5;
+    max-width: 88%;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+  }
+  .msg.shown { opacity: 1; transform: none; }
+  .msg.visitor {
+    align-self: flex-end;
+    background: var(--gold);
+    color: #14181F;
+    border-bottom-right-radius: 4px;
+    font-weight: 500;
+  }
+  .msg.bot {
+    align-self: flex-start;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-bottom-left-radius: 4px;
+    color: var(--ink);
+  }
+  .routed {
+    align-self: center;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    color: var(--good);
+    border: 1px dashed var(--good);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    opacity: 0;
+    transition: opacity 0.45s ease;
+  }
+  .routed.shown { opacity: 1; }
+  .replay-btn {
+    align-self: flex-start;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--soft);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    margin-top: 0.2rem;
+  }
+  .replay-btn:hover, .replay-btn:focus-visible { color: var(--ink); border-color: var(--gold); outline: none; }
+
+  /* ————— prompt vault ————— */
+  .vault { display: grid; gap: 1.1rem; margin-top: 1.6rem; }
+  .prompt-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .prompt-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.95rem 1.2rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .prompt-head h3 { margin: 0; font-size: 0.98rem; }
+  .prompt-head .use {
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--faint); display: block; margin-top: 0.15rem;
+  }
+  .copy-btn {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--gold-bright);
+    background: none;
+    border: 1px solid var(--gold-dim);
+    border-radius: 6px;
+    padding: 0.45rem 0.9rem;
+    cursor: pointer;
+  }
+  .copy-btn:hover, .copy-btn:focus-visible { background: var(--gold); color: #14181F; outline: none; }
+  .prompt-body {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: var(--soft);
+    padding: 1.1rem 1.2rem;
+    white-space: pre-wrap;
+    margin: 0;
+  }
+
+  /* ————— ladder / close ————— */
+  .ladder { display: grid; gap: 0.8rem; margin: 1.6rem 0; counter-reset: rung; }
+  .rung {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1rem 1.2rem 1rem 3.2rem;
+    position: relative;
+  }
+  .rung::before {
+    counter-increment: rung;
+    content: counter(rung);
+    position: absolute;
+    left: 1.1rem; top: 1.05rem;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--gold-bright);
+  }
+  .rung b { display: block; }
+  .rung span { color: var(--soft); font-size: 0.92rem; }
+  .cta {
+    background: var(--panel-2);
+    border: 1px solid var(--gold-dim);
+    border-radius: 12px;
+    padding: 1.6rem 1.5rem;
+    margin-top: 2rem;
+  }
+  .cta p { margin: 0; }
+  .cta .big {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    line-height: 1.35;
+    margin-bottom: 0.5rem;
+  }
+  .cta .kw { color: var(--gold-bright); font-weight: 600; font-family: var(--mono); font-size: 1.1rem; letter-spacing: 0.05em; }
+
+  footer {
+    margin-top: 5rem;
+    padding: 2.2rem 0 3.5rem;
+    border-top: 1px solid var(--line);
+  }
+  footer p {
+    font-size: 0.8rem;
+    color: var(--faint);
+    max-width: 70ch;
+  }
+
+  /* ————— motion ————— */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.shown { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .msg, .routed { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .replay-btn { display: none; }
+  }
+  @media (max-width: 480px) {
+    .slot { grid-template-columns: 3.6rem 1fr; gap: 0.8rem; }
+  }
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">The AGENT Connection™ &nbsp;×&nbsp; Surfstung Systems</p>
+    <h1>Most agents can sell.<br>A few can prompt.<br><span class="gold-line">Almost none can build.</span></h1>
+    <p class="lede"><strong>The Equipped Agent</strong> is a one-hour course that makes you the exception — two working AI systems demoed on real MLS data, three prompts you keep, and zero pitch until minute&nbsp;55.</p>
+    <div class="hero-meta">
+      <span class="chip"><b>60</b> minutes</span>
+      <span class="chip"><b>2</b> live systems</span>
+      <span class="chip"><b>3</b> prompts you keep</span>
+      <span class="chip">free · no email gate</span>
+    </div>
+  </div>
+</header>
+
+<section class="reveal">
+  <div class="wrap">
+    <p class="eyebrow">The split</p>
+    <h2>The line isn’t new vs. experienced. It’s equipped vs. unequipped.</h2>
+    <div class="hero-figure">60%</div>
+    <p class="hero-figure-label">of 1.3 million licensed agents sold <strong>zero</strong> homes last year.</p>
+    <div class="tiles">
+      <div class="tile"><div class="value">$58K</div><div class="label">average agent income, on roughly seven closings</div></div>
+      <div class="tile"><div class="value">120K</div><div class="label">agents left the industry over unsustainable income</div></div>
+    </div>
+    <p class="source">SOURCE: 2025 NAR MEMBER DATA</p>
+    <p style="margin-top:1.4rem;">The agents on the right side of that line aren’t smarter or luckier. They’re <strong>equipped</strong> — and for the first time in this industry’s history, equipment is a decision, not a budget. This hour is that decision.</p>
+  </div>
+</section>
+
+<section class="reveal">
+  <div class="wrap">
+    <p class="eyebrow">The hour, mapped</p>
+    <h2>Sixty minutes. Nothing wasted.</h2>
+    <div class="agenda">
+      <div class="slot"><div class="t">0:00</div><div><h3>The split</h3><p>Why the industry’s middle is vanishing — and why the dividing line just moved.</p></div></div>
+      <div class="slot"><div class="t">0:05</div><div><h3>Strategist: where AI actually pays</h3><p>The three places AI moves money in real estate today — and the hype to ignore.</p></div></div>
+      <div class="slot"><div class="t">0:15</div><div><h3>Demo: farm like you have a research department</h3><p>A neighborhood index built from eleven years of MLS data. Live scroll-through.</p></div></div>
+      <div class="slot"><div class="t">0:30</div><div><h3>Demo: the listing that answers its own phone</h3><p>QR on the rider → grounded AI assistant → the lead texts the agent’s phone. Live.</p></div></div>
+      <div class="slot"><div class="t">0:48</div><div><h3>Builder: the one-week playbook</h3><p>The Prompt Vault, handed over — plus a day-by-day plan to ship your first system.</p></div></div>
+      <div class="slot"><div class="t">0:55</div><div><h3>The room</h3><p>Build alone, or build where this is already running. The only pitch of the hour — and you’ll see it coming.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="reveal">
+  <div class="wrap">
+    <span class="lesson-tag">Lesson one</span>
+    <h2>Farm like you have a research department</h2>
+    <p>Every agent mails the neighborhood. Almost nobody hands the neighborhood <strong>eleven years of its own story</strong>. In the course you’ll see a real one — a neighborhood index built from a single MLS export in one afternoon:</p>
+    <div class="tiles">
+      <div class="tile"><div class="value">134</div><div class="label">months of sales history observed</div></div>
+      <div class="tile"><div class="value">449</div><div class="label">sales indexed across eleven years</div></div>
+      <div class="tile"><div class="value">32% → 26%</div><div class="label">the neighborhood’s price premium over its own island, in twelve months</div></div>
+    </div>
+    <p class="source">CHS REGIONAL MLS · 2015–2026 SERIES · FIGURES FROM A PUBLISHED INDEX</p>
+    <p>A twelve-month snapshot shows a soft-but-unremarkable market. Eleven years show the real story — a premium quietly compressing — and that finding becomes the kitchen-table conversation every listing appointment is won or lost on: <em>anchor to recent closings, not the peak your neighbor caught. Price it right the first time. Scarcity is your real advantage.</em></p>
+    <blockquote>“When you hand a seller eleven years of their own street, you’re not one of three agents interviewing. You’re the one who did the homework.”</blockquote>
+  </div>
+</section>
+
+<section class="reveal">
+  <div class="wrap">
+    <span class="lesson-tag">Lesson two</span>
+    <h2>The listing that answers its own phone</h2>
+    <p>A buyer standing at your sign has a question <em>right now</em>. The portals built empires on being the fastest answer. This system takes that position back: a QR on the sign rider opens a page for <strong>that one listing</strong>, with an AI assistant grounded only in its fact sheet — and every serious question becomes a captured lead on your phone in under a minute.</p>
+    <ul class="rules">
+      <li><span class="n">01</span><span><b>One QR per listing — never one for the business.</b><span class="d">The per-listing page is the product. A generic QR is a brochure; a listing page is a conversation.</span></span></li>
+      <li><span class="n">02</span><span><b>The assistant never answers past the facts.</b><span class="d">“I don’t have that on file” beats a hallucinated school district, every single time. Grounded or nothing.</span></span></li>
+      <li><span class="n">03</span><span><b>The lead routes instantly.</b><span class="d">Captured to your phone in under sixty seconds — never digested into a Friday spreadsheet.</span></span></li>
+    </ul>
+    <div class="demo-label">Demo replay — scripted from a live session · answers grounded in the neighborhood’s 11-year MLS series</div>
+    <div class="phone" id="chat">
+      <div class="msg visitor">Is this a good time to sell in this neighborhood?</div>
+      <div class="msg bot">Here’s what eleven years of sold data says: values crested in 2024, and the trailing-twelve-month median now sits about 4% below that run. Homes are averaging 51 days to sell at 96% of original ask — and only two to eight homes are on the market in a given month, so a well-priced listing has the field nearly to itself.</div>
+      <div class="msg visitor">My neighbor got $877K in 2024. Can I get that?</div>
+      <div class="msg bot">That 2024 figure rests on just 22 sales, so treat it as a peak, not a comp — recent closings cleared around $824K. Want me to text the agent so you can walk through what that means for your exact street? Just leave your name and best cell.</div>
+      <div class="routed">⚡ lead → agent’s phone · under 60 seconds</div>
+      <button class="replay-btn" id="replay" type="button">↻ replay demo</button>
+    </div>
+    <blockquote>“Capture the lead before the portal does.”</blockquote>
+  </div>
+</section>
+
+<section class="reveal">
+  <div class="wrap">
+    <p class="eyebrow">The Prompt Vault</p>
+    <h2>Steal these. Seriously.</h2>
+    <p>The hour ends with a build plan, and these three prompts are its raw material. They’re the actual working versions — not teasers. Copy them, fill the brackets, run them today.</p>
+    <div class="vault">
+
+      <div class="prompt-card">
+        <div class="prompt-head">
+          <h3>The Neighborhood Index<span class="use">Farming · run on your MLS export</span></h3>
+          <button class="copy-btn" type="button" data-copy="p1">Copy prompt</button>
+        </div>
+        <pre class="prompt-body" id="p1">You are a real-estate market analyst. I'm pasting MLS export data for [NEIGHBORHOOD] — every sold listing for the last [N] years: sold price, close date, days on market, original list price, final list price.
+
+Build me a "Neighborhood Index":
+1. A sales-weighted annual median price series, and what it shows.
+2. A trailing-12-month comparison vs [SURROUNDING AREA], computed on the same basis so seasonality cancels out.
+3. Current conditions: percent of original list achieved, average days on market, active inventory.
+4. Three "kitchen-table" talking points a seller would actually care about — each anchored to a specific number from the data.
+5. A method note flagging any year with fewer than 30 sales as directional, not definitive.
+
+Never invent a number. If a figure isn't computable from my data, say so. Write it like a research note, not an ad.</pre>
+      </div>
+
+      <div class="prompt-card">
+        <div class="prompt-head">
+          <h3>The Grounded Listing Assistant<span class="use">Speed to lead · the system prompt behind demo two</span></h3>
+          <button class="copy-btn" type="button" data-copy="p2">Copy prompt</button>
+        </div>
+        <pre class="prompt-body" id="p2">You are the listing assistant for [ADDRESS] — and only this listing.
+
+FACTS (the only things you know):
+[paste the fact sheet: specs, lot, year, HOA, utilities, disclosure highlights, showing instructions, open-house dates]
+
+Rules:
+- Answer only from the facts above. If it isn't there, say: "I don't have that on file — want me to text the listing agent? They reply fast." and offer the contact link.
+- Never estimate or speculate on price, offers, other interest, or condition.
+- Before sharing showing details or documents, ask for the visitor's name and best cell so the agent can follow up.
+- Keep every answer to three sentences or fewer. Warm, direct, zero fluff.</pre>
+      </div>
+
+      <div class="prompt-card">
+        <div class="prompt-head">
+          <h3>The Objection Sparring Partner<span class="use">Reps · ten rounds before the real thing</span></h3>
+          <button class="copy-btn" type="button" data-copy="p3">Copy prompt</button>
+        </div>
+        <pre class="prompt-body" id="p3">You are a top-producing listing agent with 20 years of experience, playing the toughest realistic version of my next appointment.
+
+Scenario: [seller interviewing three agents / FSBO who "doesn't need an agent" / expired listing burned by the last one]
+
+Push back hard on commission, on pricing, and on "the market." Stay fully in character — except after each of my responses, break character for exactly one line: score my answer 1–10 and name the single strongest improvement. Then resume.
+
+Stop after 10 exchanges and give me a one-paragraph debrief with the three exact lines I should steal for the real appointment.</pre>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="reveal">
+  <div class="wrap">
+    <p class="eyebrow">Minute 55</p>
+    <h2>Build alone, or build in a room</h2>
+    <p>Everything above, you can build yourself — that’s why the prompts are free and the method is public. But there’s a difference between having tools and having <strong>systems</strong>, and the difference is usually the room you’re in. The AGENT Connection is a room where all of this is already running: the lunches, the mentorship, the lead systems, the people who’ve done it.</p>
+    <p>Nobody hits a dead end here. Take the lowest rung that fits:</p>
+    <div class="ladder">
+      <div class="rung"><b>Take the toolkit</b><span>Everyone gets the three prompts and the farming method. No qualifier, no gate.</span></div>
+      <div class="rung"><b>Come to a Big REveal lunch</b><span>The full presentation, live, over lunch — lunch is on us. Bring your skepticism.</span></div>
+      <div class="rung"><b>Coffee, or a 15-minute call</b><span>For the agents already leaning in: your numbers, your situation, a straight conversation.</span></div>
+    </div>
+    <div class="cta">
+      <p class="big">Want the vault as a doc you can run today?</p>
+      <p>Comment <span class="kw">TOOLKIT</span> on the post that brought you here — or DM the word <span class="kw">HOUR</span> — and it’s in your inbox within the hour. That’s the speed-to-lead standard; consider the reply the first demo.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><strong>The Equipped Agent</strong> · presented by The AGENT Connection™ · built and taught with Surfstung Systems.</p>
+    <p>Honesty note: every figure on this page comes from published 2025 NAR member data or an eleven-year CHS Regional MLS series prepared for a real neighborhood index (information deemed reliable but not guaranteed). The chat above is a labeled replay of a live demo, not a live system. Nothing on this page promises income — the course teaches tools, and tools reward the work you put behind them.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var reduced = false;
+  try { reduced = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+
+  // scroll reveals
+  var sections = document.querySelectorAll(".reveal");
+  if (reduced || !("IntersectionObserver" in window)) {
+    sections.forEach(function (s) { s.classList.add("shown"); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add("shown"); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.12 });
+    sections.forEach(function (s) { io.observe(s); });
+  }
+
+  // chat replay
+  var chat = document.getElementById("chat");
+  var items = chat ? chat.querySelectorAll(".msg, .routed") : [];
+  var timers = [];
+  function playChat() {
+    timers.forEach(clearTimeout); timers = [];
+    items.forEach(function (m) { m.classList.remove("shown"); });
+    var delay = 300;
+    items.forEach(function (m) {
+      timers.push(setTimeout(function () { m.classList.add("shown"); }, delay));
+      delay += m.classList.contains("routed") ? 900 : (m.classList.contains("bot") ? 1500 : 1000);
+    });
+  }
+  if (chat) {
+    if (reduced || !("IntersectionObserver" in window)) {
+      items.forEach(function (m) { m.classList.add("shown"); });
+    } else {
+      var seen = false;
+      var cio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting && !seen) { seen = true; playChat(); cio.unobserve(chat); }
+        });
+      }, { threshold: 0.35 });
+      cio.observe(chat);
+      var replay = document.getElementById("replay");
+      if (replay) replay.addEventListener("click", playChat);
+    }
+  }
+
+  // copy buttons — label flips only on confirmed success
+  document.querySelectorAll(".copy-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var src = document.getElementById(btn.getAttribute("data-copy"));
+      if (!src) return;
+      var text = src.textContent;
+      function ok() {
+        var old = btn.textContent;
+        btn.textContent = "Copied ✓";
+        setTimeout(function () { btn.textContent = old; }, 1800);
+      }
+      function fallback() {
+        try {
+          var range = document.createRange();
+          range.selectNodeContents(src);
+          var sel = getSelection();
+          sel.removeAllRanges(); sel.addRange(range);
+          btn.textContent = "Select + copy";
+          setTimeout(function () { btn.textContent = "Copy prompt"; }, 2200);
+        } catch (e) {}
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(ok, fallback);
+      } else { fallback(); }
+    });
+  });
+})();
+</script>
