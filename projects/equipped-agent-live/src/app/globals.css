@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/* The Big REveal Cards visual world: navy sheet, gold bar, cream ink.
+   One committed look — this is an event room, projector and phones alike. */
+@theme {
+  --color-sheet: #071320;
+  --color-sheet-2: #0c1c2c;
+  --color-sheet-3: #122539;
+  --color-rule: #1c3049;
+  --color-rule-strong: #2a4664;
+  --color-cream: #f2efe7;
+  --color-soft: #98a9ba;
+  --color-faint: #64788d;
+  --color-gold: #d0a050;
+  --color-gold-bright: #d9ae64;
+  --color-moss: #6fa87e;
+  --color-clay: #e08e72;
+
+  --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
+  --font-ui: var(--font-figtree), -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  background: var(--color-sheet);
+  color: var(--color-cream);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Poll bars grow to their measured width; reveal is the theater. */
+.bar-fill {
+  transition: width 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-fill {
+    transition: none;
+  }
+}

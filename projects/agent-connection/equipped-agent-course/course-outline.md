@@ -7,6 +7,8 @@
 
 ---
 
+> **The room runs on the live app** (`projects/equipped-agent-live`): open `/present/<key>` on the projector — arrows move slides, **space opens then reveals each poll**, **Q** shows the join QR, **L** opens the leads drawer. Attendee phones join once at the door and follow automatically. The three polls below (0:00 icebreaker · mid-hour "which would you build" · minute-58 ladder) and the arcade unlock are already sequenced in the deck.
+
 ## Pre-flight checklist (do this before anyone is in the room)
 
 - [ ] Stonoview Neighborhood Index open in a tab (the farming preview)
