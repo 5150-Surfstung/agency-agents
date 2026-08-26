@@ -82,8 +82,8 @@ check("no cookie → 401 state", (await fetch(`${BASE}/api/state`)).status === 4
 
 // Presenter resets to the top, then walks to the first poll slide (step 1).
 await control("goto", 0);
-let snap = await control("goto", 2);
-check("presenter on poll slide", snap.ok && snap.step === 2);
+let snap = await control("goto", 5);
+check("presenter on poll slide", snap.ok && snap.step === 5);
 
 // Voting before the poll opens is refused.
 let r = await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "time", choice: 0 }) });
@@ -115,8 +115,8 @@ r = await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKe
 check("vote after reveal → 409", r.status === 409);
 
 // Price Is Right: slider guesses ride the vote rail as $thousands.
-snap = await control("goto", 6);
-check("on price slide", snap.step === 6);
+snap = await control("goto", 9);
+check("on price slide", snap.step === 9);
 await control("poll");
 r = await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 824 }) });
 check("price guess accepted", r.status === 200);
@@ -147,19 +147,19 @@ check("farthest guess ranks #3", r.body.priceReveal?.myRank === 3, String(r.body
 // Stump is gated to its slide; without a key it refuses honestly.
 r = await phones[0]("/api/stump", { method: "POST", body: JSON.stringify({ question: "roof year?" }) });
 check("stump off-slide → 409", r.status === 409);
-snap = await control("goto", 9);
+snap = await control("goto", 12);
 if (!process.env.ANTHROPIC_API_KEY) {
   r = await phones[0]("/api/stump", { method: "POST", body: JSON.stringify({ question: "What year was the roof replaced?" }) });
   check("stump engine offline → 503 (honest)", r.status === 503);
 }
 
 // Leaderboard: self-reported ring scores.
-snap = await control("goto", 12);
+snap = await control("goto", 15);
 r = await phones[0]("/api/score", { method: "POST", body: JSON.stringify({ initials: "MO", score: 9 }) });
 check("score posted", r.status === 200);
 r = await phones[1]("/api/score", { method: "POST", body: JSON.stringify({ initials: "X", score: 8 }) });
 check("1-letter initials → 400", r.status === 400);
-snap = await control("goto", 12);
+snap = await control("goto", 15);
 check("ring board shows MO 9/10", (snap.scoreboard ?? []).some((s) => s.initials === "MO" && s.best === 9));
 
 // THE BOARD: AAA = time 10 + price1 10 + podium 100 + ring 90 = 210.
@@ -174,7 +174,7 @@ check("phone sees its own rank and points", r.body.board?.myRank === 1 && r.body
   JSON.stringify(r.body.board));
 
 // Jump to the ladder poll, run the capture flow.
-const ladderStep = 15; // host 1 · price 6 · stump 9 · seed 11 · board 12 · ladder 15
+const ladderStep = 18; // host 1 · comfort 2 · using 3 · floor 4 · time 5 · price 9 · stump 12 · seed 14 · board 15 · ladder 18
 snap = await control("goto", ladderStep);
 check("on ladder slide", snap.step === ladderStep);
 await control("poll");
@@ -227,7 +227,7 @@ check("pack page renders", packPage.status === 200 && (await packPage.text()).in
 
 // With a live key, Stump proves grounding end-to-end (states facts, refuses unknowns).
 if (process.env.ANTHROPIC_API_KEY) {
-  await control("goto", 9);
+  await control("goto", 12);
   r = await phones[0]("/api/stump", {
     method: "POST",
     body: JSON.stringify({ question: "How many bedrooms, and what year was the roof replaced?" }),

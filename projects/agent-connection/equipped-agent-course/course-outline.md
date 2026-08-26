@@ -62,156 +62,110 @@ faking answers — skip it and keep moving.
 
 ## The hour, slide by slide
 
-The deck order *is* the run sheet. Seventeen slides, and every one of them has
-its facilitator cue printed on the console under the slide.
+The deck order *is* the run sheet — twenty slides, each with its facilitator cue
+printed on the console under the slide. Every phone mirrors the projector all
+hour, so remote viewers and the back row ride along; the games take the phones
+over when you open them.
+
+**The meta-game**: every phone suits up at the door (three initials + an emoji).
+Everything scores on THE BOARD — 10 a vote, 100/50/25 on the pricing podium,
+15 a stump question, best ring round ×10. One crown at the end. Tell the room
+this in the first two minutes and the whole hour has stakes.
 
 ### 0:00 — Title · doors open
-
-PIN on screen, QR ready on `Q`. Phones are welcome — tell them so out loud,
-because phones are half the show.
+PIN and corner QR on screen. Phones join → jersey picker. Say it out loud:
+"Suit up — tonight is scored, and somebody's leaving with the crown."
 
 ### 0:02 — Your host (slide 2)
+Thirty seconds, first person, numbers counting up behind you: 1,800 crawlspaces
+taught you what agents miss, 346 doors taught you scale, two years of building
+taught you leverage. Don't let it breathe — straight into the icebreaker.
 
-The numbers count up behind you: **1,800** homes inspected since 2004 · **18**
-years selling · **346** multifamily units owned in part. Thirty seconds, first
-person, no résumé voice: 1,800 crawlspaces taught you what agents miss, 346
-doors taught you scale, and two years of building Surfstung Systems taught you
-leverage. Everything about to run on screen was built from inside the business,
-not sold into it. Then straight into the poll — don't let this slide breathe.
+### 0:04 — POLL: Real talk — where are you and AI right now? (slide 3)
+The icebreaker and the first laugh ("my assistant has an assistant"). Bars climb
+LIVE on screen and on every voted phone. Say the magic words: **votes are
+anonymous — be honest.** Remember who's at the extremes for the open floor.
 
-### 0:04 — Poll: where does your week actually go? (slide 3)
+### 0:07 — POLL: What are you actually using AI for today? (slide 4)
+Faster energy. On the reveal, narrate the split: listing copy is where everyone
+starts, and it's the shallowest end of the pool. The "nothing yet" number is
+your permission slip to keep everything hands-on.
 
-`space` to open. Let the bars climb while people are still joining — the climbing
-bar is what gets the last three phones in the room. `space` again to reveal.
-Whatever wins, the line is the same: **"AI eats that first."**
+### 0:09 — OPEN FLOOR: Brag or confess (slide 5)
+Two to three minutes, no more. One brag from a power user, one fear from a
+"be gentle" voter. Repeat every story back in one line. The fails are gold —
+"a made-up comp? Hold that thought: in twenty minutes you'll watch an AI
+REFUSE to do exactly that." This is where the room becomes a conversation.
 
-### 0:07 — The split (slide 4)
+### 0:12 — POLL: Where does your week actually go? (slide 6)
+The expensive question. Whatever wins: "AI eats that first."
 
-2025 NAR data: 60% of 1.3M agents sold zero homes · $58K average income on ~7
-closings · 120K left the industry. The reframe: the line isn't new vs.
-experienced, it's **equipped vs. unequipped** — and equipment is now a decision,
-not a budget. Nobody in this room is on the wrong side by choice.
+### 0:14 — The split (slide 7)
+2025 NAR data: 60% sold zero homes · $58K average income · 120K gone. The line
+isn't new vs. experienced — it's **equipped vs. unequipped**, and equipment is
+now a decision, not a budget.
 
-### 0:10 — Where AI actually pays (slide 5)
+### 0:16 — Where AI actually pays (slide 8)
+Speed to lead, neighborhood authority, reps. Name the hype too. Then the rule
+of the hour: **never let AI say a number you can't defend.**
 
-Three places it moves money today: speed to lead, neighborhood authority, reps.
-Name the hype too — generic listing copy, autoresponders in a trench coat.
-Then the rule that governs the whole hour: **never let AI say a number you can't
-defend.**
+### 0:18 — DEMO: Farm like you have a research department (slide 9)
+Switch to the live Stonoview Index. 466 closings, eleven years. The beat: 8.1
+points of premium gone in twelve months — and it's NOT a speed problem (51.2
+days vs 50.6). A 12-month report would have missed it entirely.
 
-### 0:13 — Demo: farm like you have a research department (slide 6)
+### 0:24 — GAME: The pricing showdown (slide 10)
+Space opens the sliders AND locks the machine's guess — say it: "the AI just
+made its call. Same facts you have. No feelings about granite." Space again:
+the room's histogram vs. the $327/sq-ft arithmetic ($719K) vs. the machine vs.
+the record ($797K — median of 22 real comparable closings). Podium takes
+100/50/25; every phone shows its own rank with a card built to screenshot.
+The lesson: the record beats the arithmetic by $78,000, and the bias always
+runs against smaller homes.
 
-Switch to the live **Stonoview Index** (stonoview-index.vercel.app) and scroll
-it. Beats in order: 466 closings across eleven years, not a 12-month snapshot →
-the finding a snapshot misses (Stonoview's premium over its own island went
-28.6% → 20.5% in twelve months — 8.1 points gone) → the kicker that proves the
-depth: it's *not* a speed problem, 51.2 days for Stonoview vs 50.6 for the
-island, same pace, compressed prices → the kitchen-table payoff. Then the teach:
-an afternoon, not a data-science degree — pick the farm, export solds, run the
-prompt, publish it.
+### 0:29 — POLL: Which would you build first? (slide 11)
+Reveal, then: "Good news — you're about to watch all four."
 
-Land it: *"When you hand a seller eleven years of their own street, you're not one
-of three agents interviewing. You're the one who did the homework."*
+### 0:31 — DEMO: The listing that answers its own phone (slide 12)
+Audience scans, asks, and the SMS lands on your phone in the room. Phone on
+loud. "Capture the lead before the portal does." Sean can Break In.
 
-### 0:20 — GAME ONE: The room vs. the arithmetic vs. the record (slide 7)
+### 0:36 — GAME: Stump the assistant (slide 13)
+The wager, out loud: "if ANYONE makes it invent a fact tonight, lunch is on
+me." Questions hit the projector wearing their asker's jersey; the honest-
+refusal counter runs big. Call out the best question by name.
 
-`space` and every phone in the room gets a slider. The setup: a 4-bed,
-~2,200 sq ft Stonoview resale — price it. `space` again and the reveal draws
-three things on one chart:
+### 0:41 — DEMO: Track to Keys (slide 14)
+Six dates in, the whole deal out. Client sees a porch light, not a password.
 
-1. **The room** — every guess as a histogram.
-2. **The arithmetic** — $327/sq ft (the blended rate everyone quotes) × 2,200
-   = **$719K**.
-3. **The record** — the 22 genuinely comparable Stonoview closings since 2023,
-   median **$797K**, labeled *ACTUALLY CLOSED*.
+### 0:45 — THE SEED (slide 15) — five full minutes
+The head-on-fire moment. They copy once, paste into their own free Claude, and
+it interviews them — five questions with the payoff in the middle: their own
+market written in three voices, and picking one IS the wow. It names itself,
+prints an operating card built to screenshot, then hands them a first win
+unprompted: a sendable text, a three-move morning, one hard coaching question.
+Walk the room. When the first assistant introduces itself by name, have them
+read it out loud. Then: "now say SPAR — your board move is waiting."
 
-The gap is the lesson: **$78,000** between what the arithmetic claims and what
-comparable homes actually got — and the blended-rate bias runs against smaller
-homes every single time. Say the middle half out loud (half of the 22 closed
-between $756K and $824K — a span, not a false point), then land the line:
-*"The second number is what happened. The first is arithmetic."*
+### 0:51 — THE BOARD (slide 16)
+Two boards on screen: the night's standings and the ring scores feeding them.
+Ring scores are on their honor. Crown the leader OUT LOUD by jersey. Tell the
+room to screenshot their rank card — that screenshot is your marketing.
 
-Call out the closest guess by name if you can spot them. Every figure is from
-the published Stonoview Index (466 closings, Charleston Trident MLS) and the
-source renders on screen — nothing to defend, it defends itself.
+### 0:53 — The one-week playbook (slide 17)
+Mon farm · Tue export · Wed index · Thu QR listing · Fri ten rounds in the
+ring. "Everything I showed you, you can build yourself — the prompts are free."
 
-### 0:25 — Poll: which would you build first? (slide 8)
+### 0:54 — SEAN: Build alone, or build in a room (slide 18)
+The only pitch of the hour, kept short. The ladder does the closing.
 
-Open, reveal, then: **"Good news — you're about to watch all four."**
+### 0:57 — The ladder (slide 19)
+Votes are leads. Names land on the console live; the one-tap email routes to
+Mike, cc Melanie. Watch the leads drawer fill while you talk.
 
-### 0:27 — Demo: the listing that answers its own phone (slide 9)
-
-Switch to the live assistant. An audience member scans, asks a real question, the
-assistant answers from the fact sheet and asks for a name and cell before the deep
-stuff — and **the SMS lands on your phone in the room.** Let them hear it.
-
-The three rules: one QR *per listing*, never one for the business · the assistant
-never answers past the fact sheet · the lead routes to your phone in under a
-minute, not into a Friday spreadsheet. Frame: *"Capture the lead before the portal
-does."* Sean can Break In from the console.
-
-### 0:33 — GAME TWO: Stump the assistant (slide 10)
-
-Phones can now interrogate the demo listing's assistant directly, and the
-questions and answers stream onto the projector live. Tell them plainly: **it
-knows only the fact sheet — try to make it guess.**
-
-Every honest refusal lights up gold on screen. That's the whole lesson: the
-refusal is the feature. Read the best one out loud.
-
-### 0:38 — Demo: Track to Keys (slide 11)
-
-Six contract dates in, and the full milestone chain, client portal, and
-notification schedule come out — under two minutes. Show the client view on a
-phone: a porch light, not a password. Then the agent's attention queue: overdue,
-waiting-on-others, quiet.
-
-### 0:44 — THE SEED: build your own, on YOUR Claude (slide 12)
-
-**The head-on-fire moment. Give it four full minutes and walk the room.**
-
-There's a COPY button on every phone in the room. They tap it, open the free
-Claude app or claude.ai, paste into a new chat — and it interviews *them*, six
-questions, then becomes their assistant. Their account, their brand, free, theirs
-to keep and change. Courtesy of The Agent Connection.
-
-When the first person's assistant introduces itself by name, have them read it
-out loud. That is the moment the room turns.
-
-### 0:50 — The ring: leaderboard (slide 13)
-
-Their new assistant has a sparring move. Ten rounds against the toughest version
-of their next appointment, scored out of ten. They post initials and score from
-their phone; the board fills on the projector. Crown the leader out loud.
-
-### 0:52 — The one-week playbook (slide 14)
-
-Mon pick the farm · Tue export the solds · Wed run the index prompt · Thu one
-listing, one QR page · Fri ten rounds in the ring before your next appointment.
-
-*"Everything I showed you, you can build yourself — that's why the prompts are
-free."* The toolkit is the ad. Give it away like you mean it.
-
-### 0:54 — SEAN'S SEGMENT: build alone, or build in a room (slide 15)
-
-The only pitch of the hour, and it's short. The difference between having tools
-and having systems is the room you're in. The Agent Connection is a room where all
-of this is already running — the lunches, the mentorship, the systems, the people
-who've done it. Keep it honest and keep it short; the ladder does the closing.
-
-### 0:57 — The ladder (slide 16)
-
-Open the last poll. Four rungs, no dead ends: send me the toolkit · save me a seat
-at the next lunch · coffee and fifteen minutes · all of it. **Votes are leads** —
-names land on your console in real time, and each attendee gets a one-tap button
-that emails Mike (cc Melanie) with their choice already filled in.
-
-Watch the leads drawer (`L`) fill while you're still talking.
-
-### 0:59 — Close (slide 17)
-
-Their assistant is already theirs. Toolkit ships today, first replies inside the
-hour — which is the standard you just spent an hour teaching. Leave the QR up.
+### 0:59 — Close (slide 20)
+Final board top three on every phone. Toolkit ships today; first replies
+inside the hour — the standard you just spent an hour teaching.
 
 ---
 

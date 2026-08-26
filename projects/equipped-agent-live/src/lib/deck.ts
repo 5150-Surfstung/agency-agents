@@ -36,9 +36,55 @@ export const DECK: Slide[] = [
     cue: "Thirty seconds, first person, let the numbers count up behind you: 1,800 crawlspaces taught me what agents miss, 346 doors taught me scale, two years of building taught me leverage. Then straight into the poll \u2014 don't let this slide breathe.",
   },
   {
+    id: "poll-comfort",
+    kind: "poll",
+    eyebrow: "First — a totally anonymous confession",
+    heading: "Real talk: where are you and AI right now?",
+    poll: {
+      key: "comfort",
+      question: "Real talk: where are you and AI right now?",
+      options: [
+        "Never touched it — be gentle",
+        "We've talked a few times",
+        "I use it every week for real work",
+        "My assistant has an assistant",
+      ],
+    },
+    cue: "The icebreaker — votes are anonymous, say so, and let the bars climb while you tease each answer out loud ('be gentle — I love it'). Whatever wins: 'Perfect. This hour was built for exactly this room.' Read the extremes and remember them for the open floor two slides from now.",
+  },
+  {
+    id: "poll-using",
+    kind: "poll",
+    eyebrow: "Data before opinions",
+    heading: "What are you actually using AI for today?",
+    poll: {
+      key: "using",
+      question: "What are you actually using AI for today?",
+      options: [
+        "Listing descriptions & emails",
+        "Research, CMAs, summaries",
+        "Social content",
+        "Nothing yet — that's literally why I'm here",
+      ],
+    },
+    cue: "Second poll, faster energy. On the reveal, narrate the split: 'listing copy is where everyone starts — and it's the SHALLOWEST end of the pool. By minute forty you'll be somewhere no listing-copy prompt can follow.' The 'nothing yet' number is your permission slip to keep everything hands-on.",
+  },
+  {
+    id: "open-floor",
+    kind: "content",
+    eyebrow: "Open floor · two minutes",
+    heading: "Brag or confess. Both count.",
+    lines: [
+      "Shout it out: the best thing AI has done for your business this month —",
+      "or the worst. The fail. The made-up comp. The email you're glad you read twice.",
+      "Best story gets named from the stage. Confessions are a safe space — the polls stay anonymous, the stories are volunteer-only.",
+    ],
+    cue: "WORK THE ROOM — two to three minutes, no more. Call on a 'my assistant has an assistant' voter for a brag and a 'be gentle' voter for a fear. REPEAT every story back in one line so the room hears it. The fails are your gold: 'a made-up comp — hold that thought, because in twenty minutes you're going to watch an AI REFUSE to do exactly that.' Name the best story out loud and tell them to remember it for the ladder.",
+  },
+  {
     id: "poll-time",
     kind: "poll",
-    eyebrow: "First — an honest question",
+    eyebrow: "Now the expensive question",
     heading: "Where does your week actually go?",
     poll: {
       key: "time",
