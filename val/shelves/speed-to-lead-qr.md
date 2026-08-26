@@ -1,0 +1,9 @@
+# Speed-to-Lead QR Loop
+Pull when: a physical object should start a digital conversation, or the ask is "capture the lead before the portal does."
+- QR on sign/rider/table → unique slug page for THAT listing/item
+- Page has AI assistant grounded ONLY in that item's data (no hallucinated specs)
+- Capture: contact before deep answers; route lead instantly (SMS to owner <60s)
+- Reference: Homes.com "Personal Tour Guide" yard-sign rider pattern
+Never: one generic QR for the whole business — the per-item slug IS the product. Never let the assistant answer past the item's data. Never digest or batch a lead.
+Done when: scan → grounded answer → SMS to owner in under 60s, with zero invented specs.
+Apply to: listings, hotels, market vendors, any physical-location product.
