@@ -43,7 +43,7 @@ export function SeedScreen() {
           new chat.
         </li>
         <li>
-          <b className="text-cream">③ Answer six questions.</b> It becomes YOUR assistant — your name,
+          <b className="text-cream">③ Answer five questions.</b> It becomes YOUR assistant — your name,
           your market, your voice — then says: <em>take me for a sparring round.</em>
         </li>
       </ol>

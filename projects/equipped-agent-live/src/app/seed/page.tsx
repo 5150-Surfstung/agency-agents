@@ -24,7 +24,7 @@ export default function SeedPage() {
       </h1>
       <p className="mt-3 max-w-xl text-soft">
         One paste into your own <span className="font-semibold text-cream">free</span> Claude app. It
-        interviews you — six questions — then becomes your personal real-estate assistant: your name,
+        interviews you — five questions — then becomes your personal real-estate assistant: your name,
         your market, your voice, with the grounding rules built in (never invents a number, grounded
         listings, fair housing always). Yours forever.
       </p>
@@ -36,7 +36,7 @@ export default function SeedPage() {
             Open <b className="text-cream">claude.ai</b> or the Claude app — a free account works —
             and paste it into a new chat.
           </li>
-          <li>Answer its six questions. Then take it for a sparring round.</li>
+          <li>Answer its five questions — it shows you your own voice halfway through. Then take it for a sparring round.</li>
         </ol>
         <p className="mt-3 text-xs text-faint">
           Claude Pro? Create a Project and paste the seed into its instructions — permanent, no

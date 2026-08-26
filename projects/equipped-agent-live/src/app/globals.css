@@ -126,3 +126,73 @@ body {
     animation: none;
   }
 }
+
+/* ---- room (phone) juice -------------------------------------------- */
+
+.pop-in {
+  opacity: 0;
+  transform: scale(0.92) translateY(8px);
+  animation: rise 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+.pop-d1 { animation-delay: 0.1s; }
+.pop-d2 { animation-delay: 0.22s; }
+.pop-d3 { animation-delay: 0.34s; }
+
+/* The screenshot card: gold frame, slow sheen sweep. */
+.result-card {
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid rgba(217, 174, 100, 0.75);
+  box-shadow: 0 0 28px rgba(217, 174, 100, 0.16), inset 0 0 40px rgba(217, 174, 100, 0.05);
+}
+.result-card::after {
+  content: "";
+  position: absolute;
+  inset: -60% auto auto -60%;
+  width: 55%;
+  height: 250%;
+  transform: rotate(23deg) translateX(-120%);
+  background: linear-gradient(90deg, transparent, rgba(242, 239, 231, 0.1), transparent);
+  animation: sheen 2.6s ease 0.7s 2;
+}
+@keyframes sheen {
+  to { transform: rotate(23deg) translateX(420%); }
+}
+
+.confetti-stage {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 50;
+}
+.confetti-bit {
+  position: absolute;
+  top: -4vh;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  animation: confetti-fall 2.4s cubic-bezier(0.3, 0.4, 0.6, 1) forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(108vh) rotate(660deg); opacity: 0.4; }
+}
+
+.toast-pts {
+  animation: toast-pop 1.9s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+@keyframes toast-pop {
+  0% { opacity: 0; transform: translateY(10px) scale(0.9); }
+  12% { opacity: 1; transform: translateY(0) scale(1.04); }
+  20% { transform: scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-14px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pop-in { opacity: 1; transform: none; animation: none; }
+  .result-card::after { animation: none; }
+  .confetti-bit { animation: none; opacity: 0; }
+  .toast-pts { animation: none; }
+}

@@ -54,12 +54,27 @@ console.log(`walkthrough against ${BASE}\n`);
 // A wrong PIN stays outside.
 check("wrong PIN rejected", (await join("0000")).status === 401);
 
-// Three phones in.
+// Three phones in — and suited up (jersey = initials + emoji).
 const phones = [];
+const JERSEYS = [
+  { initials: "AAA", emoji: "🦈" },
+  { initials: "BBB", emoji: "🔥" },
+  { initials: "CCC", emoji: "👑" },
+];
 for (let i = 0; i < 3; i++) {
   const j = await join();
   check(`phone ${i + 1} joined`, j.status === 200 && j.cookie.length > 10);
   phones.push(jfetch(j.cookie));
+}
+for (let i = 0; i < 3; i++) {
+  const r = await phones[i]("/api/profile", { method: "POST", body: JSON.stringify(JERSEYS[i]) });
+  check(`phone ${i + 1} suited up`, r.status === 200 && r.body.initials === JERSEYS[i].initials);
+}
+{
+  const r = await phones[0]("/api/profile", { method: "POST", body: JSON.stringify({ initials: "X", emoji: "🦈" }) });
+  check("1-letter jersey → 400", r.status === 400);
+  const s = await phones[0]("/api/state");
+  check("state carries my jersey", s.body.me?.initials === "AAA" && s.body.me?.emoji === "🦈");
 }
 
 // State requires a session.
@@ -85,7 +100,7 @@ r = await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKe
 check("revote while open", r.status === 200);
 
 r = await phones[0]("/api/state");
-check("counts hidden while open", r.body.counts === null);
+check("live counts while open (game-show bars)", Array.isArray(r.body.counts) && r.body.counts.reduce((a, b) => a + b, 0) === 3);
 
 snap = await control("poll");
 check("poll revealed", snap.pollState === "revealed");
@@ -108,17 +123,26 @@ check("price guess accepted", r.status === 200);
 r = await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 300 }) });
 check("out-of-range guess → 400", r.status === 400);
 await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 760 }) });
+await phones[2]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 700 }) });
 r = await phones[0]("/api/state");
 check("answer hidden pre-reveal", JSON.stringify(r.body).includes("soldK") === false);
 snap = await control("poll");
 check("price values on console", Array.isArray(snap.priceValues) && snap.priceValues.some((v) => v.value === 824));
+check(
+  "podium paid, closest first (AAA at 824 vs 797)",
+  Array.isArray(snap.podium) && snap.podium[0]?.initials === "AAA" && snap.podium[0]?.points === 100,
+  JSON.stringify(snap.podium)
+);
 r = await phones[0]("/api/state");
 check(
   "price reveal on phone (record + arithmetic anchor)",
-  r.body.priceReveal?.values?.length >= 2 && r.body.priceReveal.soldK === 797 && r.body.priceReveal.anchorK === 719,
+  r.body.priceReveal?.values?.length >= 3 && r.body.priceReveal.soldK === 797 && r.body.priceReveal.anchorK === 719,
   JSON.stringify({ soldK: r.body.priceReveal?.soldK, anchorK: r.body.priceReveal?.anchorK })
 );
 check("reveal labels the number honestly", r.body.priceReveal?.soldLabel === "ACTUALLY CLOSED");
+check("my rank on my phone (AAA = #1)", r.body.priceReveal?.myRank === 1, String(r.body.priceReveal?.myRank));
+r = await phones[2]("/api/state");
+check("farthest guess ranks #3", r.body.priceReveal?.myRank === 3, String(r.body.priceReveal?.myRank));
 
 // Stump is gated to its slide; without a key it refuses honestly.
 r = await phones[0]("/api/stump", { method: "POST", body: JSON.stringify({ question: "roof year?" }) });
@@ -136,7 +160,18 @@ check("score posted", r.status === 200);
 r = await phones[1]("/api/score", { method: "POST", body: JSON.stringify({ initials: "X", score: 8 }) });
 check("1-letter initials → 400", r.status === 400);
 snap = await control("goto", 12);
-check("board shows MO 9/10", (snap.scoreboard ?? []).some((s) => s.initials === "MO" && s.best === 9));
+check("ring board shows MO 9/10", (snap.scoreboard ?? []).some((s) => s.initials === "MO" && s.best === 9));
+
+// THE BOARD: AAA = time 10 + price1 10 + podium 100 + ring 90 = 210.
+check(
+  "THE BOARD crowns AAA at 210",
+  (snap.standings ?? [])[0]?.initials === "AAA" && (snap.standings ?? [])[0]?.points === 210,
+  JSON.stringify((snap.standings ?? []).slice(0, 3))
+);
+check("THE BOARD lists all three jerseys", (snap.standings ?? []).length === 3);
+r = await phones[0]("/api/state");
+check("phone sees its own rank and points", r.body.board?.myRank === 1 && r.body.board?.myPoints === 210,
+  JSON.stringify(r.body.board));
 
 // Jump to the ladder poll, run the capture flow.
 const ladderStep = 15; // host 1 · price 6 · stump 9 · seed 11 · board 12 · ladder 15

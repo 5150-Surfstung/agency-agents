@@ -51,6 +51,24 @@ export interface StumpEntry {
   answer: string;
   refused: boolean;
   at: number;
+  /** The asker's jersey, for projector attribution. Empty until they pick one. */
+  initials?: string;
+  emoji?: string;
+}
+
+/** A phone with a jersey on THE BOARD. Points are derived server-side from
+ *  real game artifacts — votes, stump questions, ring scores, podium awards. */
+export interface Player {
+  deviceId: string;
+  initials: string;
+  emoji: string;
+  points: number;
+}
+
+/** The machine's locked price guess — made from the same facts the room has. */
+export interface AiGuess {
+  guessK: number;
+  reasoning: string;
 }
 
 export interface ScoreRow {

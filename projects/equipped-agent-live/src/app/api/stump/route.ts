@@ -33,8 +33,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "not_stump_time" }, { status: 409 });
     }
 
-    const id = await store.stumpAdd(sess.roomKey, sess.deviceId, question);
-
     const result = await runArcadeTurn({
       roomKey: sess.roomKey,
       deviceId: sess.deviceId,
@@ -44,11 +42,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (!result.ok) {
+      // Nothing recorded on failure — no ghost entries on the projector, no
+      // board points for a question the assistant never faced.
       const status = result.reason === "offline" ? 503 : result.reason === "error" ? 502 : 429;
       return NextResponse.json({ ok: false, error: result.reason }, { status });
     }
 
     const refused = REFUSAL.test(result.reply);
+    const id = await store.stumpAdd(sess.roomKey, sess.deviceId, question);
     await store.stumpAnswer(sess.roomKey, id, result.reply, refused);
     return NextResponse.json({ ok: true, answer: result.reply, refused });
   } catch {

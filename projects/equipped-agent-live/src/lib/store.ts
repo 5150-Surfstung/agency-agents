@@ -6,7 +6,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { presenterKey, roomPin } from "./room";
-import type { Lead, Pack, PollState, RoomState, ScoreRow, StumpEntry, ToolEvent, Vote } from "./types";
+import type { AiGuess, Lead, Pack, Player, PollState, RoomState, ScoreRow, StumpEntry, ToolEvent, Vote } from "./types";
 
 export type Role = "presenter" | "attendee" | null;
 
@@ -49,6 +49,24 @@ export interface Store {
 
   scorePost(key: string, deviceId: string, initials: string, score: number): Promise<void>;
   scoresTop(key: string): Promise<ScoreRow[]>;
+
+  /** Jerseys: a device picks initials + emoji once; everything attributes. */
+  profileSet(key: string, deviceId: string, initials: string, emoji: string): Promise<void>;
+  profileGet(key: string, deviceId: string): Promise<{ initials: string; emoji: string } | null>;
+
+  /** THE BOARD — derived points. pollKeys is the deck's real poll list. */
+  standings(key: string, pollKeys: string[]): Promise<Player[]>;
+  /** Podium bonuses etc. — presenter key required by the backend. */
+  awardAdd(key: string, deviceId: string, points: number, reason: string): Promise<void>;
+  /** Per-device price guesses for podium math — presenter key required. */
+  priceEntries(key: string, pollKey: string): Promise<{ deviceId: string; value: number }[]>;
+
+  /** The machine's locked guess — presenter writes at open, room reads at reveal. */
+  aiGuessSet(key: string, pollKey: string, guessK: number, reasoning: string): Promise<void>;
+  aiGuessGet(key: string, pollKey: string): Promise<AiGuess | null>;
+
+  /** House score for Stump: questions asked, honest refusals witnessed. */
+  stumpStats(key: string): Promise<{ asked: number; refused: number }>;
 }
 
 // ---------------------------------------------------------------- memory
@@ -136,11 +154,11 @@ class MemoryStore implements Store {
     return [...byValue.entries()].map(([value, n]) => ({ value, n })).sort((a, b) => a.value - b.value);
   }
 
-  private stump: StumpEntry[] = [];
+  private stump: (StumpEntry & { deviceId: string })[] = [];
   private stumpSeq = 0;
-  async stumpAdd(_key: string, _deviceId: string, question: string) {
+  async stumpAdd(_key: string, deviceId: string, question: string) {
     const id = ++this.stumpSeq;
-    this.stump.push({ id, question, answer: "", refused: false, at: Date.now() });
+    this.stump.push({ id, deviceId, question, answer: "", refused: false, at: Date.now() });
     return id;
   }
   async stumpAnswer(_key: string, id: number, answer: string, refused: boolean) {
@@ -151,7 +169,66 @@ class MemoryStore implements Store {
     }
   }
   async stumpList(_key: string, limit: number) {
-    return [...this.stump].sort((a, b) => b.at - a.at).slice(0, limit);
+    return [...this.stump]
+      .sort((a, b) => b.at - a.at)
+      .slice(0, limit)
+      .map(({ deviceId, ...e }) => ({
+        ...e,
+        initials: this.players.get(deviceId)?.initials ?? "",
+        emoji: this.players.get(deviceId)?.emoji ?? "",
+      }));
+  }
+  async stumpStats(_key: string) {
+    return { asked: this.stump.length, refused: this.stump.filter((s) => s.refused).length };
+  }
+
+  private players = new Map<string, { initials: string; emoji: string; at: number }>();
+  private awards: { deviceId: string; points: number; reason: string }[] = [];
+  private aiGuesses = new Map<string, AiGuess>();
+
+  async profileSet(_key: string, deviceId: string, initials: string, emoji: string) {
+    this.players.set(deviceId, {
+      initials: initials.replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase(),
+      emoji: emoji.slice(0, 8),
+      at: this.players.get(deviceId)?.at ?? Date.now(),
+    });
+  }
+  async profileGet(_key: string, deviceId: string) {
+    const p = this.players.get(deviceId);
+    return p ? { initials: p.initials, emoji: p.emoji } : null;
+  }
+  // Same formula as the database's live_standings — points derive from real
+  // artifacts: 10/poll voted, 15/stump question (first 3), best ring x10, awards.
+  async standings(_key: string, pollKeys: string[]) {
+    const rows: Player[] = [];
+    for (const [deviceId, p] of this.players) {
+      if (!p.initials) continue;
+      const votedKeys = new Set(
+        [...this.votes.values()].filter((v) => v.deviceId === deviceId && pollKeys.includes(v.pollKey)).map((v) => v.pollKey)
+      );
+      const stumps = Math.min(this.stump.filter((s) => s.deviceId === deviceId).length, 3);
+      const best = this.scores.get(deviceId)?.best ?? 0;
+      const bonus = this.awards.filter((a) => a.deviceId === deviceId).reduce((s, a) => s + a.points, 0);
+      rows.push({ deviceId, initials: p.initials, emoji: p.emoji, points: votedKeys.size * 10 + stumps * 15 + best * 10 + bonus });
+    }
+    return rows.sort((a, b) => b.points - a.points).slice(0, 60);
+  }
+  async awardAdd(key: string, deviceId: string, points: number, reason: string) {
+    if (key !== presenterKey()) throw new Error("not_presenter");
+    // Same idempotency as the database: one award per (device, reason).
+    if (this.awards.some((a) => a.deviceId === deviceId && a.reason === reason)) return;
+    this.awards.push({ deviceId, points, reason });
+  }
+  async priceEntries(key: string, pollKey: string) {
+    if (key !== presenterKey()) throw new Error("not_presenter");
+    return [...this.votes.values()].filter((v) => v.pollKey === pollKey).map((v) => ({ deviceId: v.deviceId, value: v.choice }));
+  }
+  async aiGuessSet(key: string, pollKey: string, guessK: number, reasoning: string) {
+    if (key !== presenterKey()) throw new Error("not_presenter");
+    this.aiGuesses.set(pollKey, { guessK, reasoning });
+  }
+  async aiGuessGet(_key: string, pollKey: string) {
+    return this.aiGuesses.get(pollKey) ?? null;
   }
 
   private scores = new Map<string, ScoreRow & { at: number }>();
@@ -321,17 +398,68 @@ class RpcStore implements Store {
     await this.call("live_stump_answer", { p_key: key, p_id: id, p_answer: answer, p_refused: refused });
   }
   async stumpList(key: string, limit: number): Promise<StumpEntry[]> {
-    const rows = await this.call<{ id: number; question: string; answer: string; refused: boolean; at: string }[]>(
-      "live_stump_list",
-      { p_key: key, p_limit: limit }
-    );
+    const rows = await this.call<
+      { id: number; question: string; answer: string; refused: boolean; at: string; initials: string; emoji: string }[]
+    >("live_stump_list", { p_key: key, p_limit: limit });
     return (rows ?? []).map((r) => ({
       id: Number(r.id),
       question: r.question,
       answer: r.answer,
       refused: r.refused,
       at: new Date(r.at).getTime(),
+      initials: r.initials ?? "",
+      emoji: r.emoji ?? "",
     }));
+  }
+  async stumpStats(key: string) {
+    const rows = await this.call<{ asked: number; refused: number }[]>("live_stump_stats", { p_key: key });
+    const r = rows?.[0];
+    return { asked: Number(r?.asked) || 0, refused: Number(r?.refused) || 0 };
+  }
+
+  async profileSet(key: string, deviceId: string, initials: string, emoji: string) {
+    await this.call("live_profile_set", { p_key: key, p_device: deviceId, p_initials: initials, p_emoji: emoji });
+  }
+  async profileGet(key: string, deviceId: string) {
+    const rows = await this.call<{ initials: string; emoji: string }[]>("live_profile_get", {
+      p_key: key,
+      p_device: deviceId,
+    });
+    const r = rows?.[0];
+    return r ? { initials: r.initials ?? "", emoji: r.emoji ?? "" } : null;
+  }
+  async standings(key: string, pollKeys: string[]): Promise<Player[]> {
+    const rows = await this.call<{ device_id: string; initials: string; emoji: string; points: number }[]>(
+      "live_standings",
+      { p_key: key, p_polls: pollKeys }
+    );
+    return (rows ?? []).map((r) => ({
+      deviceId: r.device_id,
+      initials: r.initials,
+      emoji: r.emoji ?? "",
+      points: Number(r.points) || 0,
+    }));
+  }
+  async awardAdd(key: string, deviceId: string, points: number, reason: string) {
+    await this.call("live_award_add", { p_key: key, p_device: deviceId, p_points: points, p_reason: reason });
+  }
+  async priceEntries(key: string, pollKey: string) {
+    const rows = await this.call<{ device_id: string; choice: number }[]>("live_price_entries", {
+      p_key: key,
+      p_poll: pollKey,
+    });
+    return (rows ?? []).map((r) => ({ deviceId: r.device_id, value: Number(r.choice) }));
+  }
+  async aiGuessSet(key: string, pollKey: string, guessK: number, reasoning: string) {
+    await this.call("live_ai_guess_set", { p_key: key, p_poll: pollKey, p_guess: guessK, p_reason: reasoning });
+  }
+  async aiGuessGet(key: string, pollKey: string): Promise<AiGuess | null> {
+    const rows = await this.call<{ guess_k: number; reasoning: string }[]>("live_ai_guess_get", {
+      p_key: key,
+      p_poll: pollKey,
+    });
+    const r = rows?.[0];
+    return r ? { guessK: Number(r.guess_k), reasoning: r.reasoning ?? "" } : null;
   }
 
   async scorePost(key: string, deviceId: string, initials: string, score: number) {

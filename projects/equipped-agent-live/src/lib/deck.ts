@@ -117,7 +117,7 @@ export const DECK: Slide[] = [
       source: "The Stonoview Index \u00b7 466 recorded closings, Charleston Trident MLS \u00b7 updated July 27, 2026",
     },
     cue:
-      "Slider goes live on space. THE TRAP: every agent prices off blended $/sq ft \u2014 $327 \u00d7 2,200 = $719K. The record says these 22 homes closed at a median of $797K. That's $78,000 the arithmetic leaves on the table, and the bias runs against SMALLER homes every time. Reveal shows the room, then the arithmetic marker, then the record. Say the middle half out loud: half of the 22 closed between $756K and $824K \u2014 a span, not a false point. Then the line: 'the second number is what happened; the first is arithmetic.'",
+      "Space opens the slider AND locks the machine's guess from the same three facts \u2014 say it out loud: 'the AI just made its call. Same facts you have. No feelings about granite.' THE TRAP: every agent prices off blended $/sq ft \u2014 $327 \u00d7 2,200 = $719K. The record says these 22 homes closed at a median of $797K \u2014 $78,000 the arithmetic leaves on the table, and the bias runs against SMALLER homes every time. Space again: the room's histogram, the arithmetic marker, the machine's call, then the record. Podium takes 100/50/25 on THE BOARD; every phone shows its own rank. Say the middle half out loud: half of the 22 closed between $756K and $824K \u2014 a span, not a false point. 'The second number is what happened; the first is arithmetic.'",
   },
   {
     id: "poll-build",
@@ -152,14 +152,14 @@ export const DECK: Slide[] = [
   {
     id: "stump",
     kind: "stump",
-    eyebrow: "Game two \u00b7 Try to break it",
+    eyebrow: "Game two \u00b7 The room vs. the house",
     heading: "Stump the assistant.",
     lines: [
-      "Your phones can now interrogate the demo listing's assistant.",
-      "It knows ONLY the fact sheet. Make it guess \u2014 it won't.",
-      "Every honest refusal lights up gold. That's the feature.",
+      "Your phones can now interrogate the listing's assistant. It knows ONLY the fact sheet.",
+      "Make it guess \u2014 just once \u2014 and the room wins. Every honest refusal is a point for the house.",
+      "Best question on the big screen gets called out by name.",
     ],
-    cue: "Questions and answers stream onto this screen live. Call out the best refusal. If the engine key isn't loaded, this slide says so honestly \u2014 skip it.",
+    cue: "The wager, out loud: 'If ANYONE makes it invent a fact tonight, lunch is on me.' Refusal counter runs big on this screen; every question shows the asker's jersey. If the engine key isn't loaded, this slide says so honestly \u2014 skip it.",
   },
   {
     id: "demo-t2k",
@@ -181,17 +181,20 @@ export const DECK: Slide[] = [
     lines: [
       "1 — Your phone has a COPY button on it right now. Tap it.",
       "2 — Open the free Claude app (or claude.ai) — phone or laptop — and paste into a new chat.",
-      "3 — It interviews YOU — six questions — then becomes your assistant. Take it for a sparring round and post your score.",
+      "3 — Five questions in, it shows you your own voice. By the end it names itself, prints your operating card, and hands you three texts you could send tonight.",
     ],
-    cue: "The head-on-fire moment. Give it four full minutes. Walk the room. When the first person's assistant introduces itself by name, have them read it out loud.",
+    cue: "The head-on-fire moment. Give it FIVE full minutes and walk the room. Two beats to call out loud: when the first person gets their three voice-test texts ('that's YOUR market in three voices — pick one'), and when the first assistant introduces itself by name — have them read the name out. Then: 'now say spar — your board move is waiting.'",
   },
   {
     id: "leaderboard",
     kind: "leaderboard",
-    eyebrow: "The ring \u00b7 standings",
-    heading: "Toughest agents in the room",
-    lines: ["Best sparring score takes the board. Three letters, immortalized."],
-    cue: "Scores come from THEIR OWN ring (the seed's spar move) \u2014 on their honor, posted from their phone on this slide. Crown the leader out loud.",
+    eyebrow: "THE BOARD \u00b7 whole-night standings",
+    heading: "Somebody's leaving with the crown.",
+    lines: [
+      "Every vote, every guess, every stump attempt, every ring round \u2014 it all counted.",
+      "Post your sparring score from YOUR OWN assistant to make your final move.",
+    ],
+    cue: "Two boards: the night's points standings and the ring scores feeding them. Ring scores are on their honor \u2014 it's a lunch table, not the SEC. Crown the leader OUT LOUD by jersey: 'The \ud83e\udd88 shark takes it.' Screenshot moment \u2014 tell them so.",
   },
   {
     id: "playbook",
@@ -251,6 +254,11 @@ export const DECK: Slide[] = [
 
 /** The seed moment and everything after it — phones may act on their own. */
 export const SEED_FROM_STEP = DECK.findIndex((s) => s.kind === "seed");
+
+/** Every real poll/price key in the deck — THE BOARD only counts these. */
+export const ALL_POLL_KEYS = DECK.flatMap((s) => [s.poll?.key, s.price?.key]).filter(
+  (k): k is string => typeof k === "string"
+);
 
 /** The fact sheet Stump the Assistant defends. SWAP for a live listing's
  *  sheet before a real room — the game only ever speaks these lines. */

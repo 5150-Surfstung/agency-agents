@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DECK } from "@/lib/deck";
-import type { Lead, ScoreRow, StumpEntry } from "@/lib/types";
+import type { Lead, Player, ScoreRow, StumpEntry } from "@/lib/types";
 
 interface Snapshot {
   ok: boolean;
@@ -20,8 +20,12 @@ interface Snapshot {
   pollState: "closed" | "open" | "revealed";
   counts: number[] | null;
   priceValues: { value: number; n: number }[] | null;
+  aiGuess: { guessK: number; reasoning: string } | null;
+  podium: { initials: string; emoji: string; value: number; offBy: number; points: number }[] | null;
   stumpFeed: StumpEntry[] | null;
+  stumpStats: { asked: number; refused: number } | null;
   scoreboard: ScoreRow[] | null;
+  standings: Player[] | null;
   leads: Lead[];
   present: number;
   spendUsd: number;
@@ -201,14 +205,37 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
               </p>
             )}
             {snap.pollState === "open" && (
-              <div className="flex items-center gap-[1.5vw]">
-                <span className="ring-pulse inline-block h-[2vh] w-[2vh] rounded-full bg-moss" />
-                <p className="text-[clamp(20px,2.4vw,40px)] font-semibold text-cream">
-                  <span className="font-[family-name:var(--font-display)] text-[clamp(28px,3.4vw,56px)] font-bold text-gold-bright">
-                    {total}
-                  </span>{" "}
-                  voting · <span className="text-faint">space reveals</span>
-                </p>
+              <div className="flex flex-col gap-[1.4vh]">
+                {/* Live bars, climbing as the room votes — the game show IS
+                    the open state. The reveal crowns the winner. */}
+                {poll.options.map((opt, i) => {
+                  const n = snap.counts?.[i] ?? 0;
+                  const pct = total ? Math.round((n / total) * 100) : 0;
+                  return (
+                    <div key={opt}>
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-[clamp(15px,1.5vw,24px)] font-semibold text-cream">{opt}</span>
+                        <span className="text-[clamp(15px,1.5vw,24px)] font-bold text-soft">{pct}%</span>
+                      </div>
+                      <div className="mt-[0.5vh] h-[1.6vh] overflow-hidden rounded-full bg-sheet-3">
+                        <div
+                          className="h-full rounded-full bg-gold/80 transition-[width] duration-700 ease-out"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="mt-[0.6vh] flex items-center gap-[1.2vw]">
+                  <span className="ring-pulse inline-block h-[1.6vh] w-[1.6vh] rounded-full bg-moss" />
+                  <p className="text-[clamp(15px,1.5vw,24px)] font-semibold text-cream">
+                    <span className="font-[family-name:var(--font-display)] text-[clamp(22px,2.6vw,42px)] font-bold text-gold-bright">
+                      {total}
+                    </span>{" "}
+                    voting live · <span className="text-faint">🔒 anonymous, always</span> ·{" "}
+                    <span className="text-faint">space crowns the winner</span>
+                  </p>
+                </div>
               </div>
             )}
             {snap.pollState === "revealed" && snap.counts && (
@@ -267,23 +294,59 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
               </div>
             )}
             {snap.pollState === "revealed" && (
-              <PriceHistogram
-                values={snap.priceValues ?? []}
-                minK={price.minK}
-                maxK={price.maxK}
-                soldK={price.soldK}
-                soldLabel={price.soldLabel}
-                anchorK={price.anchorK}
-                anchorLabel={price.anchorLabel}
-                source={price.source}
-              />
+              <>
+                <PriceHistogram
+                  values={snap.priceValues ?? []}
+                  minK={price.minK}
+                  maxK={price.maxK}
+                  soldK={price.soldK}
+                  soldLabel={price.soldLabel}
+                  anchorK={price.anchorK}
+                  anchorLabel={price.anchorLabel}
+                  source={price.source}
+                  aiGuess={snap.aiGuess}
+                />
+                {snap.podium && snap.podium.length > 0 && (
+                  <div className="mt-[2vh] flex flex-wrap items-center gap-[1.6vw]">
+                    {snap.podium.map((p, i) => (
+                      <div
+                        key={p.initials + i}
+                        className="bar-row flex items-baseline gap-[0.8vw] rounded-2xl border border-gold/60 bg-sheet-2 px-[1.4vw] py-[1vh]"
+                        style={{ animationDelay: `${1 + i * 0.25}s` }}
+                      >
+                        <span className="text-[clamp(20px,2.2vw,36px)]">{["🥇", "🥈", "🥉"][i]}</span>
+                        <span className="font-[family-name:var(--font-display)] text-[clamp(18px,2vw,32px)] font-bold text-cream">
+                          {p.emoji} <span className="tracking-[0.2em]">{p.initials}</span>
+                        </span>
+                        <span className="text-[clamp(13px,1.2vw,19px)] font-semibold text-soft">
+                          {fmtK(p.value)} · off {fmtK(p.offBy)}
+                        </span>
+                        <span className="text-[clamp(14px,1.3vw,21px)] font-bold text-gold-bright">+{p.points}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
 
         {/* ——— stump feed ——— */}
         {slide.kind === "stump" && (
-          <div className="rise d2 mt-[3vh] grid w-full max-w-[110ch] grid-cols-1 gap-[1.2vh] lg:grid-cols-2">
+          <div className="rise d2 mt-[2vh] w-full max-w-[110ch]">
+            {/* The house score — big, honest, and running. */}
+            {snap.stumpStats && snap.stumpStats.asked > 0 && (
+              <div className="mb-[2vh] flex items-baseline gap-[1.5vw]">
+                <span className="font-[family-name:var(--font-display)] text-[clamp(36px,4.5vw,76px)] font-bold text-gold-bright">
+                  {snap.stumpStats.refused}
+                </span>
+                <span className="text-[clamp(16px,1.7vw,28px)] font-semibold text-cream">
+                  honest refusal{snap.stumpStats.refused === 1 ? "" : "s"} ·{" "}
+                  <span className="text-faint">the house hasn&apos;t guessed once</span>
+                </span>
+              </div>
+            )}
+            <div className="grid grid-cols-1 gap-[1.2vh] lg:grid-cols-2">
             {!snap.engineOnline && (
               <p className="rounded-xl border border-clay/60 bg-sheet-2 px-[1.2vw] py-[1.2vh] text-[clamp(14px,1.3vw,20px)] text-clay">
                 Engine key not loaded — this game sits out tonight, honestly.
@@ -296,7 +359,14 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
                   e.refused ? "border-gold bg-sheet-2" : "border-rule bg-sheet-2"
                 }`}
               >
-                <p className="text-[clamp(14px,1.3vw,21px)] font-semibold text-cream">“{e.question}”</p>
+                <p className="text-[clamp(14px,1.3vw,21px)] font-semibold text-cream">
+                  {(e.initials || e.emoji) && (
+                    <span className="mr-[0.6vw] rounded-full border border-rule bg-sheet px-[0.7vw] py-[0.2vh] text-[clamp(11px,1vw,15px)] font-bold tracking-[0.15em] text-gold-bright">
+                      {e.emoji} {e.initials}
+                    </span>
+                  )}
+                  “{e.question}”
+                </p>
                 <p className="mt-[0.4vh] text-[clamp(13px,1.15vw,18px)] leading-snug text-soft">
                   {e.answer || "…thinking"}
                 </p>
@@ -310,35 +380,71 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
             {snap.engineOnline && (snap.stumpFeed ?? []).length === 0 && (
               <p className="text-[clamp(15px,1.4vw,22px)] text-faint">Phones are loaded. First question incoming…</p>
             )}
+            </div>
           </div>
         )}
 
-        {/* ——— leaderboard ——— */}
+        {/* ——— THE BOARD: whole-night standings + the ring feeding them ——— */}
         {slide.kind === "leaderboard" && (
-          <div className="rise d2 mt-[3vh] w-full max-w-[60ch]">
-            {(snap.scoreboard ?? []).length === 0 ? (
-              <p className="text-[clamp(15px,1.4vw,22px)] text-faint">
-                The board is empty — post your ring score from your phone. Three letters, one number.
+          <div className="rise d2 mt-[2.5vh] grid w-full max-w-[120ch] grid-cols-1 gap-[3vw] lg:grid-cols-2">
+            <div>
+              <p className="text-[clamp(13px,1.2vw,19px)] font-bold uppercase tracking-[0.2em] text-gold">
+                The board · the whole night
               </p>
-            ) : (
-              <div className="flex flex-col gap-[1vh]">
-                {(snap.scoreboard ?? []).map((r, i) => (
-                  <div
-                    key={r.initials + i}
-                    className="bar-row flex items-baseline justify-between rounded-xl border border-rule bg-sheet-2 px-[1.4vw] py-[1vh]"
-                    style={{ animationDelay: `${i * 0.1}s` }}
-                  >
-                    <span className="font-[family-name:var(--font-display)] text-[clamp(20px,2.2vw,36px)] font-bold text-cream">
-                      {i === 0 ? "👑 " : `${i + 1}. `}
-                      <span className="tracking-[0.3em]">{r.initials}</span>
-                    </span>
-                    <span className="text-[clamp(18px,2vw,32px)] font-bold text-gold-bright">
-                      {r.best}/10 <span className="text-[clamp(11px,1vw,15px)] font-semibold text-faint">· {r.rounds} rounds</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+              {(snap.standings ?? []).length === 0 ? (
+                <p className="mt-[1.5vh] text-[clamp(15px,1.4vw,22px)] text-faint">
+                  Nobody's suited up yet — jerseys go on at the door.
+                </p>
+              ) : (
+                <div className="mt-[1.2vh] flex flex-col gap-[0.8vh]">
+                  {(snap.standings ?? []).slice(0, 8).map((r, i) => (
+                    <div
+                      key={r.deviceId}
+                      className={`bar-row flex items-baseline justify-between rounded-xl border px-[1.4vw] py-[0.9vh] ${
+                        i === 0 ? "border-gold bg-sheet-2" : "border-rule bg-sheet-2"
+                      }`}
+                      style={{ animationDelay: `${i * 0.08}s` }}
+                    >
+                      <span className="font-[family-name:var(--font-display)] text-[clamp(18px,2vw,32px)] font-bold text-cream">
+                        {i === 0 ? "👑 " : `${i + 1}. `}
+                        {r.emoji} <span className="tracking-[0.25em]">{r.initials}</span>
+                      </span>
+                      <span className={`text-[clamp(17px,1.9vw,30px)] font-bold ${i === 0 ? "winner-pulse text-gold-bright" : "text-gold-bright"}`}>
+                        {r.points}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="text-[clamp(13px,1.2vw,19px)] font-bold uppercase tracking-[0.2em] text-gold">
+                The ring · best round × 10
+              </p>
+              {(snap.scoreboard ?? []).length === 0 ? (
+                <p className="mt-[1.5vh] text-[clamp(15px,1.4vw,22px)] text-faint">
+                  Post your sparring score from your phone — it's your final move.
+                </p>
+              ) : (
+                <div className="mt-[1.2vh] flex flex-col gap-[0.8vh]">
+                  {(snap.scoreboard ?? []).slice(0, 8).map((r, i) => (
+                    <div
+                      key={r.initials + i}
+                      className="bar-row flex items-baseline justify-between rounded-xl border border-rule bg-sheet-2 px-[1.4vw] py-[0.9vh]"
+                      style={{ animationDelay: `${0.3 + i * 0.08}s` }}
+                    >
+                      <span className="font-[family-name:var(--font-display)] text-[clamp(18px,2vw,32px)] font-bold text-cream">
+                        <span className="tracking-[0.25em]">{r.initials}</span>
+                      </span>
+                      <span className="text-[clamp(16px,1.8vw,28px)] font-bold text-gold-bright">
+                        {r.best}/10{" "}
+                        <span className="text-[clamp(11px,1vw,15px)] font-semibold text-faint">· {r.rounds} rounds</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </section>
@@ -464,6 +570,7 @@ function PriceHistogram({
   anchorK,
   anchorLabel,
   source,
+  aiGuess,
 }: {
   values: { value: number; n: number }[];
   minK: number;
@@ -473,6 +580,7 @@ function PriceHistogram({
   anchorK: number | null;
   anchorLabel: string;
   source?: string;
+  aiGuess: { guessK: number; reasoning: string } | null;
 }) {
   const BUCKETS = 24;
   const span = maxK - minK;
@@ -520,6 +628,15 @@ function PriceHistogram({
             </p>
           </div>
         )}
+        {/* the machine's locked call */}
+        {aiGuess && (
+          <div className="marker absolute bottom-0 top-[28%]" style={{ left: xOf(aiGuess.guessK), animationDelay: "0.75s" }}>
+            <div className="h-full w-[2px] rounded bg-clay" />
+            <p className="absolute -top-[2.6vh] -translate-x-1/2 whitespace-nowrap text-[clamp(12px,1.1vw,17px)] font-bold text-clay">
+              🤖 {fmtK(aiGuess.guessK)}
+            </p>
+          </div>
+        )}
       </div>
       <div className="mt-[4vh] flex flex-wrap items-baseline gap-[3vw] text-[clamp(14px,1.3vw,21px)] text-soft">
         <span>
@@ -541,6 +658,11 @@ function PriceHistogram({
           </span>
         )}
       </div>
+      {aiGuess && (
+        <p className="mt-[1.2vh] text-[clamp(13px,1.2vw,19px)] text-soft">
+          <b className="text-clay">🤖 the machine called {fmtK(aiGuess.guessK)}</b> — “{aiGuess.reasoning}”
+        </p>
+      )}
       {source && (
         <p className="mt-[1.5vh] text-[clamp(11px,0.95vw,15px)] text-faint">Source: {source}</p>
       )}

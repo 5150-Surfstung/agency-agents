@@ -99,6 +99,45 @@ export async function GET(req: NextRequest) {
     if (!pin) throw new Error("presenter key could not read the pin");
   });
 
+  await run("jersey + THE BOARD", async () => {
+    await store.profileSet(key, device, "ST", "🧪");
+    const p = await store.profileGet(key, device);
+    if (p?.initials !== "ST") throw new Error(`jersey read back ${JSON.stringify(p)}`);
+    // The selftest vote from above should count for 10 on the board.
+    const rows = await store.standings(key, ["selftest"]);
+    const mine = rows.find((r) => r.deviceId === device);
+    if (!mine || mine.points < 10) throw new Error(`board points ${mine?.points}`);
+  });
+
+  await run("podium award (idempotent)", async () => {
+    await store.awardAdd(key, device, 100, "selftest:podium");
+    await store.awardAdd(key, device, 100, "selftest:podium"); // must not double
+    const rows = await store.standings(key, ["selftest"]);
+    const mine = rows.find((r) => r.deviceId === device);
+    // 10 (vote) + 100 (one podium, not two) + 70 (ring best 7 × 10) = 180.
+    if (!mine || mine.points !== 180) throw new Error(`expected 180, got ${mine?.points}`);
+    const entries = await store.priceEntries(key, "selftest");
+    if (!entries.some((e) => e.deviceId === device && e.value === 2)) throw new Error("price entries missed the vote");
+  });
+
+  await run("machine guess roundtrip", async () => {
+    await store.aiGuessSet(key, "selftest-price", 815, "selftest reasoning");
+    const g = await store.aiGuessGet(key, "selftest-price");
+    if (g?.guessK !== 815) throw new Error(`guess read back ${JSON.stringify(g)}`);
+  });
+
+  await run("stump stats", async () => {
+    await store.stumpStats(key);
+  });
+
+  await run("selftest jersey benched (board stays clean)", async () => {
+    // Blank initials pull the selftest device off THE BOARD — standings only
+    // list suited-up players, so the test leaves no trace on the projector.
+    await store.profileSet(key, device, "", "");
+    const rows = await store.standings(key, ["selftest"]);
+    if (rows.some((r) => r.deviceId === device)) throw new Error("selftest player still on the board");
+  });
+
   // ?deep=1 — one real grounded model round-trip: must state a sheet fact and
   // refuse an off-sheet one. Costs a fraction of a cent; the pre-room proof.
   // If the engine is dark, this FAILS rather than quietly skipping — a green
