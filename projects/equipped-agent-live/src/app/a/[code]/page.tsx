@@ -51,8 +51,7 @@ export default async function AssistantPage({ params }: { params: Promise<{ code
 
       <footer className="mt-10 border-t border-rule pt-4">
         <p className="text-[11px] leading-relaxed text-faint">
-          This assistant only speaks what {assistant.agentName} put on the fact sheet. Anything it
-          doesn&apos;t know, it says so — and {assistant.agentName} follows up personally.
+          {`This assistant only speaks what ${assistant.agentName} put on the fact sheet. Anything it doesn't know, it says so — and ${assistant.agentName} follows up personally.`}
         </p>
         <p className="mt-2 text-[11px] text-faint">
           Built live at The Equipped Agent · The AGENT Connection™

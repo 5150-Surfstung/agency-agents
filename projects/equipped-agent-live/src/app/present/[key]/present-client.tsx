@@ -11,6 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DECK } from "@/lib/deck";
+import { IndexChart } from "./index-chart";
 import type { Attack, Lead, Player, ScoreRow } from "@/lib/types";
 
 interface Snapshot {
@@ -167,7 +168,13 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
           </p>
         )}
 
-        {slide.stats && (
+        {slide.id === "demo-farming" && (
+          <div className="rise d2 mt-[2vh] w-full max-w-[100ch]">
+            <IndexChart />
+          </div>
+        )}
+
+        {slide.stats && slide.id !== "demo-farming" && (
           <div className="rise d2 mt-[4vh] flex flex-wrap gap-[3vw]">
             {slide.stats.map((s) => (
               <div key={s.label} className="min-w-[16vw]">
