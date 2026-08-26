@@ -12,34 +12,47 @@ the Vercel CLI and key files this cloud sandbox could not touch).**
 - Cost model per Mike: **no arcade**; attendees build on their own free Claude accounts via the seed. Only Stump touches `ANTHROPIC_API_KEY` (Haiku, hard caps in `src/lib/ai.ts`).
 - Architecture: Next.js on Vercel (project `the-equipped-agent`, team `surfstung-systems`, git-linked to this branch, root `projects/equipped-agent-live`). All state in Supabase project `iwotispqqcnkrbcnvozq` behind security-definer RPCs (`live_*`); PIN + presenter key live in the sealed `live_config` table — **not env**. App ships zero secrets.
 
-## Finish list (local session, ~2 minutes)
+## Finish list
+
+### 1. The one click that arms the engine (do this first)
+
+`ANTHROPIC_API_KEY` is already in the project's **Production** environment bucket.
+The URL we've been serving (`...-git-claude-agent-co-dde968-...`) is technically a
+**Preview** deployment, because Vercel still has `main` set as the production
+branch — and Production env vars never reach Preview builds. That's the whole
+reason `engineOnline` reads `false`.
+
+Fix, once, permanently:
+<https://vercel.com/surfstung-systems/the-equipped-agent/settings/git>
+→ **Production Branch** → `claude/agent-connection-real-estate-ai-odi1e2` → Save.
+
+Then push any commit to this branch. The next build is a *Production* build, it
+inherits the key, and it lands on the clean URL:
+**https://the-equipped-agent-surfstung-systems.vercel.app**
+
+Verify: `/api/selftest?key=dev-presenter&deep=1` →
+`"engineOnline":true` **and** an `engine: grounded round-trip` check that passes.
+That check makes one real Haiku call against the demo fact sheet and fails unless
+the assistant both states a sheet fact (4 bed) and refuses an off-sheet one (roof
+year). It costs a fraction of a cent. Run it before every real room.
+
+### 2. Optional — the speed-to-lead buzz
 
 ```bash
-# from any folder, with vercel CLI logged in (npx vercel login if not)
 cd $(mktemp -d) && npx vercel link --project the-equipped-agent --scope surfstung-systems --yes
-
-# 1. REQUIRED — arms Stump (find the key in Mike's local env files/keychain,
-#    or mint at https://console.anthropic.com/settings/keys):
-npx vercel env add ANTHROPIC_API_KEY production
-
-# 2. OPTIONAL — the speed-to-lead buzz (values from https://console.twilio.com):
 npx vercel env add TWILIO_ACCOUNT_SID production
 npx vercel env add TWILIO_AUTH_TOKEN production
 npx vercel env add TWILIO_FROM production        # the Twilio number
 npx vercel env add LEAD_ALERT_TO production      # Mike's cell
-
-# 3. Redeploy so env lands:
-npx vercel redeploy the-equipped-agent-git-claude-agent-co-dde968-surfstung-systems.vercel.app --scope surfstung-systems
-
-# 4. Pretty URL — set production branch via API (token: npx vercel whoami works → use dashboard,
-#    or Settings→Git in https://vercel.com/surfstung-systems/the-equipped-agent/settings/git):
-#    Production Branch = claude/agent-connection-real-estate-ai-odi1e2
-
-# 5. Delete the two dead stub projects (blocked-deploy leftovers):
-#    https://vercel.com/surfstung-systems/equipped-agent-live/settings → Delete Project
 ```
 
-Verify after env: `/api/selftest?key=dev-presenter` should show `"engineOnline":true`, and the Stump slide answers live.
+Until those exist the console shows `sms: off` and the ladder still captures
+leads — it just doesn't text. Honest either way; nothing fakes a send.
+
+### 3. Housekeeping
+
+Delete the two dead stub projects (leftovers from the blocked file-deploys):
+<https://vercel.com/surfstung-systems/equipped-agent-live/settings> → Delete Project
 
 ## Before a real room
 

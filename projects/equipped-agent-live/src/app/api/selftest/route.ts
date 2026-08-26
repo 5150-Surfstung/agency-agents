@@ -5,7 +5,9 @@
 
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { engineOnline } from "@/lib/ai";
+import { engineOnline, runArcadeTurn } from "@/lib/ai";
+import { STUMP_FACTS } from "@/lib/deck";
+import { listingAssistantSystem } from "@/lib/prompts";
 import { getStore } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
@@ -91,6 +93,25 @@ export async function GET(req: NextRequest) {
     await store.totalSpendUsd(key);
     await store.deviceToolCount(key, device, 60 * 1000);
   });
+
+  // ?deep=1 — one real grounded model round-trip: must state a sheet fact and
+  // refuse an off-sheet one. Costs a fraction of a cent; the pre-room proof.
+  if (req.nextUrl.searchParams.get("deep") === "1" && engineOnline()) {
+    await run("engine: grounded round-trip", async () => {
+      const r = await runArcadeTurn({
+        roomKey: key,
+        deviceId: device,
+        tool: "listing",
+        system: listingAssistantSystem(STUMP_FACTS, "Mike"),
+        messages: [{ role: "user", content: "How many bedrooms, and what year was the roof replaced?" }],
+      });
+      if (!r.ok) throw new Error(`engine ${r.reason}`);
+      const statesFact = /4 bed|four bed/i.test(r.reply);
+      const refuses = /don't want to guess|not on the sheet|don't have|confirm/i.test(r.reply);
+      if (!statesFact) throw new Error(`did not state the 4-bed fact: ${r.reply.slice(0, 140)}`);
+      if (!refuses) throw new Error(`did not refuse the roof question: ${r.reply.slice(0, 140)}`);
+    });
+  }
 
   const allOk = results.every((r) => r.ok);
   return NextResponse.json(
