@@ -39,10 +39,10 @@ faking answers — skip it and keep moving.
       refuses one that isn't on it. Green here means the Stump game will behave.
 - [ ] **Rotate the PIN and presenter key** if the last room's are still live
       (one SQL statement — see `projects/equipped-agent-live/HANDOFF.md`).
-- [ ] **Load a real closing into the Price Is Right slide** — `soldK` plus the
-      exact facts. Until you do, the reveal honestly says the closing isn't
-      loaded and shows only the room vs. the index anchor. Never invent it.
-- [ ] **Swap the Stump fact sheet** for a live listing's real sheet.
+- [ ] **Swap the Stump fact sheet** for a live listing's real sheet. (The price
+      game is already loaded from the published Stonoview Index — nothing to do
+      there unless the index gets a monthly refresh first, in which case re-check
+      its numbers against slide 7.)
 - [ ] Stonoview Neighborhood Index + the 29466 seven-hood plan open in tabs.
 - [ ] Track to Keys staged on a real-shaped deal, with the client view on a phone.
 - [ ] The AI listing assistant tested that morning — one real question through it,
@@ -65,10 +65,12 @@ because phones are half the show.
 
 ### 0:02 — Your host (slide 2)
 
-Thirty seconds, first person, no résumé voice: crawlspaces taught you what agents
-miss, multifamily taught you scale, tech taught you leverage. Everything about to
-run on screen was built from inside the business, not sold into it. Then straight
-into the poll — don't let this slide breathe.
+The numbers count up behind you: **1,800** homes inspected since 2004 · **18**
+years selling · **346** multifamily units owned in part. Thirty seconds, first
+person, no résumé voice: 1,800 crawlspaces taught you what agents miss, 346
+doors taught you scale, and two years of building Surfstung Systems taught you
+leverage. Everything about to run on screen was built from inside the business,
+not sold into it. Then straight into the poll — don't let this slide breathe.
 
 ### 0:04 — Poll: where does your week actually go? (slide 3)
 
@@ -92,26 +94,39 @@ defend.**
 
 ### 0:13 — Demo: farm like you have a research department (slide 6)
 
-Switch to the **Stonoview Neighborhood Index** and scroll it live. Beats in order:
-134 months and 449 sales, not a 12-month snapshot → the finding a snapshot misses
-(the premium over the island compressed 32% → 26% in twelve months) → the
-kitchen-table payoff. Then the teach: an afternoon, not a data-science degree —
-pick the farm, export solds, run the prompt, publish it.
+Switch to the live **Stonoview Index** (stonoview-index.vercel.app) and scroll
+it. Beats in order: 466 closings across eleven years, not a 12-month snapshot →
+the finding a snapshot misses (Stonoview's premium over its own island went
+28.6% → 20.5% in twelve months — 8.1 points gone) → the kicker that proves the
+depth: it's *not* a speed problem, 51.2 days for Stonoview vs 50.6 for the
+island, same pace, compressed prices → the kitchen-table payoff. Then the teach:
+an afternoon, not a data-science degree — pick the farm, export solds, run the
+prompt, publish it.
 
 Land it: *"When you hand a seller eleven years of their own street, you're not one
 of three agents interviewing. You're the one who did the homework."*
 
-### 0:20 — GAME ONE: The Price Is Right (slide 7)
+### 0:20 — GAME ONE: The room vs. the arithmetic vs. the record (slide 7)
 
-`space` and every phone in the room gets a slider. They lock in a guess on a real
-local closing. `space` again and the reveal draws the whole room as a histogram
-against the actual sale price and against the index's trailing-12 median.
+`space` and every phone in the room gets a slider. The setup: a 4-bed,
+~2,200 sq ft Stonoview resale — price it. `space` again and the reveal draws
+three things on one chart:
 
-The point isn't the game, it's the gap: the room guesses from feel, the index
-knows. Call out the closest guess by name if you can spot them.
+1. **The room** — every guess as a histogram.
+2. **The arithmetic** — $327/sq ft (the blended rate everyone quotes) × 2,200
+   = **$719K**.
+3. **The record** — the 22 genuinely comparable Stonoview closings since 2023,
+   median **$797K**, labeled *ACTUALLY CLOSED*.
 
-> If you haven't loaded a real closing, the reveal says so on screen. Play it
-> against the anchor only — never narrate a number the slide didn't show.
+The gap is the lesson: **$78,000** between what the arithmetic claims and what
+comparable homes actually got — and the blended-rate bias runs against smaller
+homes every single time. Say the middle half out loud (half of the 22 closed
+between $756K and $824K — a span, not a false point), then land the line:
+*"The second number is what happened. The first is arithmetic."*
+
+Call out the closest guess by name if you can spot them. Every figure is from
+the published Stonoview Index (466 closings, Charleston Trident MLS) and the
+source renders on screen — nothing to defend, it defends itself.
 
 ### 0:25 — Poll: which would you build first? (slide 8)
 

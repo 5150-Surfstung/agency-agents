@@ -68,15 +68,29 @@ Delete the two dead stub projects (leftovers from the blocked file-deploys):
 - **Rotate keys** (PIN + presenter key) — one SQL statement on Supabase project `iwotispqqcnkrbcnvozq`:
   `update live_config set pin='<4 digits>', presenter_key='<long-random>' where id;`
   (attendees re-join; console URL becomes `/present/<new-key>`)
-- **Load a real closing** into the Price Is Right slide: `src/lib/deck.ts` → `price-game` → set `soldK` + exact `facts` (defensible numbers only — the reveal shows an honest "not loaded" badge until then).
 - **Swap Stump's fact sheet**: `src/lib/deck.ts` → `STUMP_FACTS` → a live listing's real sheet.
-- **Mike's bio numbers** on the host slide (`id: "host"`): years inspecting, homes inspected, multifamily doors — add as `stats` for count-up animation.
-- Push to this branch = auto-deploy. Run `npm run walkthrough` before pushing (38 checks must stay green).
+- Push to this branch = auto-deploy. Run `npm run walkthrough` before pushing (all checks must stay green — fresh `npm run start` first; a server carrying state from a previous run fails the tally checks by design).
+
+## Loaded and verified (no action needed)
+
+- **Price game** runs on the published Stonoview Index (466 closings, Charleston
+  Trident MLS, updated July 27 2026): the room prices a 4-bed ~2,200 sq ft
+  Stonoview resale; the reveal shows the room's histogram vs. what $327/sq ft
+  blended arithmetic claims ($719K) vs. what the 22 comparable homes actually
+  closed at (median $797K — labeled **ACTUALLY CLOSED**, never "SOLD," because
+  it is a median of real closings, not one house's price). The $78K gap is the
+  lesson; the source line renders under the reveal.
+- **Host slide** count-ups: 1,800 homes inspected since 2004 · 18 years selling ·
+  346 multifamily units owned in part · Surfstung Systems founded two years ago
+  (in the lines).
+- **Farming demo slide** now carries the index's real headline numbers: 466
+  closings, 11 years, premium 28.6% → 20.5% in twelve months.
 
 ## Everything else
 
 - HQ artifact (share w/ Sean): https://claude.ai/code/artifact/8ab6df02-a395-4b29-8481-1c47c2e2b777
 - FB course page artifact: https://claude.ai/code/artifact/1e2ac359-37d5-4bbf-85ad-02cfdcd93d99
-- FB launch kit + facilitator run sheet: `projects/agent-connection/equipped-agent-course/` (run sheet predates the games — refresh it against the 17-slide deck)
+- FB launch kit + facilitator run sheet: `projects/agent-connection/equipped-agent-course/`
 - Supabase dashboard: https://supabase.com/dashboard/project/iwotispqqcnkrbcnvozq
 - The seed prompt (the giveaway): `src/lib/prompts.ts` → `SEED_PROMPT`
+- The live Stonoview Index (the demo tab): https://stonoview-index.vercel.app

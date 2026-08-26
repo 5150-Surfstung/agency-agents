@@ -31,6 +31,7 @@ interface StatePayload {
   priceReveal: {
     values: { value: number; n: number }[];
     soldK: number | null;
+    soldLabel: string;
     anchorK: number | null;
     anchorLabel: string;
   } | null;
@@ -299,13 +300,13 @@ function PriceScreen({
       <section className="mt-8 flex flex-1 flex-col">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">The reveal</p>
         <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight">
-          {sold !== null ? "It closed at" : "The room has guessed"}
+          {sold !== null ? "The record says" : "The room has guessed"}
         </h1>
         {sold !== null ? (
           <p className="mt-3 font-[family-name:var(--font-display)] text-6xl font-bold text-gold-bright">{fmtK(sold)}</p>
         ) : (
           <p className="mt-3 rounded-xl border border-rule bg-sheet-2 px-4 py-3 text-sm text-soft">
-            The real closing loads on the big screen — eyes up front.
+            The answer loads on the big screen — eyes up front.
           </p>
         )}
         {mine !== null && (
@@ -322,8 +323,14 @@ function PriceScreen({
         <p className="mt-2 text-xs text-faint">{total} guesses in the room · full picture on the projector</p>
         {reveal?.anchorK != null && (
           <p className="mt-4 rounded-xl border border-rule bg-sheet-2 px-4 py-3 text-sm text-soft">
-            The homework's anchor ({reveal.anchorLabel}): <b className="text-cream">{fmtK(reveal.anchorK)}</b>. Data
-            beats vibes.
+            And {reveal.anchorLabel}: <b className="text-cream">{fmtK(reveal.anchorK)}</b>
+            {sold !== null && (
+              <span>
+                {" "}
+                — <b className="text-gold-bright">{fmtK(Math.abs(sold - reveal.anchorK))}</b> apart. The record beats
+                the arithmetic.
+              </span>
+            )}
           </p>
         )}
       </section>
@@ -332,9 +339,9 @@ function PriceScreen({
 
   return (
     <section className="mt-8 flex flex-1 flex-col">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">Game one — guess the closing</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">Game one — price it</p>
       <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight">
-        What did it sell for?
+        What does it actually close at?
       </h1>
       <ul className="mt-4 flex flex-col gap-1 text-sm text-soft">
         {price.facts.map((f) => (

@@ -20,11 +20,15 @@ export interface PriceDef {
   minK: number;
   maxK: number;
   stepK: number;
-  /** Real sold price in $thousands — null until a defensible closing is loaded. */
+  /** The answer, in $thousands — null until a defensible number is loaded. */
   soldK: number | null;
+  /** What that number IS, on the projector. Never label a median "SOLD". */
+  soldLabel: string;
   /** The grounded anchor (e.g. the index's trailing-12 median), in $thousands. */
   anchorK: number | null;
   anchorLabel: string;
+  /** Where both numbers come from — rendered under the reveal, always. */
+  source?: string;
 }
 
 export interface Slide {

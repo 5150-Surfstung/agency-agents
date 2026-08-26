@@ -109,11 +109,16 @@ r = await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKe
 check("out-of-range guess → 400", r.status === 400);
 await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 760 }) });
 r = await phones[0]("/api/state");
-check("sold price hidden pre-reveal", JSON.stringify(r.body).includes("soldK") === false);
+check("answer hidden pre-reveal", JSON.stringify(r.body).includes("soldK") === false);
 snap = await control("poll");
 check("price values on console", Array.isArray(snap.priceValues) && snap.priceValues.some((v) => v.value === 824));
 r = await phones[0]("/api/state");
-check("price reveal on phone", r.body.priceReveal?.values?.length >= 2 && r.body.priceReveal.anchorK === 824);
+check(
+  "price reveal on phone (record + arithmetic anchor)",
+  r.body.priceReveal?.values?.length >= 2 && r.body.priceReveal.soldK === 797 && r.body.priceReveal.anchorK === 719,
+  JSON.stringify({ soldK: r.body.priceReveal?.soldK, anchorK: r.body.priceReveal?.anchorK })
+);
+check("reveal labels the number honestly", r.body.priceReveal?.soldLabel === "ACTUALLY CLOSED");
 
 // Stump is gated to its slide; without a key it refuses honestly.
 r = await phones[0]("/api/stump", { method: "POST", body: JSON.stringify({ question: "roof year?" }) });

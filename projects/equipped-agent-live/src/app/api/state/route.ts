@@ -23,7 +23,13 @@ export async function GET() {
 
     let myVote: number | null = null;
     let counts: number[] | null = null;
-    let priceReveal: { values: { value: number; n: number }[]; soldK: number | null; anchorK: number | null; anchorLabel: string } | null = null;
+    let priceReveal: {
+      values: { value: number; n: number }[];
+      soldK: number | null;
+      soldLabel: string;
+      anchorK: number | null;
+      anchorLabel: string;
+    } | null = null;
     if (slide.poll) {
       myVote = await store.getVote(sess.roomKey, slide.poll.key, sess.deviceId);
       if (state.pollState === "revealed") {
@@ -36,6 +42,7 @@ export async function GET() {
         priceReveal = {
           values: await store.rawTally(sess.roomKey, slide.price.key),
           soldK: slide.price.soldK,
+          soldLabel: slide.price.soldLabel,
           anchorK: slide.price.anchorK,
           anchorLabel: slide.price.anchorLabel,
         };

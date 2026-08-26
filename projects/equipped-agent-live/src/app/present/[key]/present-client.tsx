@@ -271,8 +271,10 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
                 minK={price.minK}
                 maxK={price.maxK}
                 soldK={price.soldK}
+                soldLabel={price.soldLabel}
                 anchorK={price.anchorK}
                 anchorLabel={price.anchorLabel}
+                source={price.source}
               />
             )}
           </div>
@@ -431,15 +433,19 @@ function PriceHistogram({
   minK,
   maxK,
   soldK,
+  soldLabel,
   anchorK,
   anchorLabel,
+  source,
 }: {
   values: { value: number; n: number }[];
   minK: number;
   maxK: number;
   soldK: number | null;
+  soldLabel: string;
   anchorK: number | null;
   anchorLabel: string;
+  source?: string;
 }) {
   const BUCKETS = 24;
   const span = maxK - minK;
@@ -469,12 +475,12 @@ function PriceHistogram({
             />
           ))}
         </div>
-        {/* the closing */}
+        {/* the record's answer */}
         {soldK !== null && (
           <div className="marker absolute bottom-0 top-0" style={{ left: xOf(soldK) }}>
             <div className="h-full w-[3px] rounded bg-gold-bright shadow-[0_0_18px_rgba(217,174,100,0.9)]" />
             <p className="absolute -top-[3.4vh] -translate-x-1/2 whitespace-nowrap font-[family-name:var(--font-display)] text-[clamp(20px,2.4vw,40px)] font-bold text-gold-bright">
-              SOLD {fmtK(soldK)}
+              {soldLabel} {fmtK(soldK)}
             </p>
           </div>
         )}
@@ -497,12 +503,20 @@ function PriceHistogram({
             room average <b className="text-cream">{fmtK(roomAvg)}</b>
           </span>
         )}
+        {soldK !== null && anchorK !== null && (
+          <span>
+            the gap <b className="text-gold-bright">{fmtK(Math.abs(soldK - anchorK))}</b>
+          </span>
+        )}
         {soldK === null && (
           <span className="rounded-lg border border-rule bg-sheet-2 px-3 py-1 text-clay">
-            real closing not loaded yet — the reveal stays honest until it is
+            the answer isn't loaded yet — the reveal stays honest until it is
           </span>
         )}
       </div>
+      {source && (
+        <p className="mt-[1.5vh] text-[clamp(11px,0.95vw,15px)] text-faint">Source: {source}</p>
+      )}
     </div>
   );
 }

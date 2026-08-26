@@ -22,13 +22,18 @@ export const DECK: Slide[] = [
     kind: "content",
     eyebrow: "Your host",
     heading: "Mike Olson",
+    stats: [
+      { value: "1,800", label: "homes inspected \u2014 under them, in them, on them since 2004" },
+      { value: "18", label: "years selling real estate" },
+      { value: "346", label: "multifamily units owned in part" },
+    ],
     lines: [
       "Technology & Innovation Director \u00b7 The Agent Connection",
-      "Inspector \u2192 Agent \u2192 Multifamily \u2192 Technology \u2014 every system tonight was built from inside the business, not sold into it.",
-      "Builder of the tools you're about to watch run live: the neighborhood index, the AI assistant, Track to Keys.",
+      "Inspector \u2192 Agent \u2192 Multifamily \u2192 Technology. Every system tonight was built from inside the business, not sold into it.",
+      "Founded Surfstung Systems two years ago and built what you're about to watch run live: the neighborhood index, the AI assistant, Track to Keys.",
       "REALTOR\u00ae \u00b7 eXp Realty",
     ],
-    cue: "Thirty seconds, first person: crawlspaces taught me what agents miss, multifamily taught me scale, tech taught me leverage. Then straight into the poll.",
+    cue: "Thirty seconds, first person, let the numbers count up behind you: 1,800 crawlspaces taught me what agents miss, 346 doors taught me scale, two years of building taught me leverage. Then straight into the poll \u2014 don't let this slide breathe.",
   },
   {
     id: "poll-time",
@@ -79,34 +84,40 @@ export const DECK: Slide[] = [
     eyebrow: "Live demo · Neighborhood systems",
     heading: "Farm like you have a research department",
     stats: [
-      { value: "134", label: "months of sales history" },
-      { value: "449", label: "sales indexed, eleven years" },
-      { value: "32% → 26%", label: "premium over the island, in 12 months" },
+      { value: "466", label: "closings indexed — every sale since May 2015" },
+      { value: "11", label: "years of record, not a 12-month snapshot" },
+      { value: "28.6% → 20.5%", label: "Stonoview's premium over its own island, in twelve months" },
     ],
     quote:
       "When you hand a seller eleven years of their own street, you're not one of three agents interviewing. You're the one who did the homework.",
-    cue: "SWITCH TO: Stonoview Neighborhood Index + the 29466 seven-hood plan. Scroll it live.",
+    cue: "SWITCH TO: the live Stonoview Index (stonoview-index.vercel.app) + the 29466 seven-hood plan. Scroll it live. The beat that lands: 8.1 points of premium gone in twelve months, and it is NOT a speed problem — 51.2 days for Stonoview vs 50.6 for the island. Same pace, compressed prices. A 12-month report would have missed it entirely.",
   },
   {
     id: "price-game",
     kind: "price",
-    eyebrow: "Game one \u00b7 The room vs. the homework",
-    heading: "What did it actually sell for?",
+    eyebrow: "Game one \u00b7 The room vs. the arithmetic vs. the record",
+    heading: "What does a house like this actually close at?",
     price: {
       key: "price1",
       facts: [
-        "Single-family resale \u00b7 Stonoview, Johns Island",
-        "4 bed \u00b7 3 bath \u00b7 two-story, built during the buildout years",
-        "Sold in the last twelve months \u00b7 51-day market average \u00b7 2\u20138 active listings a month",
+        "Stonoview, Johns Island \u00b7 single-family resale",
+        "4 bedrooms \u00b7 1,993\u20132,618 sq ft \u2014 call it 2,200",
+        "Everything in this set closed since 2023 \u00b7 22 sales in the record",
       ],
-      minK: 500,
-      maxK: 1200,
+      minK: 550,
+      maxK: 1050,
       stepK: 5,
-      soldK: null,
-      anchorK: 824,
-      anchorLabel: "the index's trailing-12 median",
+      // The median of those 22 comparable closings. A median of real sales \u2014
+      // labeled as exactly that on screen, never as one house's sale price.
+      soldK: 797,
+      soldLabel: "ACTUALLY CLOSED",
+      // $327/sq ft (the blended rate everyone quotes) \u00d7 2,200 sq ft. The trap.
+      anchorK: 719,
+      anchorLabel: "what $327/sq ft arithmetic claims",
+      source: "The Stonoview Index \u00b7 466 recorded closings, Charleston Trident MLS \u00b7 updated July 27, 2026",
     },
-    cue: "Slider goes live on space. Reveal shows the room's guesses as a histogram vs. the real closing vs. the index anchor. LOAD A REAL CLOSING (soldK + exact facts) BEFORE THE ROOM \u2014 the reveal stays honest and says 'awaiting the closing' until you do.",
+    cue:
+      "Slider goes live on space. THE TRAP: every agent prices off blended $/sq ft \u2014 $327 \u00d7 2,200 = $719K. The record says these 22 homes closed at a median of $797K. That's $78,000 the arithmetic leaves on the table, and the bias runs against SMALLER homes every time. Reveal shows the room, then the arithmetic marker, then the record. Say the middle half out loud: half of the 22 closed between $756K and $824K \u2014 a span, not a false point. Then the line: 'the second number is what happened; the first is arithmetic.'",
   },
   {
     id: "poll-build",
