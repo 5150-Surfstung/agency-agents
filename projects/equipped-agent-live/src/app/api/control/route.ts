@@ -178,31 +178,40 @@ export async function POST(req: NextRequest) {
     let next = state.step;
     let pollState: PollState = state.pollState;
 
+    // Landing on a game slide IS opening the floor — no second button. The
+    // room reads the question and the phones light up in the same beat.
+    const arrive = async (n: number): Promise<PollState> => {
+      const s = DECK[n];
+      if (!s?.poll && !s?.price) return "closed";
+      if (s.price) await lockMachineGuess(key, s.price);
+      return "open";
+    };
+
     switch (action) {
       case "next":
         next = Math.min(DECK.length - 1, state.step + 1);
-        pollState = "closed";
+        pollState = await arrive(next);
         break;
       case "prev":
         next = Math.max(0, state.step - 1);
-        pollState = "closed";
+        pollState = await arrive(next);
         break;
       case "goto":
         if (!Number.isInteger(step) || step < 0 || step >= DECK.length) {
           return NextResponse.json({ ok: false, error: "bad_step" }, { status: 400 });
         }
         next = step;
-        pollState = "closed";
+        pollState = await arrive(next);
         break;
       case "poll": {
-        // Space bar on a poll OR price slide: closed → open → revealed.
+        // The one button: open → revealed → open again (re-run it if you want).
         const slide = DECK[state.step];
         if (!slide?.poll && !slide?.price) {
           return NextResponse.json({ ok: false, error: "not_a_poll" }, { status: 409 });
         }
-        const to: PollState = state.pollState === "closed" ? "open" : "revealed";
+        const to: PollState = state.pollState === "open" ? "revealed" : "open";
         if (slide.price && to === "open") await lockMachineGuess(key, slide.price);
-        if (slide.price && to === "revealed" && state.pollState === "open") await awardPodium(key, slide.price);
+        if (slide.price && to === "revealed") await awardPodium(key, slide.price);
         pollState = to;
         break;
       }

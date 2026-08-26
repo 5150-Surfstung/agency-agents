@@ -199,71 +199,61 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
         {/* ——— classic poll canvas ——— */}
         {poll && (
           <div className="rise d2 mt-[4vh] w-full max-w-[72ch]">
-            {snap.pollState === "closed" && (
-              <p className="text-[clamp(15px,1.4vw,22px)] text-faint">
-                Poll armed — <span className="font-bold text-soft">space</span> opens it.
-              </p>
-            )}
-            {snap.pollState === "open" && (
-              <div className="flex flex-col gap-[1.4vh]">
-                {/* Live bars, climbing as the room votes — the game show IS
-                    the open state. The reveal crowns the winner. */}
-                {poll.options.map((opt, i) => {
-                  const n = snap.counts?.[i] ?? 0;
-                  const pct = total ? Math.round((n / total) * 100) : 0;
-                  return (
-                    <div key={opt}>
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-[clamp(15px,1.5vw,24px)] font-semibold text-cream">{opt}</span>
-                        <span className="text-[clamp(15px,1.5vw,24px)] font-bold text-soft">{pct}%</span>
-                      </div>
-                      <div className="mt-[0.5vh] h-[1.6vh] overflow-hidden rounded-full bg-sheet-3">
-                        <div
-                          className="h-full rounded-full bg-gold/80 transition-[width] duration-700 ease-out"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-                <div className="mt-[0.6vh] flex items-center gap-[1.2vw]">
-                  <span className="ring-pulse inline-block h-[1.6vh] w-[1.6vh] rounded-full bg-moss" />
-                  <p className="text-[clamp(15px,1.5vw,24px)] font-semibold text-cream">
-                    <span className="font-[family-name:var(--font-display)] text-[clamp(22px,2.6vw,42px)] font-bold text-gold-bright">
-                      {total}
-                    </span>{" "}
-                    voting live · <span className="text-faint">🔒 anonymous, always</span> ·{" "}
-                    <span className="text-faint">space crowns the winner</span>
-                  </p>
-                </div>
-              </div>
-            )}
-            {snap.pollState === "revealed" && snap.counts && (
-              <div className="flex flex-col gap-[1.6vh]">
-                {poll.options.map((opt, i) => {
-                  const n = snap.counts?.[i] ?? 0;
-                  const pct = total ? Math.round((n / total) * 100) : 0;
-                  const isWin = i === winner && total > 0;
-                  return (
-                    <div key={opt} className="bar-row" style={{ animationDelay: `${i * 0.18}s` }}>
-                      <div className="flex items-baseline justify-between">
-                        <span className={`text-[clamp(15px,1.5vw,24px)] font-semibold ${isWin ? "text-gold-bright" : "text-cream"}`}>
-                          {opt} {isWin && "👑"}
+            {/* Question and answers live on screen together, always readable
+                from the back row. Bars climb while the room votes; the reveal
+                crowns the winner. */}
+            <div className="flex flex-col gap-[1.5vh]">
+              {poll.options.map((opt, i) => {
+                const n = snap.counts?.[i] ?? 0;
+                const pct = total ? Math.round((n / total) * 100) : 0;
+                const isWin = snap.pollState === "revealed" && i === winner && total > 0;
+                const dim = snap.pollState === "closed";
+                return (
+                  <div key={opt}>
+                    <div className="flex items-baseline justify-between gap-[2vw]">
+                      <span
+                        className={`text-[clamp(18px,1.9vw,32px)] font-semibold ${
+                          isWin ? "text-gold-bright" : dim ? "text-soft" : "text-cream"
+                        }`}
+                      >
+                        <span className="mr-[0.8vw] font-bold text-faint">{i + 1}</span>
+                        {opt} {isWin && "👑"}
+                      </span>
+                      {snap.pollState !== "closed" && (
+                        <span
+                          className={`shrink-0 text-[clamp(18px,1.9vw,32px)] font-bold ${
+                            isWin ? "text-gold-bright" : "text-soft"
+                          }`}
+                        >
+                          {pct}%
                         </span>
-                        <span className="text-[clamp(15px,1.5vw,24px)] font-bold text-gold-bright">{pct}%</span>
-                      </div>
-                      <div className="mt-[0.5vh] h-[1.8vh] overflow-hidden rounded-full bg-sheet-3">
-                        <div
-                          className={`bar-fill h-full rounded-full ${isWin ? "winner-pulse bg-gold-bright" : "bg-gold"}`}
-                          style={{ width: `${pct}%`, transitionDelay: `${0.2 + i * 0.18}s` }}
-                        />
-                      </div>
+                      )}
                     </div>
-                  );
-                })}
-                <p className="text-[clamp(12px,1vw,16px)] text-faint">{total} votes</p>
+                    <div className="mt-[0.6vh] h-[1.7vh] overflow-hidden rounded-full bg-sheet-3">
+                      <div
+                        className={`h-full rounded-full transition-[width] duration-700 ease-out ${
+                          isWin ? "winner-pulse bg-gold-bright" : "bg-gold/80"
+                        }`}
+                        style={{ width: snap.pollState === "closed" ? "0%" : `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="mt-[0.8vh] flex items-center gap-[1.2vw]">
+                {snap.pollState === "open" && (
+                  <span className="ring-pulse inline-block h-[1.6vh] w-[1.6vh] rounded-full bg-moss" />
+                )}
+                <p className="text-[clamp(15px,1.5vw,24px)] font-semibold text-cream">
+                  <span className="font-[family-name:var(--font-display)] text-[clamp(22px,2.6vw,42px)] font-bold text-gold-bright">
+                    {total}
+                  </span>{" "}
+                  {snap.pollState === "revealed" ? "votes in" : "voting live"} ·{" "}
+                  <span className="text-faint">🔒 anonymous, always</span>
+                  {snap.pollState === "open" && <span className="text-faint"> · tap REVEAL to crown it</span>}
+                </p>
               </div>
-            )}
+            </div>
           </div>
         )}
 

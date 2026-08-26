@@ -84,8 +84,11 @@ check("no cookie → 401 state", (await fetch(`${BASE}/api/state`)).status === 4
 await control("goto", 0);
 let snap = await control("goto", 5);
 check("presenter on poll slide", snap.ok && snap.step === 5);
+check("landing on a poll slide OPENS the floor", snap.pollState === "open", snap.pollState);
 
-// Voting before the poll opens is refused.
+// Closing it re-arms; a vote into a closed poll is refused.
+snap = await control("reset_poll");
+check("reset_poll closes it", snap.pollState === "closed");
 let r = await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "time", choice: 0 }) });
 check("vote before open → 409", r.status === 409);
 
@@ -113,11 +116,15 @@ check("attendee sees own vote", r.body.myVote === 3);
 // Vote after reveal is refused.
 r = await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "time", choice: 2 }) });
 check("vote after reveal → 409", r.status === 409);
+snap = await control("poll");
+check("pressing again re-opens for a re-run", snap.pollState === "open", snap.pollState);
+snap = await control("poll");
+check("and closes it back to revealed", snap.pollState === "revealed", snap.pollState);
 
 // Price Is Right: slider guesses ride the vote rail as $thousands.
 snap = await control("goto", 9);
 check("on price slide", snap.step === 9);
-await control("poll");
+check("price floor opens on arrival", snap.pollState === "open", snap.pollState);
 r = await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 824 }) });
 check("price guess accepted", r.status === 200);
 r = await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 300 }) });
@@ -177,7 +184,7 @@ check("phone sees its own rank and points", r.body.board?.myRank === 1 && r.body
 const ladderStep = 18; // host 1 · comfort 2 · using 3 · floor 4 · time 5 · price 9 · stump 12 · seed 14 · board 15 · ladder 18
 snap = await control("goto", ladderStep);
 check("on ladder slide", snap.step === ladderStep);
-await control("poll");
+check("ladder opens on arrival", snap.pollState === "open", snap.pollState);
 await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "ladder", choice: 3 }) });
 await control("poll");
 r = await phones[0]("/api/lead", { method: "POST", body: JSON.stringify({ name: "Test Agent", cell: "843-555-0100", rung: "All of it" }) });
