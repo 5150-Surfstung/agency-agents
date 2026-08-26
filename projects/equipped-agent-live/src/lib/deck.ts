@@ -318,3 +318,12 @@ Showings: Sat–Sun 11–4 by appointment`;
 export function pollForStep(step: number) {
   return DECK[step]?.poll ?? null;
 }
+
+/** Landing on a game slide opens the floor — the room reads the question and
+ *  the phones light up in the same beat, with no second button. One rule,
+ *  used by the control route and asserted by /api/selftest, so a deployment
+ *  that lost it fails loudly instead of sitting "armed" forever. */
+export function opensOnArrival(step: number): boolean {
+  const s = DECK[step];
+  return Boolean(s?.poll || s?.price);
+}

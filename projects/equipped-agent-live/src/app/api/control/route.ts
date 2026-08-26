@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { engineOnline, runArcadeTurn } from "@/lib/ai";
-import { ALL_POLL_KEYS, DECK } from "@/lib/deck";
+import { ALL_POLL_KEYS, DECK, opensOnArrival } from "@/lib/deck";
 import { smsOnline } from "@/lib/notify";
 import { machineGuessSystem } from "@/lib/prompts";
 import { getStore } from "@/lib/store";
@@ -181,9 +181,9 @@ export async function POST(req: NextRequest) {
     // Landing on a game slide IS opening the floor — no second button. The
     // room reads the question and the phones light up in the same beat.
     const arrive = async (n: number): Promise<PollState> => {
+      if (!opensOnArrival(n)) return "closed";
       const s = DECK[n];
-      if (!s?.poll && !s?.price) return "closed";
-      if (s.price) await lockMachineGuess(key, s.price);
+      if (s?.price) await lockMachineGuess(key, s.price);
       return "open";
     };
 

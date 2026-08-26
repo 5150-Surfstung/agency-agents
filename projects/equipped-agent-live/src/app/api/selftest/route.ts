@@ -6,7 +6,7 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { engineOnline, runArcadeTurn } from "@/lib/ai";
-import { STUMP_FACTS } from "@/lib/deck";
+import { DECK, STUMP_FACTS, opensOnArrival } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
 import { getStore } from "@/lib/store";
 
@@ -128,6 +128,18 @@ export async function GET(req: NextRequest) {
 
   await run("stump stats", async () => {
     await store.stumpStats(key);
+  });
+
+  await run("game slides open on arrival (no dead 'armed' slide)", async () => {
+    // The bug this replaced: a poll slide sat closed until someone pressed a
+    // second button, so phones showed nothing. Every poll/price slide must
+    // report that it opens the floor the moment the presenter lands on it.
+    const games = DECK.map((s, i) => i).filter((i) => DECK[i].poll || DECK[i].price);
+    if (games.length < 4) throw new Error(`only ${games.length} game slides found`);
+    const dead = games.filter((i) => !opensOnArrival(i));
+    if (dead.length) throw new Error(`slides ${dead.join(",")} would sit armed`);
+    const wrong = DECK.map((s, i) => i).filter((i) => !DECK[i].poll && !DECK[i].price && opensOnArrival(i));
+    if (wrong.length) throw new Error(`non-game slides ${wrong.join(",")} claim to open`);
   });
 
   await run("selftest jersey benched (board stays clean)", async () => {
