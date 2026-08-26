@@ -8,4 +8,5 @@ Pull when: a client says data stays in-building — HIPAA, CJIS, legal, defense,
 - Redaction recall measured on client's own gold set; number in contract, never "100%"
 - Commercial: hardware at cost, client-owned; fixed install; monthly retainer. Front door: paid Data Egress Audit.
 Never: promise 100% redaction. Never silent-failover to hosted. Never quote the build before the Data Egress Audit is paid and done.
+Confirmed: 2026-08 — architecture agreed, not yet installed at a client.
 Done when: the gateway refuses a sensitive request rather than routing it out, and the audit log hands to a compliance officer unedited.

@@ -6,4 +6,5 @@ Pull when: an agent is about to write code, or a diff needs a second pass.
 - Class stop rule: second finding of the same class = redesign, not another bounce
 - Commit before any agent run. Smallest diff that solves the ask.
 Never: let the builder review its own diff. Never fix an unverified finding. Never widen the diff past the ask.
+Confirmed: 2026-08 — v1 seed, production source not recorded.
 Done when: every finding is verified or dropped, repeat classes became CI checks, and the diff is no bigger than the ask.

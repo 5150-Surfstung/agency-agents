@@ -6,4 +6,5 @@ Pull when: a rep runs a high-ticket close in front of the customer on one screen
 - End: Thank You → single CTA ("View Job")
 - Principle: rep never types during the meeting; every input is a tap
 Never: a text field, a dropdown, or a scroll-to-continue during the meeting. Never an anonymous review where a named local one belongs.
+Confirmed: 2026-08 — 50Floor sales app.
 Done when: a rep finishes Discover in under 5 minutes and the keyboard never appears.
