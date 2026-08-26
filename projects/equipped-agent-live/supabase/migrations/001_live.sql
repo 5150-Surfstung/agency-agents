@@ -33,7 +33,7 @@ create table if not exists live_tool_events (
   id bigint generated always as identity primary key,
   room text not null,
   device_id uuid not null,
-  tool text not null check (tool in ('listing','sparring')),
+  tool text not null check (tool in ('listing','sparring','mine')),
   in_tokens integer not null default 0,
   out_tokens integer not null default 0,
   cost_usd numeric(10,6) not null default 0,

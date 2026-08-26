@@ -121,10 +121,10 @@ export const DECK: Slide[] = [
     eyebrow: "Your turn",
     heading: "Phones out. Build one right now.",
     lines: [
-      "Build a working assistant for YOUR listing — paste the facts, watch it refuse to guess.",
-      "Or step in the ring: ten rounds against the toughest seller you'll meet this year.",
+      "Build YOUR OWN assistant — branded to you, tested here, installed in your own free Claude app tonight. Yours forever.",
+      "Or ground an assistant in a real listing's facts, or go ten rounds in the sparring ring.",
     ],
-    cue: "Arcade unlocks on this slide. Walk the room. The gasp you want is 'wait, this is MY listing.'",
+    cue: "Arcade unlocks on this slide. Push the take-home tile hard — the gasp is 'wait, I OWN this.' Everyone leaves with a /pack link.",
   },
   {
     id: "playbook",
@@ -174,7 +174,10 @@ export const DECK: Slide[] = [
     kind: "close",
     eyebrow: "The Equipped Agent",
     heading: "Go build something unfair.",
-    lines: ["Toolkit ships today. First replies inside the hour — that's the standard we just taught."],
+    lines: [
+      "Your assistant is already yours — open your /pack link tonight and install it.",
+      "Toolkit ships today. First replies inside the hour — that's the standard we just taught.",
+    ],
     cue: "Leave the QR up. Work the console: every ladder vote gets a same-hour text.",
   },
 ];

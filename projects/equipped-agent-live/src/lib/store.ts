@@ -3,7 +3,7 @@
 // selector is env-presence — no config flag to forget.
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Lead, PollState, RoomState, ToolEvent, Vote } from "./types";
+import type { Lead, Pack, PollState, RoomState, ToolEvent, Vote } from "./types";
 
 export interface Store {
   getState(): Promise<RoomState>;
@@ -24,6 +24,9 @@ export interface Store {
   /** Presence: called on every state poll; counted for the HUD. */
   touchDevice(deviceId: string): Promise<void>;
   activeDevices(withinMs: number): Promise<number>;
+
+  savePack(p: Pack): Promise<void>;
+  getPack(code: string): Promise<Pack | null>;
 }
 
 // ---------------------------------------------------------------- memory
@@ -81,6 +84,13 @@ class MemoryStore implements Store {
     let n = 0;
     for (const t of this.seen.values()) if (t >= cutoff) n++;
     return n;
+  }
+  private packs = new Map<string, Pack>();
+  async savePack(p: Pack) {
+    this.packs.set(p.code, p);
+  }
+  async getPack(code: string) {
+    return this.packs.get(code) ?? null;
   }
 }
 
@@ -209,6 +219,37 @@ class SupabaseStore implements Store {
       .gte("at", cutoff);
     return count ?? 0;
   }
+  async savePack(p: Pack) {
+    await this.sb.from("live_packs").upsert({
+      code: p.code,
+      room: ROOM,
+      device_id: p.deviceId,
+      name: p.name,
+      brokerage: p.brokerage,
+      area: p.area,
+      specialty: p.specialty,
+      tone: p.tone,
+      created_at: new Date(p.createdAt).toISOString(),
+    });
+  }
+  async getPack(code: string): Promise<Pack | null> {
+    const { data } = await this.sb
+      .from("live_packs")
+      .select("code, device_id, name, brokerage, area, specialty, tone, created_at")
+      .eq("code", code)
+      .maybeSingle();
+    if (!data) return null;
+    return {
+      code: data.code,
+      deviceId: data.device_id,
+      name: data.name,
+      brokerage: data.brokerage,
+      area: data.area,
+      specialty: data.specialty,
+      tone: data.tone,
+      createdAt: new Date(data.created_at).getTime(),
+    };
+  }
 }
 
 // -------------------------------------------------------------- selector
@@ -221,10 +262,19 @@ declare global {
 export function getStore(): Store {
   if (!globalThis.__eaStore) {
     const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // Service-role key when we have it; otherwise the anon key paired with the
+    // x-ea-secret header that the RLS policies demand. Either way the browser
+    // never talks to Supabase — only this server does.
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+    const dbSecret = process.env.LIVE_DB_SECRET;
     globalThis.__eaStore =
       url && key
-        ? new SupabaseStore(createClient(url, key, { auth: { persistSession: false } }))
+        ? new SupabaseStore(
+            createClient(url, key, {
+              auth: { persistSession: false },
+              global: dbSecret ? { headers: { "x-ea-secret": dbSecret } } : undefined,
+            })
+          )
         : new MemoryStore();
   }
   return globalThis.__eaStore;

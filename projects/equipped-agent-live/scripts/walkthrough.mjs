@@ -130,6 +130,20 @@ check("CSV carries the lead", csvRes.status === 200 && csv.includes("Test Agent"
 check("CSV without key → 401", (await fetch(`${BASE}/api/leads.csv`)).status === 401);
 check("control without key → 401", (await fetch(`${BASE}/api/control?key=nope`)).status === 401);
 
+// Assistant To Go: build a pack, fetch it publicly, wrong code 404s.
+r = await phones[0]("/api/pack", {
+  method: "POST",
+  body: JSON.stringify({ name: "Jordan Test", brokerage: "Test Realty", area: "Johns Island", specialty: "", tone: "warm" }),
+});
+const packCode = r.body?.code;
+check("pack minted", r.status === 200 && typeof packCode === "string" && packCode.length === 6, packCode);
+r = await phones[0](`/api/pack?code=${packCode}`);
+check("pack fetch by code", r.status === 200 && r.body.pack?.name === "Jordan Test");
+check("pack fetch omits device", r.body.pack?.deviceId === undefined);
+check("bad pack code → 404", (await phones[0]("/api/pack?code=ZZZZZZ")).status === 404);
+const packPage = await fetch(`${BASE}/pack/${packCode}`);
+check("pack page renders", packPage.status === 200 && (await packPage.text()).includes("Jordan Test"));
+
 // Arcade honesty: with no ANTHROPIC_API_KEY the tool says offline, never fakes.
 if (!process.env.ANTHROPIC_API_KEY) {
   r = await phones[0]("/api/tool/listing", {
@@ -156,6 +170,8 @@ if (!process.env.ANTHROPIC_API_KEY) {
   );
   r = await phones[0]("/api/tool/sparring", { method: "POST", body: JSON.stringify({ scenario: "interview", messages: [] }) });
   check("ring opens in character", r.status === 200 && (r.body.reply ?? "").length > 0);
+  r = await phones[0]("/api/tool/mine", { method: "POST", body: JSON.stringify({ code: packCode, messages: [] }) });
+  check("take-home assistant introduces itself", r.status === 200 && /jordan/i.test(r.body.reply ?? ""), (r.body?.reply ?? "").slice(0, 120));
 }
 
 // Back to the top for a clean room.

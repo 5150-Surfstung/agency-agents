@@ -35,7 +35,7 @@ export type ArcadeResult =
 
 export async function runArcadeTurn(opts: {
   deviceId: string;
-  tool: "listing" | "sparring";
+  tool: "listing" | "sparring" | "mine";
   system: string;
   messages: ChatMsg[];
 }): Promise<ArcadeResult> {

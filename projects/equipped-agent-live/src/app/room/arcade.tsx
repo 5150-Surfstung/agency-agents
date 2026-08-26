@@ -22,7 +22,7 @@ function errorText(code: string): string {
 }
 
 export function Arcade({ engineOnline }: { engineOnline: boolean }) {
-  const [tool, setTool] = useState<"menu" | "listing" | "sparring">("menu");
+  const [tool, setTool] = useState<"menu" | "listing" | "sparring" | "mine">("menu");
 
   return (
     <section className="mt-6 flex flex-1 flex-col">
@@ -38,6 +38,21 @@ export function Arcade({ engineOnline }: { engineOnline: boolean }) {
             </p>
           )}
           <div className="mt-6 flex flex-col gap-4">
+            <button
+              onClick={() => setTool("mine")}
+              className="rounded-2xl border border-gold/60 bg-sheet-2 p-5 text-left active:border-gold"
+            >
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-gold">
+                The take-home
+              </p>
+              <p className="mt-1 font-[family-name:var(--font-display)] text-xl font-semibold text-cream">
+                Your assistant, to go
+              </p>
+              <p className="mt-1 text-sm text-soft">
+                Build a personal AI assistant branded to YOU — test-drive it here, then install it in
+                your own free Claude app tonight. Yours forever, courtesy of The AGENT Connection.
+              </p>
+            </button>
             <button
               onClick={() => setTool("listing")}
               className="rounded-2xl border border-rule bg-sheet-2 p-5 text-left active:border-gold"
@@ -64,6 +79,7 @@ export function Arcade({ engineOnline }: { engineOnline: boolean }) {
           </div>
         </>
       )}
+      {tool === "mine" && <AssistantToGo onBack={() => setTool("menu")} />}
       {tool === "listing" && <ListingBuilder onBack={() => setTool("menu")} />}
       {tool === "sparring" && <SparringRing onBack={() => setTool("menu")} />}
     </section>
@@ -141,6 +157,149 @@ function Composer({
       >
         Send
       </button>
+    </div>
+  );
+}
+
+// ------------------------------------------------------ Assistant To Go
+
+const TONES = [
+  { key: "warm", label: "Warm + direct", hint: "a text from a sharp friend" },
+  { key: "luxury", label: "Luxury polish", hint: "understated, unhurried" },
+  { key: "energy", label: "High energy", hint: "verbs first, momentum" },
+];
+
+function AssistantToGo({ onBack }: { onBack: () => void }) {
+  const [phase, setPhase] = useState<"form" | "done">("form");
+  const [name, setName] = useState("");
+  const [brokerage, setBrokerage] = useState("");
+  const [area, setArea] = useState("");
+  const [specialty, setSpecialty] = useState("");
+  const [tone, setTone] = useState("warm");
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [code, setCode] = useState<string | null>(null);
+  const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [draft, setDraft] = useState("");
+  const [chatBusy, setChatBusy] = useState(false);
+
+  async function build() {
+    if (busy || !name.trim()) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const res = await fetch("/api/pack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, brokerage, area, specialty, tone }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setCode(data.code);
+        setPhase("done");
+        setMsgs([]);
+        // First hello from their own assistant, unprompted.
+        void exchange(data.code, []);
+      } else {
+        setNotice(errorText(String(data?.error ?? "error")));
+      }
+    } catch {
+      setNotice(errorText("error"));
+    }
+    setBusy(false);
+  }
+
+  async function exchange(packCode: string, history: Msg[]) {
+    setChatBusy(true);
+    try {
+      const res = await fetch("/api/tool/mine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: packCode, messages: history.map(({ role, content }) => ({ role, content })) }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setMsgs((m) => [...m, { role: "assistant", content: data.reply }]);
+      } else {
+        setNotice(errorText(String(data?.error ?? "error")));
+      }
+    } catch {
+      setNotice(errorText("error"));
+    }
+    setChatBusy(false);
+  }
+
+  async function send() {
+    const text = draft.trim();
+    if (!text || chatBusy || !code) return;
+    const next: Msg[] = [...msgs, { role: "user", content: text }];
+    setMsgs(next);
+    setDraft("");
+    await exchange(code, next);
+  }
+
+  if (phase === "form") {
+    return (
+      <div className="flex flex-1 flex-col">
+        <BackBar title="Your assistant, to go" onBack={onBack} />
+        <h2 className="mt-3 font-[family-name:var(--font-display)] text-2xl font-semibold leading-snug">
+          Brand it to you.
+        </h2>
+        <p className="mt-2 text-sm text-soft">
+          Sixty seconds of typing, then it's yours forever — in your own Claude app, at no cost,
+          courtesy of The AGENT Connection.
+        </p>
+        <div className="mt-4 flex flex-col gap-2">
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" aria-label="Your name"
+            className="w-full rounded-xl border border-rule bg-sheet-2 px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none" />
+          <input value={brokerage} onChange={(e) => setBrokerage(e.target.value)} placeholder="Brokerage / team" aria-label="Brokerage"
+            className="w-full rounded-xl border border-rule bg-sheet-2 px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none" />
+          <input value={area} onChange={(e) => setArea(e.target.value)} placeholder="Market you serve (e.g. Johns Island, West Ashley)" aria-label="Market"
+            className="w-full rounded-xl border border-rule bg-sheet-2 px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none" />
+          <input value={specialty} onChange={(e) => setSpecialty(e.target.value)} placeholder="Specialty (optional — luxury, military moves, first-timers…)" aria-label="Specialty"
+            className="w-full rounded-xl border border-rule bg-sheet-2 px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none" />
+        </div>
+        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold">Voice</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {TONES.map((t) => (
+            <button key={t.key} onClick={() => setTone(t.key)}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold ${
+                tone === t.key ? "border-gold bg-gold text-sheet" : "border-rule bg-sheet-2 text-soft"
+              }`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-1 text-xs text-faint">{TONES.find((t) => t.key === tone)?.hint}</p>
+        {notice && <p className="mt-3 rounded-xl border border-clay/50 bg-sheet-2 px-4 py-3 text-sm text-clay">{notice}</p>}
+        <button onClick={() => void build()} disabled={busy || !name.trim()}
+          className="mt-4 rounded-2xl bg-gold px-5 py-4 text-lg font-bold text-sheet disabled:opacity-40">
+          {busy ? "Building…" : "Build my assistant"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-1 flex-col">
+      <BackBar title="Meet your assistant" onBack={() => setPhase("form")} />
+      <div className="mt-3 rounded-2xl border border-gold/50 bg-sheet-2 p-4">
+        <p className="text-sm font-semibold text-cream">
+          It's yours. Keep this link forever:
+        </p>
+        <a href={`/pack/${code}`} target="_blank" rel="noreferrer"
+          className="mt-1 block font-mono text-lg font-bold text-gold-bright underline underline-offset-4">
+          /pack/{code}
+        </a>
+        <p className="mt-1 text-xs text-faint">
+          Open it tonight → copy the pack → paste into your own Claude app (free account works).
+        </p>
+      </div>
+      <p className="mt-3 text-xs text-faint">Test-drive it right here first:</p>
+      <ChatLog msgs={msgs} thinking={chatBusy} />
+      {notice && <p className="mt-2 rounded-xl border border-clay/50 bg-sheet-2 px-4 py-3 text-sm text-clay">{notice}</p>}
+      <Composer value={draft} onChange={setDraft} onSend={() => void send()} disabled={chatBusy}
+        placeholder='Try: "listing" + paste a fact sheet' />
     </div>
   );
 }

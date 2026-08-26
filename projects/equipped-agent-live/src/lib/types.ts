@@ -42,7 +42,7 @@ export interface Lead {
 
 export interface ToolEvent {
   deviceId: string;
-  tool: "listing" | "sparring";
+  tool: "listing" | "sparring" | "mine";
   inTokens: number;
   outTokens: number;
   costUsd: number;
@@ -54,4 +54,16 @@ export interface RoomState {
   pollState: PollState;
   /** deviceId -> last time we heard from it; presence for the HUD. */
   updatedAt: number;
+}
+
+/** An agent's take-home assistant: the profile that generates their pack. */
+export interface Pack {
+  code: string;
+  deviceId: string;
+  name: string;
+  brokerage: string;
+  area: string;
+  specialty: string;
+  tone: "warm" | "luxury" | "energy";
+  createdAt: number;
 }
