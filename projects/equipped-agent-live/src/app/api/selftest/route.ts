@@ -96,8 +96,11 @@ export async function GET(req: NextRequest) {
 
   // ?deep=1 — one real grounded model round-trip: must state a sheet fact and
   // refuse an off-sheet one. Costs a fraction of a cent; the pre-room proof.
-  if (req.nextUrl.searchParams.get("deep") === "1" && engineOnline()) {
+  // If the engine is dark, this FAILS rather than quietly skipping — a green
+  // deep run has to mean the check actually ran.
+  if (req.nextUrl.searchParams.get("deep") === "1") {
     await run("engine: grounded round-trip", async () => {
+      if (!engineOnline()) throw new Error("ANTHROPIC_API_KEY not present in this deployment");
       const r = await runArcadeTurn({
         roomKey: key,
         deviceId: device,
