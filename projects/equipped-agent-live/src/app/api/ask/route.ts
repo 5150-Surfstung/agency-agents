@@ -8,15 +8,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { runArcadeTurn } from "@/lib/ai";
+import { isRefusal } from "@/lib/refusal";
 import { DECK } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
 import { notifyAssistantLead } from "@/lib/notify";
 import { sessionFromCookies } from "@/lib/room";
 import { getStore } from "@/lib/store";
 
-// Refusal is read from the reply's own words — never asserted by us.
-const REFUSAL =
-  /don'?t want to guess|not (on|in) (the|my) (fact )?sheet|don'?t have (that|a|the|it)|do not have that|not something i have|isn'?t something i have|can'?t confirm|cannot confirm|i don'?t know|would need to confirm|i'?d have to check|have .{0,24} confirm|get you the real answer|not in what i have/i;
 
 export async function POST(req: NextRequest) {
   let code = "";
@@ -64,7 +62,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: result.reason }, { status });
     }
 
-    const refused = REFUSAL.test(result.reply);
+    const refused = isRefusal(result.reply);
     let attackId: number | null = null;
     if (duel && sess) {
       attackId = await store.attackAdd(sess.roomKey, sess.deviceId, code, question, result.reply, refused);

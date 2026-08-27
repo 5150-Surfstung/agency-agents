@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { engineOnline, runArcadeTurn } from "@/lib/ai";
 import { DECK, STUMP_FACTS, STUMP_NOTES, opensOnArrival } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
+import { isRefusal } from "@/lib/refusal";
 import { getStore } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
@@ -167,7 +168,7 @@ export async function GET(req: NextRequest) {
       });
       if (!r.ok) throw new Error(`engine ${r.reason}`);
       const statesFact = /4 bed|four bed/i.test(r.reply);
-      const refuses = /don'?t want to guess|not (on|in) (the|my)|don'?t have|confirm|check on that|have to check/i.test(r.reply);
+      const refuses = isRefusal(r.reply);
       if (!statesFact) throw new Error(`did not state the 4-bed fact: ${r.reply.slice(0, 140)}`);
       if (!refuses) throw new Error(`did not decline the water-heater question: ${r.reply.slice(0, 140)}`);
     });
