@@ -131,6 +131,9 @@ export interface Assistant {
   brokerage: string;
   headline: string;
   facts: string;
+  /** TIER 2 — what the agent WANTS said: neighborhood, what's special,
+   *  incentives, showing windows. Spoken freely, unlike the fact sheet. */
+  notes: string;
   voice: "warm" | "luxury" | "energy";
 }
 
@@ -164,5 +167,9 @@ export interface AssistantLead {
   name: string;
   cell: string;
   question: string;
+  /** What the receptionist actually qualified, when the caller volunteered it. */
+  timeline: string;
+  financing: string;
+  hasAgent: string;
   at: number;
 }

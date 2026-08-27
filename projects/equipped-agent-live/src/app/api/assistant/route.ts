@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
   let cell = "";
   let headline = "";
   let facts = "";
+  let notes = "";
   let voice = "warm";
   try {
     const b = await req.json();
@@ -27,6 +28,7 @@ export async function POST(req: NextRequest) {
     cell = String(b?.cell ?? "").trim().slice(0, 24);
     headline = String(b?.headline ?? "").trim().slice(0, 80);
     facts = String(b?.facts ?? "").trim().slice(0, 4000);
+    notes = String(b?.notes ?? "").trim().slice(0, 4000);
     voice = String(b?.voice ?? "warm");
   } catch {
     return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
@@ -48,6 +50,7 @@ export async function POST(req: NextRequest) {
       cell,
       headline,
       facts,
+      notes,
       voice: voice as "warm" | "luxury" | "energy",
     });
     return NextResponse.json({ ok: true, code });

@@ -20,6 +20,9 @@ export function AssistantChat({ code, agentName }: { code: string; agentName: st
   const [name, setName] = useState("");
   const [cell, setCell] = useState("");
   const [sent, setSent] = useState(false);
+  const [timeline, setTimeline] = useState("");
+  const [financing, setFinancing] = useState("");
+  const [hasAgent, setHasAgent] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,7 +63,11 @@ export function AssistantChat({ code, agentName }: { code: string; agentName: st
       const res = await fetch("/api/ask", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, name: name.trim(), cell: cell.trim(), question: log[log.length - 1]?.q ?? "" }),
+        body: JSON.stringify({
+          code, name: name.trim(), cell: cell.trim(),
+          question: log[log.length - 1]?.q ?? "",
+          timeline, financing, hasAgent,
+        }),
       });
       if (res.ok) setSent(true);
     } catch {
@@ -155,10 +162,15 @@ export function AssistantChat({ code, agentName }: { code: string; agentName: st
             autoComplete="tel"
             className="mt-2 w-full rounded-xl border border-rule bg-sheet px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none"
           />
+          {/* One tap each, all optional — it reaches the agent's phone with
+              the lead so the callback starts informed instead of cold. */}
+          <Chips label="Looking to move" value={timeline} onPick={setTimeline} options={["ASAP", "1–3 months", "3–6 months", "Just looking"]} />
+          <Chips label="Financing" value={financing} onPick={setFinancing} options={["Pre-approved", "Need a lender", "Cash"]} />
+          <Chips label="Working with an agent?" value={hasAgent} onPick={setHasAgent} options={["No", "Yes"]} />
           <button
             onClick={() => void leaveDetails()}
             disabled={!name.trim() || !cell.trim()}
-            className="mt-3 w-full rounded-xl bg-gold px-4 py-3 font-bold text-sheet disabled:opacity-40"
+            className="mt-4 w-full rounded-xl bg-gold px-4 py-3 font-bold text-sheet disabled:opacity-40"
           >
             Have {agentName} reach out
           </button>
@@ -170,5 +182,30 @@ export function AssistantChat({ code, agentName }: { code: string; agentName: st
         </p>
       )}
     </section>
+  );
+}
+
+/** Optional one-tap qualification. Nothing here is required — a lead with a
+ *  name and a number still goes through. */
+function Chips({
+  label, value, onPick, options,
+}: { label: string; value: string; onPick: (v: string) => void; options: string[] }) {
+  return (
+    <div className="mt-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-faint">{label}</p>
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
+        {options.map((o) => (
+          <button
+            key={o}
+            onClick={() => onPick(value === o ? "" : o)}
+            className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
+              value === o ? "border-gold bg-gold text-sheet" : "border-rule bg-sheet text-soft"
+            }`}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

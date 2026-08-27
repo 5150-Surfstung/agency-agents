@@ -308,12 +308,35 @@ export const ALL_POLL_KEYS = DECK.flatMap((s) => [s.poll?.key, s.price?.key]).fi
 
 /** The starter fact sheet on the build slide — for anyone who walks in
  *  without a listing of their own. Everyone else pastes their real one. */
-export const STUMP_FACTS = `DEMO LISTING (labeled demo on purpose — swap with a live sheet)
-Address: 214 Demo Oak Ln, Johns Island
+export const STUMP_FACTS = `Address: 214 Demo Oak Ln, Johns Island SC 29455
 Asking price: $612,000
 Bedrooms: 4 · Bathrooms: 2.5 · Square feet: 2,240
-Built: 2016 · HOA: $95/mo
-Showings: Sat–Sun 11–4 by appointment`;
+Built: 2016 · Lot: 0.21 acres
+HOA: $95/mo (covers pool, dock, common areas)
+Garage: 2-car attached
+Heating/cooling: gas furnace, central air, both original to build
+Roof: architectural shingle, original to build
+Flood zone: X (lowest risk designation)
+Annual property tax: $2,180 at current owner-occupied rate
+Showings: Saturday and Sunday, 11am / 1pm / 3pm slots`;
+
+/** TIER 2 — the color. This is what an agent WANTS said, and what turns a
+ *  refusal machine into a front desk. Prefilled on the build slide so the
+ *  demo lands and every attendee sees the shape of a good one. */
+export const STUMP_NOTES = `WHAT MAKES IT SPECIAL
+The kitchen was redone in 2023 — quartz, gas range, new cabinet fronts. Screened porch off the back looks over trees, not another house. The primary is downstairs, which is rare at this price point in the neighborhood.
+
+THE NEIGHBORHOOD
+Stonoview on Johns Island. Amenities are a pool, a community dock on the Stono River, and a crab dock. It's about 20 minutes to downtown Charleston and 25 to Folly Beach depending on the bridge. Publix and a handful of restaurants are five minutes up Maybank Highway.
+
+SHOWINGS
+Saturday and Sunday, 11am, 1pm, and 3pm. Offer those specific times. Weekday evenings can usually be arranged with a day's notice.
+
+ON PRICE
+The sellers priced it to move and have already had traffic. Don't speculate about what they'd accept — that's a conversation for the agent.
+
+WHO THE AGENT IS
+Licensed in South Carolina, works Johns Island and the surrounding area, and answers texts fast. Happy to send comparable sales or the seller's disclosure on request.`;
 
 export function pollForStep(step: number) {
   return DECK[step]?.poll ?? null;

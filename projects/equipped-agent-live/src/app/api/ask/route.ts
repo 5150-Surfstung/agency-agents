@@ -10,12 +10,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { runArcadeTurn } from "@/lib/ai";
 import { DECK } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
+import { notifyAssistantLead } from "@/lib/notify";
 import { sessionFromCookies } from "@/lib/room";
 import { getStore } from "@/lib/store";
 
 // Refusal is read from the reply's own words — never asserted by us.
 const REFUSAL =
-  /don't want to guess|do not want to guess|not on the (fact )?sheet|don't have that|do not have that|can't confirm|cannot confirm|i don't know|would need to confirm|have .{0,24} confirm/i;
+  /don'?t want to guess|not (on|in) (the|my) (fact )?sheet|don'?t have (that|a|the|it)|do not have that|not something i have|isn'?t something i have|can'?t confirm|cannot confirm|i don'?t know|would need to confirm|i'?d have to check|have .{0,24} confirm|get you the real answer|not in what i have/i;
 
 export async function POST(req: NextRequest) {
   let code = "";
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
       roomKey,
       deviceId,
       tool: "listing",
-      system: listingAssistantSystem(a.facts, a.agentName, a.voice, a.brokerage),
+      system: listingAssistantSystem(a.facts, a.agentName, a.voice, a.brokerage, a.notes),
       messages: [{ role: "user", content: question }],
     });
     if (!result.ok) {
@@ -80,18 +81,33 @@ export async function PUT(req: NextRequest) {
   let name = "";
   let cell = "";
   let question = "";
+  let timeline = "";
+  let financing = "";
+  let hasAgent = "";
   try {
     const b = await req.json();
     code = String(b?.code ?? "").trim().toUpperCase().slice(0, 12);
     name = String(b?.name ?? "").trim().slice(0, 60);
     cell = String(b?.cell ?? "").trim().slice(0, 24);
     question = String(b?.question ?? "").trim().slice(0, 300);
+    timeline = String(b?.timeline ?? "").trim().slice(0, 60);
+    financing = String(b?.financing ?? "").trim().slice(0, 60);
+    hasAgent = String(b?.hasAgent ?? "").trim().slice(0, 60);
   } catch {
     return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
   }
   if (!code || !name || !cell) return NextResponse.json({ ok: false, error: "need_fields" }, { status: 400 });
   try {
-    await getStore().assistantLeadAdd(code, name, cell, question);
+    const store = getStore();
+    await store.assistantLeadAdd(code, name, cell, question, { timeline, financing, hasAgent });
+    // The whole point of the thing: the agent's phone buzzes NOW, not at 5pm.
+    const a = await store.assistantGet(code);
+    const ownerCell = await store.assistantOwnerCell(code);
+    notifyAssistantLead({
+      ownerCell,
+      headline: a?.headline ?? "your listing",
+      name, cell, question, timeline, financing, hasAgent,
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     // A code that never existed is a 404, not a server fault.

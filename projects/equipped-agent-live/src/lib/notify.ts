@@ -50,3 +50,34 @@ export function notifyLead(lead: { name: string; cell: string; rung: string }): 
     `${lead.name} — you're in. This text left the moment you tapped; that's the speed-to-lead standard we just taught. Mike Olson will follow up personally. — The Equipped Agent · The AGENT Connection`
   );
 }
+
+/** A stranger left their details on an attendee's deployed assistant. Their
+ *  phone buzzes immediately — that is the entire speed-to-lead promise, and
+ *  in the room it is the moment the demo becomes real. Fire-and-forget: a
+ *  failed text never blocks the capture. */
+export function notifyAssistantLead(l: {
+  ownerCell: string | null;
+  headline: string;
+  name: string;
+  cell: string;
+  question: string;
+  timeline: string;
+  financing: string;
+  hasAgent: string;
+}): void {
+  if (!smsOnline() || !l.ownerCell) return;
+  const qualified = [
+    l.timeline && `timeline: ${l.timeline}`,
+    l.financing && `financing: ${l.financing}`,
+    l.hasAgent && `agent: ${l.hasAgent}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  void sendSms(
+    l.ownerCell,
+    `🏠 ${l.headline} — new lead: ${l.name} · ${l.cell}` +
+      (l.question ? `\nAsked: "${l.question}"` : "") +
+      (qualified ? `\n${qualified}` : "") +
+      `\nYour assistant caught this. Call them back first.`
+  );
+}

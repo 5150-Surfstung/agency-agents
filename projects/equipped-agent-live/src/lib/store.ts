@@ -77,7 +77,12 @@ export interface Store {
   assistantGet(code: string): Promise<Assistant | null>;
   assistantMine(key: string, deviceId: string): Promise<Assistant | null>;
   assistantRoster(key: string): Promise<RosterEntry[]>;
-  assistantLeadAdd(code: string, name: string, cell: string, question: string): Promise<void>;
+  assistantLeadAdd(
+    code: string, name: string, cell: string, question: string,
+    q?: { timeline?: string; financing?: string; hasAgent?: string }
+  ): Promise<void>;
+  /** Server-side only — routes a captured lead to the owner's phone. */
+  assistantOwnerCell(code: string): Promise<string | null>;
   assistantLeadsMine(key: string, deviceId: string): Promise<AssistantLead[]>;
 
   // ---- THE DUEL ----
@@ -293,9 +298,19 @@ class MemoryStore implements Store {
         deviceId: a.deviceId,
       }));
   }
-  async assistantLeadAdd(code: string, name: string, cell: string, question: string) {
+  async assistantLeadAdd(
+    code: string, name: string, cell: string, question: string,
+    q?: { timeline?: string; financing?: string; hasAgent?: string }
+  ) {
     if (!this.assistants.has(code.toUpperCase())) throw new Error("no_assistant");
-    this.aLeads.push({ code: code.toUpperCase(), name, cell, question, at: Date.now() });
+    this.aLeads.push({
+      code: code.toUpperCase(), name, cell, question,
+      timeline: q?.timeline ?? "", financing: q?.financing ?? "", hasAgent: q?.hasAgent ?? "",
+      at: Date.now(),
+    });
+  }
+  async assistantOwnerCell(code: string) {
+    return this.assistants.get(code.toUpperCase())?.cell ?? null;
   }
   async assistantLeadsMine(_key: string, deviceId: string) {
     const codes = new Set([...this.assistants.values()].filter((a) => a.deviceId === deviceId).map((a) => a.code));
@@ -565,23 +580,24 @@ class RpcStore implements Store {
     await this.call("live_assistant_create", {
       p_key: key, p_device: deviceId, p_code: a.code, p_name: a.agentName,
       p_brokerage: a.brokerage, p_cell: a.cell, p_headline: a.headline,
-      p_facts: a.facts, p_voice: a.voice,
+      p_facts: a.facts, p_voice: a.voice, p_notes: a.notes,
     });
   }
-  private rowToAssistant(r: { code: string; agent_name: string; brokerage: string; headline: string; facts: string; voice: string }): Assistant {
+  private rowToAssistant(r: { code: string; agent_name: string; brokerage: string; headline: string; facts: string; voice: string; notes?: string }): Assistant {
     return {
       code: r.code, agentName: r.agent_name, brokerage: r.brokerage ?? "",
-      headline: r.headline ?? "", facts: r.facts, voice: (r.voice as Assistant["voice"]) ?? "warm",
+      headline: r.headline ?? "", facts: r.facts, notes: r.notes ?? "",
+      voice: (r.voice as Assistant["voice"]) ?? "warm",
     };
   }
   async assistantGet(code: string) {
-    const rows = await this.call<{ code: string; agent_name: string; brokerage: string; headline: string; facts: string; voice: string }[]>(
+    const rows = await this.call<{ code: string; agent_name: string; brokerage: string; headline: string; facts: string; voice: string; notes: string }[]>(
       "live_assistant_get", { p_code: code }
     );
     return rows?.[0] ? this.rowToAssistant(rows[0]) : null;
   }
   async assistantMine(key: string, deviceId: string) {
-    const rows = await this.call<{ code: string; agent_name: string; brokerage: string; headline: string; facts: string; voice: string }[]>(
+    const rows = await this.call<{ code: string; agent_name: string; brokerage: string; headline: string; facts: string; voice: string; notes: string }[]>(
       "live_assistant_mine", { p_key: key, p_device: deviceId }
     );
     return rows?.[0] ? this.rowToAssistant(rows[0]) : null;
@@ -595,14 +611,28 @@ class RpcStore implements Store {
       initials: r.initials ?? "", emoji: r.emoji ?? "", deviceId: r.device_id,
     }));
   }
-  async assistantLeadAdd(code: string, name: string, cell: string, question: string) {
-    await this.call("live_assistant_lead_add", { p_code: code, p_name: name, p_cell: cell, p_question: question });
+  async assistantLeadAdd(
+    code: string, name: string, cell: string, question: string,
+    q?: { timeline?: string; financing?: string; hasAgent?: string }
+  ) {
+    await this.call("live_assistant_lead_add", {
+      p_code: code, p_name: name, p_cell: cell, p_question: question,
+      p_timeline: q?.timeline ?? "", p_financing: q?.financing ?? "", p_has_agent: q?.hasAgent ?? "",
+    });
+  }
+  async assistantOwnerCell(code: string) {
+    const v = await this.call<string | null>("live_assistant_owner_cell", { p_code: code });
+    return typeof v === "string" && v ? v : null;
   }
   async assistantLeadsMine(key: string, deviceId: string): Promise<AssistantLead[]> {
-    const rows = await this.call<{ name: string; cell: string; question: string; at: string }[]>(
+    const rows = await this.call<{ name: string; cell: string; question: string; timeline: string; financing: string; has_agent: string; at: string }[]>(
       "live_assistant_leads_mine", { p_key: key, p_device: deviceId }
     );
-    return (rows ?? []).map((r) => ({ name: r.name, cell: r.cell, question: r.question ?? "", at: new Date(r.at).getTime() }));
+    return (rows ?? []).map((r) => ({
+      name: r.name, cell: r.cell, question: r.question ?? "",
+      timeline: r.timeline ?? "", financing: r.financing ?? "", hasAgent: r.has_agent ?? "",
+      at: new Date(r.at).getTime(),
+    }));
   }
 
   async attackAdd(key: string, deviceId: string, code: string, q: string, a: string, refused: boolean) {

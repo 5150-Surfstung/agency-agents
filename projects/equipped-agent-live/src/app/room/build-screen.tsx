@@ -6,13 +6,8 @@
 // makes it real) a lead inbox that fills with strangers.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { STUMP_FACTS, STUMP_NOTES } from "@/lib/deck";
 import type { Assistant, AssistantLead } from "@/lib/types";
-
-const DEMO_FACTS = `Address: 214 Demo Oak Ln, Johns Island
-Asking price: $612,000
-Bedrooms: 4 · Bathrooms: 2.5 · Square feet: 2,240
-Built: 2016 · HOA: $95/mo
-Showings: Sat–Sun 11–4 by appointment`;
 
 const VOICES: { id: Assistant["voice"]; label: string; blurb: string }[] = [
   { id: "warm", label: "Warm", blurb: "a sharp friend who knows the house" },
@@ -30,6 +25,7 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
   const [cell, setCell] = useState("");
   const [headline, setHeadline] = useState("");
   const [facts, setFacts] = useState("");
+  const [notes, setNotes] = useState("");
   const [voice, setVoice] = useState<Assistant["voice"]>("warm");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -70,7 +66,7 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
       const res = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentName, brokerage, cell, headline, facts, voice }),
+        body: JSON.stringify({ agentName, brokerage, cell, headline, facts, notes, voice }),
       });
       const data = await res.json();
       if (res.ok && data.ok) {
@@ -167,6 +163,11 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
                     {l.name} <span className="text-soft">· {l.cell}</span>
                   </p>
                   {l.question && <p className="mt-0.5 text-xs italic text-soft">“{l.question}”</p>}
+                  {(l.timeline || l.financing || l.hasAgent) && (
+                    <p className="mt-1 text-[11px] font-semibold text-gold-bright">
+                      {[l.timeline, l.financing, l.hasAgent].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>
@@ -226,8 +227,8 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
         <label htmlFor="facts" className="text-sm font-semibold text-cream">
           The fact sheet
         </label>
-        <button onClick={() => setFacts(DEMO_FACTS)} className="text-xs font-bold text-gold underline-offset-2">
-          use the demo listing
+        <button onClick={() => { setFacts(STUMP_FACTS); setNotes(STUMP_NOTES); }} className="text-xs font-bold text-gold underline-offset-2">
+          load the demo listing
         </button>
       </div>
       <textarea
@@ -239,7 +240,25 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
         className="mt-2 w-full resize-none rounded-xl border border-rule bg-sheet-2 px-4 py-3 text-[15px] leading-relaxed text-cream placeholder:text-faint focus:border-gold focus:outline-none"
       />
       <p className="mt-1 text-[11px] text-faint">
-        This is the whole game: your assistant will speak these lines exactly and refuse everything else.
+        Hard facts only. Your assistant quotes these word for word and never rounds them.
+      </p>
+
+      <div className="mt-4 flex items-baseline justify-between">
+        <label htmlFor="notes" className="text-sm font-semibold text-cream">
+          What you want it to talk about
+        </label>
+        <span className="text-[11px] text-faint">the difference-maker</span>
+      </div>
+      <textarea
+        id="notes"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        rows={7}
+        placeholder={"The neighborhood. What makes it special. Showing windows it can offer.\nIncentives. A line about you.\n\nIt speaks freely from this — in its own words."}
+        className="mt-2 w-full resize-none rounded-xl border border-rule bg-sheet-2 px-4 py-3 text-[15px] leading-relaxed text-cream placeholder:text-faint focus:border-gold focus:outline-none"
+      />
+      <p className="mt-1 text-[11px] text-faint">
+        Without this it can only defer to you. With it, it actually sells the house.
       </p>
 
       <p className="mt-4 text-sm font-semibold text-cream">How does it sound?</p>
