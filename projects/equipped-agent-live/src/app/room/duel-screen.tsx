@@ -37,7 +37,13 @@ export function DuelScreen({
     try {
       const res = await fetch("/api/duel", { cache: "no-store" });
       const data = await res.json();
-      if (data?.ok) setRoster(data.roster ?? []);
+      if (data?.ok) {
+        const list: RosterEntry[] = data.roster ?? [];
+        setRoster(list);
+        // Never leave them staring at a screen with nothing to type in:
+        // if they haven't chosen, aim at the first target for them.
+        setTarget((t) => t ?? list[0] ?? null);
+      }
     } catch {
       // next tick
     }
@@ -112,7 +118,11 @@ export function DuelScreen({
       {stats && (
         <p className="mt-3 rounded-xl border border-gold/40 bg-sheet-2 px-4 py-2.5 text-sm font-semibold text-cream">
           🛡 {stats.held} of {stats.fired} shots held the line
-          {stats.built > 0 && <span className="text-soft"> · {stats.built} assistants live in this room</span>}
+          {stats.built > 0 && (
+            <span className="text-soft">
+              {" "}· {stats.built} agent assistant{stats.built === 1 ? "" : "s"} live in this room
+            </span>
+          )}
         </p>
       )}
 
@@ -128,7 +138,10 @@ export function DuelScreen({
         </p>
       ) : (
         <>
-          <p className="mt-5 text-sm font-semibold text-cream">Pick your target</p>
+          <p className="mt-5 text-sm font-semibold text-cream">
+            Firing at <span className="text-gold-bright">{target?.initials || target?.agentName || "—"}</span>
+            <span className="font-normal text-faint"> · tap to switch</span>
+          </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {roster.map((r) => (
               <button
@@ -174,7 +187,9 @@ export function DuelScreen({
             </button>
           </div>
           <p className="mt-1 text-[11px] text-faint">
-            Try: the roof, the schools, the flood zone, what the sellers will take.
+            {q.trim()
+              ? "Enter to fire."
+              : "Type a question to light up Fire — try the water heater, the schools, or what the sellers will take."}
           </p>
         </>
       )}

@@ -5,6 +5,7 @@
 // inside Postgres against the sealed live_config row.
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { HOUSE_CODE } from "./deck";
 import { presenterKey, roomPin } from "./room";
 import type {
   AiGuess, Assistant, AssistantLead, Attack, Lead, Pack, Player, PollState,
@@ -231,7 +232,7 @@ class MemoryStore implements Store {
       const votedKeys = new Set(
         [...this.votes.values()].filter((v) => v.deviceId === deviceId && pollKeys.includes(v.pollKey)).map((v) => v.pollKey)
       );
-      const built = [...this.assistants.values()].filter((a) => a.deviceId === deviceId);
+      const built = [...this.assistants.values()].filter((a) => a.deviceId === deviceId && a.code !== HOUSE_CODE);
       const fired = Math.min(this.attacks.filter((t) => t.attacker === deviceId).length, 3);
       const myCodes = new Set(built.map((a) => a.code));
       const held = this.attacks.filter((t) => t.refused && myCodes.has(t.code)).length;
@@ -288,13 +289,13 @@ class MemoryStore implements Store {
   }
   async assistantRoster(_key: string): Promise<RosterEntry[]> {
     return [...this.assistants.values()]
-      .sort((a, b) => a.at - b.at)
+      .sort((a, b) => Number(b.code === HOUSE_CODE) - Number(a.code === HOUSE_CODE) || a.at - b.at)
       .map((a) => ({
         code: a.code,
         agentName: a.agentName,
         headline: a.headline,
-        initials: this.players.get(a.deviceId)?.initials ?? "",
-        emoji: this.players.get(a.deviceId)?.emoji ?? "",
+        initials: a.code === HOUSE_CODE ? "HOUSE" : this.players.get(a.deviceId)?.initials ?? "",
+        emoji: a.code === HOUSE_CODE ? "🏛" : this.players.get(a.deviceId)?.emoji ?? "",
         deviceId: a.deviceId,
       }));
   }
@@ -341,7 +342,7 @@ class MemoryStore implements Store {
       fired: this.attacks.length,
       held: this.attacks.filter((t) => t.refused).length,
       flagged: this.attacks.filter((t) => t.flagged).length,
-      built: this.assistants.size,
+      built: [...this.assistants.values()].filter((a) => a.code !== HOUSE_CODE).length,
     };
   }
 

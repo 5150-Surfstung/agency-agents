@@ -5,7 +5,7 @@
 // answers strangers and rivals alike.)
 
 import { NextRequest, NextResponse } from "next/server";
-import { DECK } from "@/lib/deck";
+import { DECK, HOUSE_CODE, HOUSE_DEVICE, STUMP_FACTS, STUMP_NOTES } from "@/lib/deck";
 import { sessionFromCookies } from "@/lib/room";
 import { getStore } from "@/lib/store";
 
@@ -14,6 +14,21 @@ export async function GET() {
   if (!sess) return NextResponse.json({ ok: false, error: "join_first" }, { status: 401 });
   try {
     const store = getStore();
+    // THE HOUSE is always up, so the duel is playable from the first second —
+    // solo, from the stage, and before anyone in the room has built. Creation
+    // is idempotent, so calling this on every load is free after the first.
+    if (!(await store.assistantGet(HOUSE_CODE))) {
+      await store.assistantCreate(sess.roomKey, HOUSE_DEVICE, {
+        code: HOUSE_CODE,
+        agentName: "The House",
+        brokerage: "The Equipped Agent",
+        cell: "",
+        headline: "214 Demo Oak Ln (the house listing)",
+        facts: STUMP_FACTS,
+        notes: STUMP_NOTES,
+        voice: "warm",
+      });
+    }
     const roster = await store.assistantRoster(sess.roomKey);
     // You cannot shoot at your own — the point is defending yours, not gaming it.
     return NextResponse.json({

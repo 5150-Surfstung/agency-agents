@@ -323,6 +323,12 @@ Showings: Saturday and Sunday, 11am / 1pm / 3pm slots`;
 /** TIER 2 — the color. This is what an agent WANTS said, and what turns a
  *  refusal machine into a front desk. Prefilled on the build slide so the
  *  demo lands and every attendee sees the shape of a good one. */
+/** THE HOUSE — a permanent target so the duel is playable from the first
+ *  second, solo, and from the stage. Fixed code and a non-player device id,
+ *  so it never lands on THE BOARD and never counts as somebody's build. */
+export const HOUSE_CODE = "HAUS24";
+export const HOUSE_DEVICE = "00000000-0000-4000-8000-00000000f00d";
+
 export const STUMP_NOTES = `WHAT MAKES IT SPECIAL
 The kitchen was redone in 2023 — quartz, gas range, new cabinet fronts. Screened porch off the back looks over trees, not another house. The primary is downstairs, which is rare at this price point in the neighborhood.
 

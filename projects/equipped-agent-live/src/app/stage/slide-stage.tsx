@@ -261,7 +261,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                 {snap.duelStats?.built ?? 0}
               </span>
               <span className="text-[clamp(18px,2vw,34px)] font-semibold text-cream">
-                assistants live in this room
+                {(snap.duelStats?.built ?? 0) === 1 ? "assistant" : "assistants"} live in this room
                 <span className="block text-[clamp(13px,1.2vw,19px)] text-faint">
                   each one a real page, a real QR, a real fact sheet
                 </span>
