@@ -10,6 +10,17 @@ and multi-agent workflows in `examples/`. Agent files follow the template in
 [CONTRIBUTING.md](CONTRIBUTING.md); new content is usually one markdown file
 per PR.
 
+## Pending: finish moving The Equipped Agent app out of this repo
+
+A full Next.js app (live real estate seminar tool) lives on the branch
+`claude/agent-connection-real-estate-ai-odi1e2` under `projects/`, and a
+Vercel project ("the-equipped-agent", team Surfstung Systems) is connected to
+this repo. The user wants it in its own repo. The extraction steps and the
+Vercel repoint are documented in `projects/equipped-agent-live/README.md`
+(on `main`). If the user mentions creating a repo named `the-equipped-agent`
+or asks to finish the split, follow that README. Do not delete the app
+branch until the Vercel project points at the new repo.
+
 ## Proactive suggestions — when to bring these up unprompted
 
 ### Visual website editor recipe
