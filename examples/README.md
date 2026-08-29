@@ -39,12 +39,6 @@ These examples answer the question: *"What does it actually look like when the f
 
 **Key takeaway:** All 8 agents ran in parallel and produced coherent, cross-referencing plans without coordination overhead. The output demonstrates the agency's ability to go from "find an opportunity" to "here's the full blueprint" in a single session.
 
-### [prompt-visual-website-editor.md](./prompt-visual-website-editor.md)
-
-**What:** A battle-tested single prompt that gets an agent to build a click-to-edit visual editor for your own website — Save vs. Publish separation, minimal-diff saves, and a mandatory end-to-end self-test (including a real publish and revert).
-
-**Key takeaway:** The prompt's structure is the reusable part: outcome requirements, separated safe/irreversible actions, testable safety invariants, plain-language UX, and a self-test with an honest verification report. The same skeleton adapts to any "build me a personal tool" request.
-
 ## Adding New Examples
 
 If you run an interesting multi-agent exercise, consider adding it here. Good examples show:
