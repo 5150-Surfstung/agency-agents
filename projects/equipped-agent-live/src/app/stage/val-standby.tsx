@@ -16,9 +16,8 @@
 // what it circles, and it cannot reach an edge the orb doesn't reach.
 
 import { useState } from "react";
-import { ValOrb } from "./val-orb";
 import { ValParticles } from "./val-particles";
-import { ValLines } from "./val-lines";
+import { ValLines, VAL_IDLE } from "./val-lines";
 import { TacLockup } from "./tac-lockup";
 
 // The language of the room, not AI jargon. These are words an agent already
@@ -61,25 +60,23 @@ const RING = (() => {
 const TAGLINE = "Everything that already worked.";
 
 export function ValStandby() {
-  // What Val has currently made, if anything. Naming it under the wordmark is
-  // the difference between "pretty screensaver" and "that thing knows."
-  const [form, setForm] = useState<string | null>(null);
+  // The symbol Val is currently holding, if any. While one is up the copy
+  // sells it; the rest of the time Val talks about the room.
+  const [form, setForm] = useState<{ id: string; says: string[] } | null>(null);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-between py-[2vh]">
+    <div className="flex flex-1 flex-col items-center justify-between overflow-hidden py-[1.5vh]">
       <TacLockup />
 
       {/* 1em is the ORB's diameter; the stage around it is 2.6em so the
           particle field has room to grow a house bigger than the thing it
           came out of, and so the wordmark below clears the field entirely. */}
-      <div className="text-[min(22vh,15vw)]">
-        <div className="relative mx-auto h-[2.6em] w-[2.6em]">
-          <ValOrb
-            label={false}
-            className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[1em] transition-all duration-[1100ms] ease-out ${
-              form ? "scale-[0.42] opacity-25" : "scale-100 opacity-100"
-            }`}
-          />
+      <div className="text-[min(18vh,13vw)]">
+        <div className="relative mx-auto h-[2.8em] w-[2.8em]">
+          {/* The core IS the particles and the bodies of light now. The CSS
+              gradient ball that used to sit under here was a second system
+              with a second look — a beige marble parked in front of the
+              machinery. */}
           <ValParticles onForm={setForm} className="absolute inset-0" />
 
           <div className="pointer-events-none absolute inset-0" aria-hidden>
@@ -107,20 +104,20 @@ export function ValStandby() {
         </div>
       </div>
 
-      <p className="val-standby-name mt-[2vh] font-[family-name:var(--font-display)] text-[clamp(34px,4.6vw,80px)] font-semibold leading-none text-cream">
+      <p className="val-standby-name mt-[1.5vh] font-[family-name:var(--font-display)] text-[clamp(28px,3.8vw,64px)] font-semibold leading-none text-cream">
         VAL
       </p>
       {/* Reserved height, so naming the shape never nudges the layout. */}
-      {/* Val names what it just built; the rest of the time it says what it is. */}
-      <p className="mt-[1.2vh] h-[2.6vh] text-[clamp(11px,1.05vw,18px)] font-semibold uppercase tracking-[0.3em] text-gold">
-        {form ? (
-          <span key={form} className="form-name">{form}</span>
-        ) : (
-          <span className="text-faint">{TAGLINE}</span>
-        )}
+      <p className="mt-[0.9vh] text-[clamp(9px,0.85vw,14px)] font-semibold uppercase tracking-[0.3em] text-faint">
+        {TAGLINE}
       </p>
 
-      <ValLines />
+      {/* A held symbol gets its own pitch, on a faster clock — four lines
+          inside a fifteen-second hold. Otherwise Val works the room. */}
+      <ValLines
+        lines={form ? form.says : VAL_IDLE}
+        every={form ? 3600 : 7200}
+      />
     </div>
   );
 }

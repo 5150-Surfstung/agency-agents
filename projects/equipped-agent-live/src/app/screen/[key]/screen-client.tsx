@@ -5,10 +5,23 @@
 // machine can't move the deck.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toggleFullscreen, watchFullscreen } from "@/lib/fullscreen";
 import { DECK } from "@/lib/deck";
 import { SlideStage, type Snapshot } from "@/app/stage/slide-stage";
 
 export function ScreenClient({ presenterKey }: { presenterKey: string }) {
+  // F for fullscreen. This screen is read-only by design — it polls and never
+  // POSTs — so a key handler here can't move the deck by accident.
+  const [full, setFull] = useState(false);
+  useEffect(() => watchFullscreen(setFull), []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "f") toggleFullscreen();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [presentPop, setPresentPop] = useState(false);
   const prevPresent = useRef(0);
@@ -58,6 +71,13 @@ export function ScreenClient({ presenterKey }: { presenterKey: string }) {
 
   return (
     <main className="stage relative flex min-h-dvh flex-col overflow-hidden px-[5vw] py-[4vh]">
+      {/* Shown only while windowed, and only on the two screens the room is
+          walking in on — so a hint about setup never rides over the show. */}
+      {!full && bigJoin && (
+        <p className="pointer-events-none fixed bottom-[2vh] left-[3vw] z-30 text-[11px] font-semibold uppercase tracking-[0.2em] text-faint/70">
+          press F for fullscreen
+        </p>
+      )}
       {bigJoin ? (
         <div className="relative z-10 flex flex-1 items-center gap-[5vw]">
           <div className="flex-1">

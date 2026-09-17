@@ -1,44 +1,74 @@
 "use client";
 
-// VAL, TALKING. The lines that fly through the pre-show.
+// VAL, TALKING. The line that flies through the pre-show.
 //
 // The standby screen is not a holding pattern, it is the first thing that
 // sells. People walk in, sit down, and look at the wall for ten minutes before
 // anyone says a word — so those ten minutes make the promise, name the room,
 // and tell them what their phone is for. Val says it, not a bullet list.
 //
-// Every line here is something the hour actually delivers. Nothing on this
-// screen writes a cheque the next sixty minutes can't cash.
+// While Val is holding a symbol this carries that symbol's pitch instead of
+// the general rotation, because captioning a house "A HOUSE" tells the room
+// something it can already see. Fifteen seconds of hold is fifteen seconds of
+// selling.
+//
+// Every line is something the hour actually delivers. Nothing on this screen
+// writes a cheque the next sixty minutes can't cash.
 
 import { useEffect, useState } from "react";
 
-const LINES = [
+/** THE CLOSE, on a loop.
+ *
+ *  This is not a list of nice things Val can say. It is a closing sequence,
+ *  in order, that works whether somebody reads two lines of it or twenty:
+ *  name the room, say who is talking, name the pain, reframe it, show the
+ *  mechanism, make them want a number, reverse the risk, promise honesty,
+ *  ask for the one action, close. Then round again.
+ *
+ *  Two rules outrank the persuasion:
+ *  · No figure appears here that could go stale on a wall. The market line
+ *    deliberately makes them WANT the number instead of quoting one — a
+ *    standby screen is the last place that should carry a date-sensitive
+ *    statistic nobody remembers to update.
+ *  · Every promise is cashable inside the next sixty minutes. The NAR figure
+ *    is the same one the deck sources on the split slide.
+ */
+export const VAL_IDLE = [
   "Welcome to The AGENT Connection AI Strategy Course.",
   "I'm Val. Every system you'll see tonight came off my shelves.",
-  "Scan the code — your phone is part of the show.",
-  "In one hour you'll have a listing that answers its own phone.",
-  "Nobody leaves with notes. You leave with things that run.",
-  "I never say a number I can't defend. Neither will yours.",
-  "Smarter tools. Stronger agents. Bigger opportunities.",
+  "Sixty percent of licensed agents sold nothing last year. Not one of them chose that.",
+  "The line isn't new against experienced any more. It's equipped against unequipped.",
+  "Whoever answers first has the conversation. Everyone else leaves a voicemail.",
+  "Somewhere in your farm, what's asking and what's closing are tens of thousands apart. I can tell you that number in ten seconds.",
+  "Nobody leaves with notes tonight. You leave with things that run.",
+  "And they stay yours — whether you ever call Mike or not.",
+  "I never say a number I can't defend. Neither will the one you build.",
+  "Scan the code. Your phone is part of the show.",
+  "An on-site Director, in Charleston, who built all of this himself.",
   "Same relationships. Bigger possibilities.",
+  "People \u00b7 Tools \u00b7 Opportunity \u2014 in that order, on purpose.",
 ];
 
-const EVERY = 6600;
-
-export function ValLines() {
+export function ValLines({ lines, every = 7200 }: { lines: string[]; every?: number }) {
   const [i, setI] = useState(0);
+  // Restart the rotation whenever the set changes, so a symbol's pitch opens
+  // on its first line rather than wherever the last set happened to be.
+  const key = lines[0] ?? "";
   useEffect(() => {
-    const h = setInterval(() => setI((n) => (n + 1) % LINES.length), EVERY);
+    setI(0);
+    const h = setInterval(() => setI((n) => (n + 1) % lines.length), every);
     return () => clearInterval(h);
-  }, []);
+  }, [key, lines.length, every]);
+
+  const line = lines[i % lines.length] ?? "";
   return (
-    <p className="flex h-[10vh] items-center justify-center px-[2vw] text-center">
+    <p className="flex h-[12vh] shrink-0 items-center justify-center px-[2vw] text-center">
       {/* Keyed so each line remounts and replays the fly-through. */}
       <span
-        key={i}
-        className="val-line max-w-[54ch] font-[family-name:var(--font-display)] text-[clamp(16px,1.9vw,34px)] italic leading-snug text-cream"
+        key={`${key}:${i}`}
+        className="val-line max-w-[54ch] font-[family-name:var(--font-display)] text-[clamp(15px,1.75vw,31px)] italic leading-snug text-cream"
       >
-        {LINES[i]}
+        {line}
       </span>
     </p>
   );

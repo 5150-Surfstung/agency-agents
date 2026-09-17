@@ -8,9 +8,11 @@
 //   → / ←   slides        space   open → reveal
 //   L       leads         Q       big join QR        S  open the audience screen
 //   W       switchboard — every live conversation, and the button that breaks in
+//   F       fullscreen
 
 import { useCallback, useEffect, useState } from "react";
 import { Switchboard } from "@/app/switchboard";
+import { toggleFullscreen } from "@/lib/fullscreen";
 import { DECK } from "@/lib/deck";
 import { type Snapshot } from "@/app/stage/slide-stage";
 
@@ -74,6 +76,7 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
       } else if (e.key.toLowerCase() === "l") setShowLeads((v) => !v);
       else if (e.key.toLowerCase() === "q") setShowQr((v) => !v);
       else if (e.key.toLowerCase() === "w") setShowBoard((v) => !v);
+      else if (e.key.toLowerCase() === "f") toggleFullscreen();
       else if (e.key.toLowerCase() === "s") openScreen();
     }
     window.addEventListener("keydown", onKey);

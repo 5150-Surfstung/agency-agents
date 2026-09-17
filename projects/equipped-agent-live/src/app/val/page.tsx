@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ValOrb } from "@/app/stage/val-orb";
+import { ValParticles } from "@/app/stage/val-particles";
 import { HOST } from "@/lib/contact";
 
 export const metadata: Metadata = {
@@ -83,7 +83,7 @@ export default function ValPage() {
   return (
     <main className="mx-auto min-h-dvh w-full max-w-5xl px-5 py-10 sm:px-8">
       <header className="relative overflow-hidden rounded-3xl border border-rule bg-sheet-2 p-7 sm:p-10">
-        <ValOrb className="pointer-events-none absolute -right-10 top-1/2 hidden -translate-y-1/2 text-[22rem] opacity-70 sm:block" />
+        <ValParticles className="pointer-events-none absolute -right-16 top-1/2 hidden h-[26rem] w-[26rem] -translate-y-1/2 opacity-80 sm:block" />
         <div className="relative max-w-xl">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gold">
             Surfstung Systems · The AGENT Connection™

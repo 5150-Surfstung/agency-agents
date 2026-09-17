@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { IndexChart } from "./index-chart";
-import { ValOrb } from "./val-orb";
+import { ValParticles } from "./val-particles";
 import { ValStandby } from "./val-standby";
 import type { Attack, Lead, Player, ScoreRow, Slide } from "@/lib/types";
 
@@ -92,7 +92,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
         {/* Val is the only thing in the hour with nothing to look at, so it
             gets a body — parked in the space a dense slide leaves empty. */}
         {slide.id === "val" && (
-          <ValOrb className="absolute right-[3vw] top-1/2 -translate-y-1/2 text-[min(46vh,30vw)]" />
+          <ValParticles className="absolute right-[2vw] top-1/2 h-[min(52vh,34vw)] w-[min(52vh,34vw)] -translate-y-1/2" />
         )}
         {slide.eyebrow && slide.kind !== "title" && (
           <p className="rise text-[clamp(12px,1.2vw,18px)] font-semibold uppercase tracking-[0.22em] text-gold">
