@@ -1,0 +1,824 @@
+"use client";
+
+// The slide itself — the ONE piece the projector and the presenter's laptop
+// both render, so what he sees and what the room sees can never drift apart.
+// Nothing private lives in here: cues, controls, leads and the HUD stay on
+// the presenter's side of the wall.
+
+import { useEffect, useRef, useState } from "react";
+import { IndexChart } from "./index-chart";
+import { ValParticles } from "./val-particles";
+import { ValStandby } from "./val-standby";
+import type { Attack, Lead, Player, ScoreRow, Slide } from "@/lib/types";
+
+export interface Snapshot {
+  ok: boolean;
+  step: number;
+  total: number;
+  pollState: "closed" | "open" | "revealed";
+  counts: number[] | null;
+  priceValues: { value: number; n: number }[] | null;
+  aiGuess: { guessK: number; reasoning: string } | null;
+  podium: { initials: string; emoji: string; value: number; offBy: number; points: number }[] | null;
+  attackFeed: Attack[] | null;
+  duelStats: { fired: number; held: number; flagged: number; built: number } | null;
+  scoreboard: ScoreRow[] | null;
+  standings: Player[] | null;
+  /** The one open-floor entry a human has put on the wall. reply === "" means
+   *  the words are up and Val is still thinking about them. */
+  brag: { id: number; kind: "brag" | "confess"; body: string; reply: string } | null;
+  leads: Lead[];
+  present: number;
+  spendUsd: number;
+  pin: string | null;
+  engineOnline: boolean;
+  smsOnline: boolean;
+  backend: string;
+}
+
+export const fmtK = (k: number) => `$${k.toLocaleString()}K`;
+
+/** Counts up on mount; sits still for reduced-motion viewers. */
+function CountUp({ text }: { text: string }) {
+  const [shown, setShown] = useState(text);
+  const ran = useRef(false);
+  useEffect(() => {
+    if (ran.current) return;
+    ran.current = true;
+    const m = text.match(/^([^0-9]*)([\d,.]+)(.*)$/);
+    if (!m || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const target = parseFloat(m[2].replaceAll(",", ""));
+    if (!Number.isFinite(target)) return;
+    const decimals = m[2].includes(".") ? m[2].split(".")[1].length : 0;
+    const t0 = performance.now();
+    const dur = 1100;
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - t0) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = (target * eased).toFixed(decimals);
+      setShown(`${m[1]}${Number(val).toLocaleString(undefined, { minimumFractionDigits: decimals })}${m[3]}`);
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [text]);
+  return <>{shown}</>;
+}
+
+/** The slide body. `presentPop` only animates the title-slide phone counter. */
+export function SlideStage({ snap, slide, presentPop = false }: {
+  snap: Snapshot;
+  slide: Slide;
+  presentPop?: boolean;
+}) {
+  const poll = slide.poll;
+  const price = slide.price;
+  const total = snap.counts?.reduce((a, b) => a + b, 0) ?? 0;
+  const priceTotal = snap.priceValues?.reduce((s, v) => s + v.n, 0) ?? 0;
+  const winner =
+    snap.pollState === "revealed" && snap.counts ? snap.counts.indexOf(Math.max(...snap.counts)) : -1;
+
+  // Lanes are the densest thing this stage renders: two columns of copy plus,
+  // often, a scannable link and a quote. Everything shrinks when they appear.
+  // Three blocks under a headline is the line: past it, the headline drops a
+  // size so the last block (usually the quote) never runs under the rail.
+  const blocks = [slide.stats, slide.lines, slide.link, slide.quote, slide.poll, slide.price].filter(Boolean).length;
+  const dense = Boolean(
+    slide.lanes || blocks >= 3 || slide.price || slide.kind === "close" ||
+    (slide.kind === "openfloor" && snap.brag)
+  );
+
+  // The pre-show is its own screen, not a slide with the furniture hidden.
+  if (slide.kind === "standby") {
+    return (
+      <section key={snap.step} className="slide-enter flex flex-1 flex-col">
+        <ValStandby />
+      </section>
+    );
+  }
+
+  return (
+      <section key={snap.step} className="slide-enter relative flex flex-1 flex-col justify-center">
+        {/* VAL, PRESENT FOR THE WHOLE HOUR. A quiet mark in the corner of every
+            slide, holding the symbol that belongs to it — the phone on speed to
+            lead, the table on the switchboard, a loose thinking mesh on a poll.
+            Without this the show has one cinematic screen and then thirty-three
+            slides of type, and the drop-off costs more than the standby
+            screen earns. */}
+        {slide.kind !== "title" && slide.id !== "val" && slide.kind !== "close" && slide.kind !== "openfloor" && (
+          <ValParticles
+            quiet
+            pin={slide.valSymbol}
+            beat={total + priceTotal + (snap.present ?? 0)}
+            className="pointer-events-none absolute right-[1.5vw] top-[1vh] h-[17vh] w-[17vh] opacity-80"
+          />
+        )}
+
+        {/* On its own slide — and for the send-off — Val gets the full body,
+            cycling every symbol of the night, not the mark. */}
+        {/* THE OPEN FLOOR. Val is not decoration here — she is the thing the
+            room is watching, and her state is the real state of the request:
+            listening while they type, thinking while the model is actually
+            working, answering once there is an answer. She cannot appear to be
+            doing something she is not. */}
+        {slide.kind === "openfloor" && (
+          <ValParticles
+            mode={!snap.brag ? "listen" : snap.brag.reply ? "speak" : "think"}
+            beat={snap.brag?.id ?? 0}
+            className="pointer-events-none absolute right-[1vw] top-1/2 h-[min(42vh,28vw)] w-[min(42vh,28vw)] -translate-y-1/2"
+          />
+        )}
+
+        {(slide.id === "val" || slide.kind === "close") && (
+          <ValParticles className="absolute right-[2vw] top-1/2 h-[min(52vh,34vw)] w-[min(52vh,34vw)] -translate-y-1/2" />
+        )}
+        {slide.eyebrow && slide.kind !== "title" && (
+          <p className="label rise text-[clamp(11px,1.05vw,16px)] tracking-[0.24em] text-gold">
+            {slide.eyebrow}
+          </p>
+        )}
+        {slide.kind !== "title" && (
+          <h1
+            className={`rise d1 mt-[1.5vh] display font-extrabold leading-[1.06] text-cream [text-wrap:balance] ${
+              dense
+                ? "max-w-[30ch] text-[clamp(28px,3.7vw,58px)]"
+                : "max-w-[24ch] text-[clamp(34px,5.2vw,84px)]"
+            }`}
+          >
+            {slide.heading}
+            <span className="wipe mt-[1.2vh] block h-[0.6vh] w-[16vw] rounded-full bg-gold" />
+          </h1>
+        )}
+
+        {slide.kind === "title" && <ColdOpen slide={slide} present={snap.present} presentPop={presentPop} />}
+
+        {slide.id === "demo-farming" && (
+          <div className="rise d2 mt-[1vh] w-full max-w-[88ch]">
+            <IndexChart />
+          </div>
+        )}
+
+        {slide.stats && slide.id !== "demo-farming" && (
+          <div className={`rise d2 flex flex-wrap gap-[3vw] ${dense ? "mt-[2.2vh]" : "mt-[3vh]"}`}>
+            {slide.stats.map((s, i) => (
+              <div key={s.label} className="min-w-[16vw]">
+                <p
+                  className="stat-num display text-[clamp(34px,4.3vw,66px)] font-extrabold tabular-nums text-gold-bright [font-variation-settings:'wdth'_114]"
+                  style={{ animationDelay: `${1.05 + i * 0.12}s` }}
+                >
+                  <CountUp text={s.value} />
+                </p>
+                <span
+                  className="wipe mb-[0.8vh] block h-[0.4vh] w-[5vw] rounded-full bg-gold"
+                  style={{ animationDelay: `${0.5 + i * 0.12}s` }}
+                />
+                <p className="max-w-[26ch] text-[clamp(12px,1.05vw,17px)] leading-snug text-soft">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {slide.lines && slide.kind !== "title" && !(slide.kind === "openfloor" && snap.brag) && (
+          <div
+            className={`flex flex-col ${dense ? "mt-[2.2vh] gap-[0.7vh]" : "mt-[3vh] gap-[1vh]"} ${
+              slide.kind === "close" ? "max-w-[48ch]" : "max-w-[64ch]"
+            }`}
+          >
+            {slide.lines.map((l, i) => (
+              <p
+                key={l}
+                className="rise text-[clamp(16px,1.6vw,26px)] leading-relaxed text-soft"
+                style={{ animationDelay: `${0.42 + i * 0.14}s` }}
+              >
+                {l}
+              </p>
+            ))}
+          </div>
+        )}
+
+        {/* ——— the send-off: the four pillars, in order, last thing on the wall ——— */}
+        {slide.kind === "close" && (
+          <div className="mt-[3vh] flex max-w-[52ch] flex-wrap gap-[0.8vw]">
+            {PILLARS.map((p, i) => (
+              <span
+                key={p}
+                className="chip-in rounded-full border border-gold/60 bg-sheet-2/70 px-[1.2vw] py-[0.7vh] text-[clamp(12px,1.2vw,19px)] font-bold uppercase tracking-[0.16em] text-gold-bright"
+                style={{ animationDelay: `${1.2 + i * 0.18}s` }}
+              >
+                {p}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* ——— two lanes: nobody in this room is bored and nobody is lost ——— */}
+        {slide.lanes && (
+          <div
+            className={`mt-[2.4vh] grid w-full gap-[1.6vw] sm:grid-cols-2 ${
+              slide.id === "val" ? "max-w-[74ch]" : "max-w-[116ch]"
+            }`}
+          >
+            {slide.lanes.map((lane, i) => (
+              <div
+                key={lane.tag}
+                className="rise lane-card relative overflow-hidden rounded-2xl border border-rule bg-sheet-2/70 p-[1.1vw]"
+                style={{ animationDelay: `${0.45 + i * 0.18}s` }}
+              >
+                <p className="label text-[clamp(9px,0.82vw,13px)] tracking-[0.22em] text-gold">
+                  {lane.tag}
+                </p>
+                <p className="mt-[0.6vh] display text-[clamp(16px,1.7vw,27px)] font-extrabold leading-tight text-cream">
+                  {lane.heading}
+                </p>
+                <ul className="mt-[1vh] flex flex-col gap-[0.7vh]">
+                  {lane.lines.map((l) => (
+                    <li key={l} className="text-[clamp(12px,1.08vw,17px)] leading-snug text-soft">
+                      {l}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ——— a tool on screen the room can open on their own phone NOW ——— */}
+        {slide.link && (
+          <div
+            className={`rise d3 flex w-fit items-center rounded-2xl border border-gold/50 bg-sheet-2/70 ${
+              dense ? "mt-[1.4vh] gap-[1vw] p-[0.7vw]" : "mt-[3vh] gap-[1.6vw] p-[1.4vw]"
+            }`}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/qr?u=${encodeURIComponent(slide.link.href)}`}
+              alt=""
+              className={`shrink-0 rounded-xl ${dense ? "h-[7.4vh] w-[7.4vh]" : "h-[13vh] w-[13vh]"}`}
+            />
+            <div>
+              <p className="label text-[clamp(9px,0.82vw,13px)] tracking-[0.22em] text-gold">
+                Scan it — open it yourself
+              </p>
+              <p
+                className={`mt-[0.4vh] display font-extrabold text-cream ${
+                  dense ? "text-[clamp(16px,1.7vw,27px)]" : "text-[clamp(20px,2.2vw,36px)]"
+                }`}
+              >
+                {slide.link.label}
+              </p>
+              {slide.link.note && (
+                <p
+                  className={`mt-[0.4vh] leading-snug text-soft ${
+                    dense
+                      ? "max-w-[50ch] text-[clamp(10px,0.95vw,15px)]"
+                      : "max-w-[40ch] text-[clamp(12px,1.1vw,18px)]"
+                  }`}
+                >
+                  {slide.link.note}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {slide.quote && (
+          <blockquote
+            className={`rise d3 border-l-2 border-gold pl-[1.4vw] pull leading-snug text-cream ${
+              dense
+                ? "mt-[1.6vh] max-w-[76ch] text-[clamp(13px,1.2vw,20px)]"
+                : "mt-[2.5vh] max-w-[46ch] text-[clamp(18px,2vw,32px)]"
+            }`}
+          >
+            “{slide.quote}”
+          </blockquote>
+        )}
+
+        {/* ——— classic poll canvas ——— */}
+        {poll && (
+          <div className="rise d2 mt-[4vh] w-full max-w-[72ch]">
+            {/* Question and answers live on screen together, always readable
+                from the back row. Bars climb while the room votes; the reveal
+                crowns the winner. */}
+            <div className="flex flex-col gap-[1.5vh]">
+              {poll.options.map((opt, i) => {
+                const n = snap.counts?.[i] ?? 0;
+                const pct = total ? Math.round((n / total) * 100) : 0;
+                const isWin = snap.pollState === "revealed" && i === winner && total > 0;
+                const dim = snap.pollState === "closed";
+                // The race is the show: whoever is ahead glows while it's open.
+                const leading = snap.pollState === "open" && total > 0 && i === winner;
+                return (
+                  <div key={opt}>
+                    <div className="flex items-baseline justify-between gap-[2vw]">
+                      <span
+                        className={`text-[clamp(18px,1.9vw,32px)] font-semibold ${
+                          isWin ? "text-gold-bright" : dim ? "text-soft" : "text-cream"
+                        }`}
+                      >
+                        <span className="mr-[0.8vw] font-bold text-faint">{i + 1}</span>
+                        {opt} {isWin && "👑"}
+                      </span>
+                      {snap.pollState !== "closed" && (
+                        <span
+                          className={`shrink-0 text-[clamp(18px,1.9vw,32px)] font-bold ${
+                            isWin ? "text-gold-bright" : "text-soft"
+                          }`}
+                        >
+                          {pct}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-[0.6vh] h-[2vh] overflow-hidden rounded-full bg-sheet-3">
+                      <div
+                        className={`bar-lit relative h-full rounded-full transition-[width] duration-700 ease-out ${
+                          isWin ? "winner-pulse bar-lead" : leading ? "bar-lead" : ""
+                        }`}
+                        style={{ width: snap.pollState === "closed" ? "0%" : `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="mt-[0.8vh] flex items-center gap-[1.2vw]">
+                {snap.pollState === "open" && (
+                  <span className="ring-pulse inline-block h-[1.6vh] w-[1.6vh] rounded-full bg-moss" />
+                )}
+                <p className="text-[clamp(15px,1.5vw,24px)] font-semibold text-cream">
+                  <span className="display text-[clamp(22px,2.6vw,42px)] font-extrabold text-gold-bright">
+                    {total}
+                  </span>{" "}
+                  {snap.pollState === "revealed" ? "votes in" : "voting live"} ·{" "}
+                  <span className="text-faint">🔒 anonymous, always</span>
+                  {snap.pollState === "open" && <span className="text-faint"> · tap REVEAL to crown it</span>}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ——— price game canvas ——— */}
+        {price && (
+          <div className="rise d2 mt-[2vh] w-full max-w-[112ch]">
+            {snap.pollState !== "revealed" && (
+              <ul className="flex flex-col gap-[0.6vh] text-[clamp(15px,1.5vw,24px)] text-soft">
+                {price.facts.map((f) => (
+                  <li key={f}>· {f}</li>
+                ))}
+              </ul>
+            )}
+            {snap.pollState === "closed" && (
+              <p className="mt-[2vh] text-[clamp(15px,1.4vw,22px)] text-faint">
+                Sliders armed — <span className="font-bold text-soft">space</span> opens the floor.
+              </p>
+            )}
+            {snap.pollState === "open" && (
+              <div className="mt-[2.5vh] flex items-center gap-[1.5vw]">
+                <span className="ring-pulse inline-block h-[2vh] w-[2vh] rounded-full bg-moss" />
+                <p className="text-[clamp(20px,2.4vw,40px)] font-semibold text-cream">
+                  <span className="display text-[clamp(28px,3.4vw,56px)] font-extrabold tabular-nums text-gold-bright">
+                    {priceTotal}
+                  </span>{" "}
+                  guesses locked · <span className="text-faint">space reveals</span>
+                </p>
+              </div>
+            )}
+            {snap.pollState === "revealed" && (
+              <>
+                <PriceHistogram
+                  values={snap.priceValues ?? []}
+                  minK={price.minK}
+                  maxK={price.maxK}
+                  soldK={price.soldK}
+                  soldLabel={price.soldLabel}
+                  anchorK={price.anchorK}
+                  anchorLabel={price.anchorLabel}
+                  source={price.source}
+                  aiGuess={snap.aiGuess}
+                />
+                {snap.podium && snap.podium.length > 0 && (
+                  <div className="mt-[1.6vh] flex flex-wrap items-center gap-[1.2vw]">
+                    {snap.podium.map((p, i) => (
+                      <div
+                        key={p.initials + i}
+                        className={`bar-row relative flex items-baseline gap-[0.6vw] overflow-hidden rounded-2xl border bg-sheet-2 px-[1.2vw] py-[0.8vh] ${
+                          i === 0 ? "podium border-gold" : "border-gold/40"
+                        }`}
+                        style={{ animationDelay: `${1 + i * 0.25}s` }}
+                      >
+                        <span className="text-[clamp(18px,1.8vw,30px)]">{["🥇", "🥈", "🥉"][i]}</span>
+                        <span className="display text-[clamp(16px,1.7vw,28px)] font-extrabold text-cream">
+                          {p.emoji} <span className="tracking-wide">{p.initials}</span>
+                        </span>
+                        <span className="text-[clamp(13px,1.2vw,19px)] font-semibold text-soft">
+                          {fmtK(p.value)} · off {fmtK(p.offBy)}
+                        </span>
+                        <span className="text-[clamp(14px,1.3vw,21px)] font-bold text-gold-bright">+{p.points}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ——— the build: a counter that climbs as the room ships ——— */}
+        {slide.kind === "build" && (
+          <div className="rise d2 mt-[3vh] w-full max-w-[90ch]">
+            <div className="flex items-baseline gap-[1.5vw]">
+              <span className="display text-[clamp(48px,7vw,120px)] font-extrabold text-gold-bright">
+                {snap.duelStats?.built ?? 0}
+              </span>
+              <span className="text-[clamp(18px,2vw,34px)] font-semibold text-cream">
+                {(snap.duelStats?.built ?? 0) === 1 ? "assistant" : "assistants"} live in this room
+                <span className="block text-[clamp(13px,1.2vw,19px)] text-faint">
+                  each one a real page, a real QR, a real fact sheet
+                </span>
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* ——— the duel: shots fired at the room's real assistants ——— */}
+        {slide.kind === "duel" && (
+          <div className="rise d2 mt-[2vh] w-full max-w-[110ch]">
+            {snap.duelStats && snap.duelStats.fired > 0 && (
+              <div className="mb-[2vh] flex items-baseline gap-[1.5vw]">
+                <span className="display text-[clamp(36px,4.5vw,76px)] font-extrabold text-gold-bright">
+                  {snap.duelStats.held}
+                </span>
+                <span className="text-[clamp(16px,1.7vw,28px)] font-semibold text-cream">
+                  of {snap.duelStats.fired} shots held the line
+                  {snap.duelStats.flagged > 0 && (
+                    <span className="ml-[1vw] text-clay">· {snap.duelStats.flagged} flagged for your ruling</span>
+                  )}
+                </span>
+              </div>
+            )}
+            <div className="grid grid-cols-1 gap-[1.2vh] lg:grid-cols-2">
+              {!snap.engineOnline && (
+                <p className="rounded-xl border border-clay/60 bg-sheet-2 px-[1.2vw] py-[1.2vh] text-[clamp(14px,1.3vw,20px)] text-clay">
+                  Engine key not loaded — this game sits out tonight, honestly.
+                </p>
+              )}
+              {(snap.attackFeed ?? []).map((e) => (
+                <div
+                  key={e.id}
+                  className={`stump-in rounded-2xl border px-[1.2vw] py-[1.2vh] ${
+                    e.flagged ? "border-clay bg-sheet-2" : e.refused ? "border-gold bg-sheet-2" : "border-rule bg-sheet-2"
+                  }`}
+                >
+                  <p className="text-[clamp(11px,1vw,15px)] font-bold uppercase tracking-wider text-faint">
+                    {e.emoji} {e.initials || "someone"} → {e.agentName}&apos;s assistant
+                  </p>
+                  <p className="mt-[0.3vh] text-[clamp(14px,1.3vw,21px)] font-semibold text-cream">“{e.question}”</p>
+                  <p className="mt-[0.4vh] text-[clamp(13px,1.15vw,18px)] leading-snug text-soft">
+                    {e.answer || "…thinking"}
+                  </p>
+                  {e.flagged ? (
+                    <p className="mt-[0.4vh] text-[clamp(11px,0.95vw,15px)] font-bold uppercase tracking-widest text-clay">
+                      ⚑ claimed broken — your call
+                    </p>
+                  ) : e.refused ? (
+                    <p className="mt-[0.4vh] text-[clamp(11px,0.95vw,15px)] font-bold uppercase tracking-widest text-gold-bright">
+                      held the line ✓
+                    </p>
+                  ) : null}
+                </div>
+              ))}
+              {snap.engineOnline && (snap.attackFeed ?? []).length === 0 && (
+                <p className="text-[clamp(15px,1.4vw,22px)] text-faint">Targets are up. First shot incoming…</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ——— THE OPEN FLOOR: their words, then Val's answer ——— */}
+        {slide.kind === "openfloor" && (
+          <div className="rise d3 mt-[2.2vh] w-full max-w-[50ch]">
+            {!snap.brag ? (
+              <div className="flex items-center gap-[1vw]">
+                <span className="ring-pulse inline-block h-[1.4vh] w-[1.4vh] shrink-0 rounded-full bg-moss" />
+                <p className="text-[clamp(12px,1.2vw,19px)] font-bold uppercase tracking-[0.18em] text-moss">
+                  Val is listening
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="text-[clamp(10px,0.95vw,15px)] font-bold uppercase tracking-[0.2em] text-gold">
+                  {snap.brag.kind === "confess" ? "A confession · from the room" : "A brag · from the room"}
+                </p>
+                <blockquote className="mt-[0.9vh] border-l-2 border-gold pl-[1.2vw] pull text-[clamp(18px,2.1vw,34px)] leading-snug text-cream">
+                  “{snap.brag.body}”
+                </blockquote>
+                {snap.brag.reply ? (
+                  <div className="mt-[2vh]">
+                    <p className="text-[clamp(10px,0.95vw,15px)] font-bold uppercase tracking-[0.2em] text-gold-bright">
+                      Val
+                    </p>
+                    {snap.brag.reply.split(/\n{1,}/).filter(Boolean).map((para, i) => (
+                      <p
+                        key={i}
+                        className="rise mt-[0.9vh] text-[clamp(14px,1.5vw,24px)] leading-relaxed text-soft"
+                        style={{ animationDelay: `${i * 0.18}s` }}
+                      >
+                        {para}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-[2vh] flex items-center gap-[0.8vw] text-[clamp(13px,1.3vw,21px)] font-semibold uppercase tracking-[0.18em] text-faint">
+                    <span className="ring-pulse inline-block h-[1.2vh] w-[1.2vh] rounded-full bg-gold" />
+                    Val is thinking
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ——— THE BOARD: whole-night standings + the ring feeding them ——— */}
+        {slide.kind === "leaderboard" && (
+          <div className="rise d2 mt-[2.5vh] grid w-full max-w-[120ch] grid-cols-1 gap-[3vw] lg:grid-cols-2">
+            <div>
+              <p className="text-[clamp(13px,1.2vw,19px)] font-bold uppercase tracking-[0.2em] text-gold">
+                The board · the whole night
+              </p>
+              {(snap.standings ?? []).length === 0 ? (
+                <p className="mt-[1.5vh] text-[clamp(15px,1.4vw,22px)] text-faint">
+                  Nobody's suited up yet — jerseys go on at the door.
+                </p>
+              ) : (
+                <div className="mt-[1.2vh] flex flex-col gap-[0.8vh]">
+                  {(snap.standings ?? []).slice(0, 8).map((r, i, all) => (
+                    <div
+                      key={r.deviceId}
+                      className={`bar-row relative overflow-hidden rounded-xl border bg-sheet-2 px-[1.4vw] py-[0.8vh] ${
+                        i === 0 ? "podium border-gold" : "border-rule"
+                      }`}
+                      style={{ animationDelay: `${i * 0.08}s` }}
+                    >
+                      <div className="flex items-baseline justify-between gap-[1vw]">
+                        <span className="flex items-baseline gap-[0.6vw] display text-[clamp(18px,2vw,32px)] font-extrabold text-cream">
+                          <Rank i={i} />
+                          <span>{r.emoji}</span>
+                          <span className="truncate tracking-wide">{r.initials}</span>
+                        </span>
+                        <span className={`shrink-0 tabular-nums text-[clamp(17px,1.9vw,30px)] font-bold ${i === 0 ? "winner-pulse text-gold-bright" : "text-gold-bright"}`}>
+                          {r.points}
+                        </span>
+                      </div>
+                      <div className="mt-[0.5vh] h-[0.6vh] overflow-hidden rounded-full bg-sheet-3">
+                        <div
+                          className={`bar-lit relative h-full rounded-full transition-[width] duration-700 ease-out ${i === 0 ? "bar-lead" : ""}`}
+                          style={{ width: `${Math.max(4, Math.round((r.points / Math.max(1, all[0].points)) * 100))}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="text-[clamp(13px,1.2vw,19px)] font-bold uppercase tracking-[0.2em] text-gold">
+                The ring · best round × 10
+              </p>
+              {(snap.scoreboard ?? []).length === 0 ? (
+                <p className="mt-[1.5vh] text-[clamp(15px,1.4vw,22px)] text-faint">
+                  Post your sparring score from your phone — it's your final move.
+                </p>
+              ) : (
+                <div className="mt-[1.2vh] flex flex-col gap-[0.8vh]">
+                  {(snap.scoreboard ?? []).slice(0, 8).map((r, i) => (
+                    <div
+                      key={r.initials + i}
+                      className={`bar-row relative overflow-hidden rounded-xl border bg-sheet-2 px-[1.4vw] py-[0.8vh] ${
+                        i === 0 ? "podium border-gold" : "border-rule"
+                      }`}
+                      style={{ animationDelay: `${0.3 + i * 0.08}s` }}
+                    >
+                      <div className="flex items-baseline justify-between gap-[1vw]">
+                        <span className="flex items-baseline gap-[0.6vw] display text-[clamp(18px,2vw,32px)] font-extrabold text-cream">
+                          <Rank i={i} />
+                          <span className="truncate tracking-wide">{r.initials}</span>
+                        </span>
+                        <span className="shrink-0 tabular-nums text-[clamp(16px,1.8vw,28px)] font-bold text-gold-bright">
+                          {r.best}/10{" "}
+                          <span className="text-[clamp(11px,1vw,15px)] font-semibold text-faint">· {r.rounds} rounds</span>
+                        </span>
+                      </div>
+                      <div className="mt-[0.5vh] h-[0.6vh] overflow-hidden rounded-full bg-sheet-3">
+                        <div
+                          className={`bar-lit relative h-full rounded-full ${i === 0 ? "bar-lead" : ""}`}
+                          style={{ width: `${Math.max(4, r.best * 10)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+  );
+}
+
+/** A rank medallion: gold and crowned for first, quiet for everyone else. */
+function Rank({ i }: { i: number }) {
+  return (
+    <span
+      className={`inline-flex h-[1.35em] w-[1.35em] shrink-0 items-center justify-center self-center rounded-full text-[0.55em] tabular-nums ${
+        i === 0 ? "bg-gold text-sheet shadow-[0_0_1.2vh_rgba(217,174,100,0.7)]" : "border border-rule text-faint"
+      }`}
+    >
+      {i === 0 ? "👑" : i + 1}
+    </span>
+  );
+}
+
+// -------------------------------------------------------- price histogram
+
+function PriceHistogram({
+  values,
+  minK,
+  maxK,
+  soldK,
+  soldLabel,
+  anchorK,
+  anchorLabel,
+  source,
+  aiGuess,
+}: {
+  values: { value: number; n: number }[];
+  minK: number;
+  maxK: number;
+  soldK: number | null;
+  soldLabel: string;
+  anchorK: number | null;
+  anchorLabel: string;
+  source?: string;
+  aiGuess: { guessK: number; reasoning: string } | null;
+}) {
+  const BUCKETS = 24;
+  const span = maxK - minK;
+  const buckets = new Array<number>(BUCKETS).fill(0);
+  let totalGuesses = 0;
+  let weighted = 0;
+  for (const v of values) {
+    const idx = Math.min(BUCKETS - 1, Math.max(0, Math.floor(((v.value - minK) / span) * BUCKETS)));
+    buckets[idx] += v.n;
+    totalGuesses += v.n;
+    weighted += v.value * v.n;
+  }
+  const roomAvg = totalGuesses ? Math.round(weighted / totalGuesses) : null;
+  const peak = Math.max(1, ...buckets);
+  const hitBucket =
+    soldK === null ? -1 : Math.min(BUCKETS - 1, Math.max(0, Math.floor(((soldK - minK) / span) * BUCKETS)));
+  const xOf = (k: number) => `${Math.min(100, Math.max(0, ((k - minK) / span) * 100))}%`;
+
+  return (
+    <div className="mt-[4.5vh]">
+      <div className="relative h-[22vh] w-full">
+        {/* the room's guesses */}
+        <div className="absolute inset-0 flex items-end gap-[2px]">
+          {buckets.map((n, i) => (
+            <div
+              key={i}
+              className={`bar-grow hist-bar flex-1 rounded-t-[4px] ${i === hitBucket ? "hist-hit" : ""}`}
+              style={{ height: `${Math.max(n ? 3 : 0, (n / peak) * 100)}%`, animationDelay: `${i * 0.03}s` }}
+            />
+          ))}
+        </div>
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gold/40" />
+        {/* the record's answer */}
+        {soldK !== null && (
+          <div className="marker absolute bottom-0 top-0" style={{ left: xOf(soldK) }}>
+            <div className="h-full w-[3px] rounded bg-gold-bright shadow-[0_0_18px_rgba(217,174,100,0.9)]" />
+            <span className="ring-pulse absolute -bottom-[0.7vh] left-1/2 h-[1.5vh] w-[1.5vh] -translate-x-1/2 rounded-full bg-gold-bright" />
+            <p className="absolute -top-[5.4vh] -translate-x-1/2 whitespace-nowrap display text-[clamp(20px,2.4vw,40px)] font-extrabold text-gold-bright">
+              {soldLabel} {fmtK(soldK)}
+            </p>
+          </div>
+        )}
+        {/* the homework's anchor */}
+        {anchorK !== null && (
+          <div className="marker absolute bottom-0 top-[15%]" style={{ left: xOf(anchorK), animationDelay: "0.5s" }}>
+            <div className="h-full w-[2px] rounded bg-moss" />
+            <p className="absolute -bottom-[3vh] -translate-x-1/2 whitespace-nowrap text-[clamp(11px,1vw,15px)] font-semibold text-moss">
+              {anchorLabel}: {fmtK(anchorK)}
+            </p>
+          </div>
+        )}
+        {/* the machine's locked call */}
+        {aiGuess && (
+          <div className="marker absolute bottom-0 top-[28%]" style={{ left: xOf(aiGuess.guessK), animationDelay: "0.75s" }}>
+            <div className="h-full w-[2px] rounded bg-clay" />
+            <p className="absolute -top-[2.6vh] -translate-x-1/2 whitespace-nowrap text-[clamp(12px,1.1vw,17px)] font-bold text-clay">
+              🤖 {fmtK(aiGuess.guessK)}
+            </p>
+          </div>
+        )}
+      </div>
+      <div className="mt-[3.6vh] flex flex-wrap items-baseline gap-[3vw] text-[clamp(14px,1.3vw,21px)] text-soft">
+        <span>
+          <b className="text-cream">{totalGuesses}</b> guesses
+        </span>
+        {roomAvg !== null && (
+          <span>
+            room average <b className="text-cream">{fmtK(roomAvg)}</b>
+          </span>
+        )}
+        {soldK !== null && anchorK !== null && (
+          <span>
+            the gap <b className="text-gold-bright">{fmtK(Math.abs(soldK - anchorK))}</b>
+          </span>
+        )}
+        {soldK === null && (
+          <span className="rounded-lg border border-rule bg-sheet-2 px-3 py-1 text-clay">
+            the answer isn't loaded yet — the reveal stays honest until it is
+          </span>
+        )}
+      </div>
+      {aiGuess && (
+        <p className="mt-[1.2vh] text-[clamp(13px,1.2vw,19px)] text-soft">
+          <b className="text-clay">🤖 the machine called {fmtK(aiGuess.guessK)}</b> — “{aiGuess.reasoning}”
+        </p>
+      )}
+      {source && (
+        <p className="mt-[1.5vh] text-[clamp(11px,0.95vw,15px)] text-faint">Source: {source}</p>
+      )}
+    </div>
+  );
+}
+
+/** THE COLD OPEN. The first six seconds, and for those six seconds this is the
+ *  only thing forty people are looking at. A rule sweeps, the name arrives out
+ *  of focus and lands, the promise fades up, the four pillars march in, and the
+ *  room counter breathes — so the show has already started before anyone
+ *  has said a word. */
+const PILLARS = ["Smarter tools", "Stronger agents", "Bigger opportunities", "Real impact"];
+
+function ColdOpen({
+  slide, present, presentPop,
+}: { slide: Slide; present: number; presentPop: boolean }) {
+  return (
+    <div className="flex flex-col">
+      <span
+        className="sweep-rule block h-[0.5vh] w-[22vw] rounded-full bg-gold"
+        style={{ animationDelay: "0.1s" }}
+        aria-hidden
+      />
+      {slide.eyebrow && (
+        <p
+          className="label chip-in mt-[1.6vh] text-[clamp(11px,1.1vw,17px)] tracking-[0.26em] text-gold"
+          style={{ animationDelay: "0.55s" }}
+        >
+          {slide.eyebrow}
+        </p>
+      )}
+
+      <h1
+        className="slam gleam mt-[1.2vh] display text-[clamp(44px,8vw,132px)] font-extrabold leading-[0.92]"
+        style={{ animationDelay: "0.75s, 1.2s" }}
+      >
+        {slide.heading}
+      </h1>
+
+      {slide.lines && (
+        <div className="mt-[2.2vh] flex max-w-[62ch] flex-col gap-[0.8vh]">
+          {slide.lines.map((l, i) => (
+            <p
+              key={l}
+              className="chip-in text-[clamp(15px,1.55vw,25px)] leading-relaxed text-soft"
+              style={{ animationDelay: `${1.5 + i * 0.18}s` }}
+            >
+              {l}
+            </p>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-[2.2vh] flex flex-wrap items-center gap-[0.7vw]">
+        {PILLARS.map((p, i) => (
+          <span
+            key={p}
+            className="label chip-in rounded-full border border-gold/50 bg-sheet-2/70 px-[1.1vw] py-[0.6vh] text-[clamp(9px,0.9vw,14px)] tracking-[0.16em] text-gold-bright"
+            style={{ animationDelay: `${2.2 + i * 0.14}s` }}
+          >
+            {p}
+          </span>
+        ))}
+      </div>
+
+      <p
+        className="chip-in mt-[3vh] text-[clamp(17px,1.9vw,30px)] font-semibold text-soft"
+        style={{ animationDelay: "2.9s" }}
+      >
+        <span className={`inline-block text-gold-bright transition-transform ${presentPop ? "scale-125" : ""}`}>
+          📱 {present}
+        </span>{" "}
+        in the room and counting
+      </p>
+    </div>
+  );
+}

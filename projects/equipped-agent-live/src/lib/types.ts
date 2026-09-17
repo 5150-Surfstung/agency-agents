@@ -1,0 +1,245 @@
+// Shared shapes for the room. The deck drives everything: a slide either is a
+// poll or it isn't, and the whole attendee experience derives from
+// (current slide, poll state, arcade open).
+
+export type PollState = "closed" | "open" | "revealed";
+
+export interface PollDef {
+  key: string;
+  question: string;
+  options: string[];
+  /** The ladder poll also captures a lead after the vote. */
+  capture?: boolean;
+}
+
+/** The Price Is Right: guesses ride the votes table as whole $thousands. */
+export interface PriceDef {
+  key: string;
+  /** Listing facts shown on screen and phones — only what's defensible. */
+  facts: string[];
+  minK: number;
+  maxK: number;
+  stepK: number;
+  /** The answer, in $thousands — null until a defensible number is loaded. */
+  soldK: number | null;
+  /** What that number IS, on the projector. Never label a median "SOLD". */
+  soldLabel: string;
+  /** The grounded anchor (e.g. the index's trailing-12 median), in $thousands. */
+  anchorK: number | null;
+  anchorLabel: string;
+  /** Where both numbers come from — rendered under the reveal, always. */
+  source?: string;
+}
+
+/** Two-track teaching. The same slide read two ways, so the person who has
+ *  never opened Claude and the person already using it daily both have
+ *  somewhere to look — and neither one is bored or lost. */
+export interface Lane {
+  /** Who this column is for, in three words. */
+  tag: string;
+  heading: string;
+  lines: string[];
+}
+
+/** A page of this app the room is meant to SCAN AND USE during the slide —
+ *  rendered as a QR beside the content. Same-origin paths only; the QR route
+ *  refuses anything else. */
+export interface SlideLink {
+  href: string;
+  label: string;
+  note?: string;
+}
+
+export interface Slide {
+  id: string;
+  kind:
+    | "standby" | "title" | "content" | "demo" | "poll" | "price"
+    | "build" | "duel"
+    | "stump" | "arcade" | "seed" | "leaderboard" | "close"
+    | "openfloor";
+  eyebrow?: string;
+  heading: string;
+  lines?: string[];
+  stats?: { value: string; label: string }[];
+  quote?: string;
+  poll?: PollDef;
+  price?: PriceDef;
+  /** Two audiences, one slide. Rendered side by side. */
+  lanes?: Lane[];
+  /** Scan-and-play-with-it, live, during the slide. */
+  link?: SlideLink;
+  /** Which symbol Val holds in the corner while this slide is up. Omit and
+   *  she simply thinks — a loose mesh, which is the right read on a poll.
+   *  Ids come from VAL_SYMBOLS in val-particles. */
+  valSymbol?: string;
+  /** Presenter-only cue line, never rendered to attendees. */
+  cue?: string;
+}
+
+export interface StumpEntry {
+  id: number;
+  question: string;
+  answer: string;
+  refused: boolean;
+  at: number;
+  /** The asker's jersey, for projector attribution. Empty until they pick one. */
+  initials?: string;
+  emoji?: string;
+}
+
+/** A phone with a jersey on THE BOARD. Points are derived server-side from
+ *  real game artifacts — votes, stump questions, ring scores, podium awards. */
+export interface Player {
+  deviceId: string;
+  initials: string;
+  emoji: string;
+  points: number;
+}
+
+/** The machine's locked price guess — made from the same facts the room has. */
+export interface AiGuess {
+  guessK: number;
+  reasoning: string;
+}
+
+export interface ScoreRow {
+  initials: string;
+  best: number;
+  rounds: number;
+}
+
+export interface Vote {
+  pollKey: string;
+  deviceId: string;
+  choice: number;
+  at: number;
+}
+
+export interface Lead {
+  deviceId: string;
+  name: string;
+  cell: string;
+  rung: string;
+  at: number;
+}
+
+export interface ToolEvent {
+  deviceId: string;
+  tool: "listing" | "sparring" | "mine";
+  inTokens: number;
+  outTokens: number;
+  costUsd: number;
+  at: number;
+}
+
+export interface RoomState {
+  step: number;
+  pollState: PollState;
+  /** deviceId -> last time we heard from it; presence for the HUD. */
+  updatedAt: number;
+}
+
+/** An agent's take-home assistant: the profile that generates their pack. */
+export interface Pack {
+  code: string;
+  deviceId: string;
+  name: string;
+  brokerage: string;
+  area: string;
+  specialty: string;
+  tone: "warm" | "luxury" | "energy";
+  createdAt: number;
+}
+
+/** THE TROPHY — a real, deployed, branded listing assistant an attendee
+ *  builds in the room. Public by code; the owner's cell stays server-side. */
+export interface Assistant {
+  code: string;
+  agentName: string;
+  brokerage: string;
+  headline: string;
+  facts: string;
+  /** TIER 2 — what the agent WANTS said: neighborhood, what's special,
+   *  incentives, showing windows. Spoken freely, unlike the fact sheet. */
+  notes: string;
+  voice: "warm" | "luxury" | "energy";
+}
+
+/** A rival's assistant, as the duel picker sees it. */
+export interface RosterEntry {
+  code: string;
+  agentName: string;
+  headline: string;
+  initials: string;
+  emoji: string;
+  deviceId: string;
+}
+
+/** One shot fired in the duel. `refused` is read from the reply's own words;
+ *  `flagged` is a human claiming it invented something — judged from stage. */
+export interface Attack {
+  id: number;
+  code: string;
+  agentName: string;
+  question: string;
+  answer: string;
+  refused: boolean;
+  flagged: boolean;
+  initials: string;
+  emoji: string;
+  at: number;
+}
+
+/** A stranger who scanned an attendee's QR and asked a real question. */
+export interface AssistantLead {
+  name: string;
+  cell: string;
+  question: string;
+  /** What the receptionist actually qualified, when the caller volunteered it. */
+  timeline: string;
+  financing: string;
+  hasAgent: string;
+  at: number;
+}
+
+// ---------------------------------------------------------- THE SWITCHBOARD
+
+/** Who is speaking in a thread. `agent` is a HUMAN who broke in; `system` is
+ *  the handoff line the room sees, never a line anyone typed. */
+/** An open-floor entry: a brag or a confession typed on a phone. `reply` is
+ *  Val's answer, written only when the presenter sends it to the wall. */
+export type Brag = {
+  id: number;
+  kind: "brag" | "confess";
+  body: string;
+  reply: string;
+  shown: boolean;
+  at: string;
+};
+
+export type ThreadRole = "visitor" | "assistant" | "agent" | "system";
+
+export interface ThreadMsg {
+  id: number;
+  role: ThreadRole;
+  body: string;
+  /** Only meaningful on an assistant turn: it declined rather than invented. */
+  refused: boolean;
+  at: number;
+}
+
+/** A live conversation as the switchboard lists it. `operator` empty means the
+ *  AI still has the wheel; `waiting` means a human took it and hasn't replied. */
+export interface ThreadRow {
+  id: string;
+  code: string;
+  agentName: string;
+  headline: string;
+  visitorLabel: string;
+  operator: string;
+  msgs: number;
+  lastRole: ThreadRole | "";
+  lastBody: string;
+  lastAt: number;
+  waiting: boolean;
+}

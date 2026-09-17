@@ -1,0 +1,491 @@
+// End-to-end walkthrough against a running dev server: three phones join,
+// the presenter drives, votes land, the reveal tallies, the ladder captures
+// a lead, and the CSV includes it. Exits non-zero on the first failed check.
+//
+//   npm run dev   (in one terminal)
+//   npm run walkthrough
+
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join as joinPath } from "node:path";
+
+const BASE = process.env.BASE_URL || "http://localhost:3000";
+
+// Slide indices come from the deck, not from a comment that goes stale the
+// first time somebody inserts a slide. Adding a slide re-points every check.
+const DECK_IDS = [
+  ...readFileSync(joinPath(dirname(fileURLToPath(import.meta.url)), "../src/lib/deck.ts"), "utf8")
+    .matchAll(/^\s{4}id: "([a-z0-9-]+)",$/gm),
+].map((m) => m[1]);
+function stepOf(id) {
+  const i = DECK_IDS.indexOf(id);
+  if (i < 0) throw new Error(`walkthrough: no slide "${id}" in the deck`);
+  return i;
+}
+const PIN = process.env.LIVE_ROOM_PIN || "1054";
+const KEY = process.env.LIVE_PRESENTER_KEY || "dev-presenter";
+
+let failures = 0;
+function check(name, cond, extra = "") {
+  const mark = cond ? "✓" : "✗";
+  console.log(`${mark} ${name}${cond || !extra ? "" : ` — ${extra}`}`);
+  if (!cond) failures++;
+}
+
+async function join(pin = PIN) {
+  const res = await fetch(`${BASE}/api/join`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pin }),
+  });
+  const cookie = res.headers.get("set-cookie")?.split(";")[0] ?? "";
+  return { status: res.status, cookie };
+}
+
+const jfetch = (cookie) => async (path, init = {}) => {
+  const res = await fetch(`${BASE}${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", cookie, ...(init.headers || {}) },
+  });
+  let body = null;
+  try {
+    body = await res.json();
+  } catch {}
+  return { status: res.status, body };
+};
+
+async function control(action, step) {
+  const res = await fetch(`${BASE}/api/control`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: KEY, action, step }),
+  });
+  return res.json();
+}
+
+// --- run -------------------------------------------------------------
+
+console.log(`walkthrough against ${BASE}\n`);
+
+// A wrong PIN stays outside.
+check("wrong PIN rejected", (await join("0000")).status === 401);
+
+// Three phones in — and suited up (jersey = initials + emoji).
+const phones = [];
+const JERSEYS = [
+  { initials: "Ava Reyes", emoji: "🦈" },
+  { initials: "Ben", emoji: "🔥" },
+  { initials: "Coach Dee", emoji: "👑" },
+];
+for (let i = 0; i < 3; i++) {
+  const j = await join();
+  check(`phone ${i + 1} joined`, j.status === 200 && j.cookie.length > 10);
+  phones.push(jfetch(j.cookie));
+}
+for (let i = 0; i < 3; i++) {
+  const r = await phones[i]("/api/profile", { method: "POST", body: JSON.stringify(JERSEYS[i]) });
+  check(`phone ${i + 1} suited up`, r.status === 200 && r.body.initials === JERSEYS[i].initials);
+}
+{
+  const r = await phones[0]("/api/profile", { method: "POST", body: JSON.stringify({ initials: "X", emoji: "🦈" }) });
+  check("1-letter jersey → 400", r.status === 400);
+  const s = await phones[0]("/api/state");
+  check("state carries my jersey", s.body.me?.initials === "Ava Reyes" && s.body.me?.emoji === "🦈");
+}
+
+// State requires a session.
+check("no cookie → 401 state", (await fetch(`${BASE}/api/state`)).status === 401);
+
+// Presenter resets to the top, then walks to the poll this section votes in.
+// It must be poll-time: the votes below carry that slide's key, and /api/vote
+// refuses a key that isn't the slide the room is actually on.
+await control("goto", 0);
+const pollStep = stepOf("poll-time");
+let snap = await control("goto", pollStep);
+check("presenter on poll slide", snap.ok && snap.step === pollStep);
+check("landing on a poll slide OPENS the floor", snap.pollState === "open", snap.pollState);
+
+// Closing it re-arms; a vote into a closed poll is refused.
+snap = await control("reset_poll");
+check("reset_poll closes it", snap.pollState === "closed");
+let r = await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "time", choice: 0 }) });
+check("vote before open → 409", r.status === 409);
+
+// Open, vote from all three (one changes their mind), reveal.
+snap = await control("poll");
+check("poll open", snap.pollState === "open");
+r = await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "time", choice: 0 }) });
+check("phone 1 voted", r.status === 200);
+await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "time", choice: 1 }) });
+await phones[2]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "time", choice: 1 }) });
+r = await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "time", choice: 3 }) });
+check("revote while open", r.status === 200);
+
+r = await phones[0]("/api/state");
+check("live counts while open (game-show bars)", Array.isArray(r.body.counts) && r.body.counts.reduce((a, b) => a + b, 0) === 3);
+
+snap = await control("poll");
+check("poll revealed", snap.pollState === "revealed");
+check("tally = [0,2,0,1]", JSON.stringify(snap.counts) === "[0,2,0,1]", JSON.stringify(snap.counts));
+
+r = await phones[0]("/api/state");
+check("attendee sees revealed counts", JSON.stringify(r.body.counts) === "[0,2,0,1]");
+check("attendee sees own vote", r.body.myVote === 3);
+
+// Vote after reveal is refused.
+r = await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "time", choice: 2 }) });
+check("vote after reveal → 409", r.status === 409);
+snap = await control("poll");
+check("pressing again re-opens for a re-run", snap.pollState === "open", snap.pollState);
+snap = await control("poll");
+check("and closes it back to revealed", snap.pollState === "revealed", snap.pollState);
+
+// Price Is Right: slider guesses ride the vote rail as $thousands.
+const priceStep = stepOf("price-game");
+snap = await control("goto", priceStep);
+check("on price slide", snap.step === priceStep);
+check("price floor opens on arrival", snap.pollState === "open", snap.pollState);
+r = await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 824 }) });
+check("price guess accepted", r.status === 200);
+r = await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 300 }) });
+check("out-of-range guess → 400", r.status === 400);
+await phones[1]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 760 }) });
+await phones[2]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 700 }) });
+r = await phones[0]("/api/state");
+check("answer hidden pre-reveal", JSON.stringify(r.body).includes("soldK") === false);
+snap = await control("poll");
+check("price values on console", Array.isArray(snap.priceValues) && snap.priceValues.some((v) => v.value === 824));
+check(
+  "podium paid, closest first (Ava at 824 vs 797)",
+  Array.isArray(snap.podium) && snap.podium[0]?.initials === "Ava Reyes" && snap.podium[0]?.points === 100,
+  JSON.stringify(snap.podium)
+);
+r = await phones[0]("/api/state");
+check(
+  "price reveal on phone (record + arithmetic anchor)",
+  r.body.priceReveal?.values?.length >= 3 && r.body.priceReveal.soldK === 797 && r.body.priceReveal.anchorK === 719,
+  JSON.stringify({ soldK: r.body.priceReveal?.soldK, anchorK: r.body.priceReveal?.anchorK })
+);
+check("reveal labels the number honestly", r.body.priceReveal?.soldLabel === "ACTUALLY CLOSED");
+check("my rank on my phone (Ava = #1)", r.body.priceReveal?.myRank === 1, String(r.body.priceReveal?.myRank));
+r = await phones[2]("/api/state");
+check("farthest guess ranks #3", r.body.priceReveal?.myRank === 3, String(r.body.priceReveal?.myRank));
+
+// THE TROPHY: each phone deploys a real assistant with a real QR.
+const buildStep = stepOf("build");
+snap = await control("goto", buildStep);
+check("on the build slide", snap.step === buildStep);
+r = await phones[0]("/api/assistant", { method: "POST", body: JSON.stringify({ agentName: "A Agent", facts: "too thin" }) });
+check("thin fact sheet refused → 400", r.status === 400 && r.body.error === "need_facts");
+const FACTS = "Address: 42 Marsh Wren Ln\nAsking: $784,000\nBedrooms: 3 · Baths: 2.5 · 2,180 sqft\nBuilt: 2019 · HOA $88/mo\nShowings: Sat-Sun 12-3";
+const codes = [];
+for (let i = 0; i < 2; i++) {
+  r = await phones[i]("/api/assistant", {
+    method: "POST",
+    body: JSON.stringify({
+      agentName: `Agent ${i + 1}`, brokerage: "Test Realty", cell: "843-555-010" + i,
+      headline: `${42 + i} Marsh Wren Ln`, facts: FACTS, voice: i ? "luxury" : "warm",
+    }),
+  });
+  check(`phone ${i + 1} deployed an assistant`, r.status === 200 && typeof r.body.code === "string", JSON.stringify(r.body));
+  codes.push(r.body.code);
+}
+snap = await control("goto", buildStep);
+check("console counts them live", snap.duelStats?.built === 2, JSON.stringify(snap.duelStats));
+
+// The QR and the public page work with no session at all — that's the point.
+const aqr = await fetch(`${BASE}/api/qr?a=${codes[0]}`);
+check("assistant QR mints publicly", aqr.status === 200 && (aqr.headers.get("content-type") ?? "").includes("image/png"));
+check("QR for a fake code → 404", (await fetch(`${BASE}/api/qr?a=ZZZZZZ`)).status === 404);
+const apub = await fetch(`${BASE}/a/${codes[0]}`);
+const apubHtml = await apub.text();
+check("public assistant page renders cold", apub.status === 200 && apubHtml.includes("42 Marsh Wren Ln"));
+check("owner's cell never reaches the public page", !apubHtml.includes("843-555-0100"));
+check("unknown assistant page → 404", (await fetch(`${BASE}/a/ZZZZZZ`)).status === 404);
+
+// A stranger with no cookie leaves a lead; the owner sees it.
+const slead = await fetch(`${BASE}/api/ask`, {
+  method: "PUT", headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ code: codes[0], name: "Dana Buyer", cell: "843-555-0199", question: "still available?" }),
+});
+check("stranger leaves a lead", slead.status === 200);
+check("lead on a fake code → 404", (await fetch(`${BASE}/api/ask`, {
+  method: "PUT", headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ code: "ZZZZZZ", name: "x", cell: "y" }),
+})).status === 404);
+r = await phones[0]("/api/assistant");
+check("owner sees their assistant + lead", r.body.assistant?.code === codes[0] && r.body.leads?.length === 1);
+
+// THE DUEL: you can only shoot at somebody else's, and only when it's open.
+r = await phones[0]("/api/ask", { method: "POST", body: JSON.stringify({ code: codes[1], question: "roof year?", duel: true }) });
+check("duel shot off-slide → 409", r.status === 409);
+const duelStep = stepOf("duel");
+snap = await control("goto", duelStep);
+check("on the duel slide", snap.step === duelStep);
+r = await phones[0]("/api/duel");
+check("roster excludes my own assistant", (r.body.roster ?? []).every((x) => x.code !== codes[0]) && (r.body.roster ?? []).some((x) => x.code === codes[1]), JSON.stringify(r.body.roster));
+if (!process.env.ANTHROPIC_API_KEY) {
+  r = await phones[0]("/api/ask", { method: "POST", body: JSON.stringify({ code: codes[1], question: "roof year?", duel: true }) });
+  check("duel engine offline → 503 (honest)", r.status === 503);
+}
+r = await phones[0]("/api/duel", { method: "POST", body: JSON.stringify({ attackId: 999999 }) });
+check("flagging works only on real shots", r.status === 200 || r.status === 502);
+
+// Leaderboard: self-reported ring scores.
+snap = await control("goto", stepOf("leaderboard"));
+r = await phones[0]("/api/score", { method: "POST", body: JSON.stringify({ initials: "MO", score: 9 }) });
+check("score posted", r.status === 200);
+r = await phones[1]("/api/score", { method: "POST", body: JSON.stringify({ initials: "X", score: 8 }) });
+check("1-letter initials → 400", r.status === 400);
+snap = await control("goto", stepOf("leaderboard"));
+check("ring board shows MO 9/10", (snap.scoreboard ?? []).some((s) => s.initials === "MO" && s.best === 9));
+
+// THE BOARD: Ava = time 10 + price1 10 + podium 100 + built 25 + ring 90 = 235.
+check(
+  "THE BOARD crowns Ava at 235",
+  (snap.standings ?? [])[0]?.initials === "Ava Reyes" && (snap.standings ?? [])[0]?.points === 235,
+  JSON.stringify((snap.standings ?? []).slice(0, 3))
+);
+check("THE BOARD lists all three jerseys", (snap.standings ?? []).length === 3);
+r = await phones[0]("/api/state");
+check("phone sees its own rank and points", r.body.board?.myRank === 1 && r.body.board?.myPoints === 235,
+  JSON.stringify(r.body.board));
+
+// Jump to the ladder poll, run the capture flow.
+const ladderStep = stepOf("poll-ladder");
+snap = await control("goto", ladderStep);
+check("on ladder slide", snap.step === ladderStep);
+check("ladder opens on arrival", snap.pollState === "open", snap.pollState);
+await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "ladder", choice: 3 }) });
+await control("poll");
+r = await phones[0]("/api/lead", { method: "POST", body: JSON.stringify({ name: "Test Agent", cell: "843-555-0100", rung: "All of it" }) });
+check("lead captured", r.status === 200);
+
+// Missing fields refused.
+r = await phones[1]("/api/lead", { method: "POST", body: JSON.stringify({ name: "", cell: "", rung: "x" }) });
+check("empty lead → 400", r.status === 400);
+
+// Console sees it; CSV exports it; both locked to the presenter key.
+snap = await control("goto", ladderStep); // any control POST returns a snapshot
+check("console lists the lead", snap.leads.length === 1 && snap.leads[0].name === "Test Agent");
+const csvRes = await fetch(`${BASE}/api/leads.csv?key=${encodeURIComponent(KEY)}`);
+const csv = await csvRes.text();
+check("CSV carries the lead", csvRes.status === 200 && csv.includes("Test Agent"));
+check("CSV without key → 401", (await fetch(`${BASE}/api/leads.csv`)).status === 401);
+check("control without key → 401", (await fetch(`${BASE}/api/control?key=nope`)).status === 401);
+
+// The always-on join QR: presenter mints it, the console knows the PIN,
+// and a scanned ?pin= URL actually joins.
+check("console snapshot carries the PIN", snap.pin === PIN, String(snap.pin));
+const qrRes = await fetch(`${BASE}/api/qr?key=${encodeURIComponent(KEY)}`);
+check("QR mints for the presenter", qrRes.status === 200 && (qrRes.headers.get("content-type") ?? "").includes("image/png"));
+check("QR without key → 401", (await fetch(`${BASE}/api/qr`)).status === 401);
+{
+  const res = await fetch(`${BASE}/api/join`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pin: PIN }),
+  });
+  check("scan-link PIN joins (the ?pin= path)", res.status === 200);
+}
+
+// Assistant To Go: build a pack, fetch it publicly, wrong code 404s.
+r = await phones[0]("/api/pack", {
+  method: "POST",
+  body: JSON.stringify({ name: "Jordan Test", brokerage: "Test Realty", area: "Johns Island", specialty: "", tone: "warm" }),
+});
+const packCode = r.body?.code;
+check("pack minted", r.status === 200 && typeof packCode === "string" && packCode.length === 6, packCode);
+r = await phones[0](`/api/pack?code=${packCode}`);
+check("pack fetch by code", r.status === 200 && r.body.pack?.name === "Jordan Test");
+check("pack fetch omits device", r.body.pack?.deviceId === undefined);
+check("bad pack code → 404", (await phones[0]("/api/pack?code=ZZZZZZ")).status === 404);
+const packPage = await fetch(`${BASE}/pack/${packCode}`);
+check("pack page renders", packPage.status === 200 && (await packPage.text()).includes("Jordan Test"));
+
+// With a live key, Stump proves grounding end-to-end (states facts, refuses unknowns).
+if (process.env.ANTHROPIC_API_KEY) {
+  await control("goto", buildStep);
+  r = await phones[0]("/api/stump", {
+    method: "POST",
+    body: JSON.stringify({ question: "How many bedrooms, and what year was the roof replaced?" }),
+  });
+  const reply = r.body?.answer ?? "";
+  check("stump replies", r.status === 200 && reply.length > 0);
+  check("states the fact (4 bed)", /4 bed|four bed/i.test(reply), reply.slice(0, 160));
+  check("refuses the unknown (roof)", r.body?.refused === true, reply.slice(0, 160));
+}
+
+// ---- THE SWITCHBOARD ------------------------------------------------
+// The visitor's message is recorded BEFORE the model is called, which is what
+// makes this testable with the engine dark: the thread exists either way.
+const thread = crypto.randomUUID();
+await fetch(`${BASE}/api/ask`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ code: codes[0], question: "Is the dock deeded to the house?", thread }),
+});
+r = await (async () => {
+  const res = await fetch(`${BASE}/api/thread?t=${thread}&after=0`);
+  return { status: res.status, body: await res.json() };
+})();
+check("visitor question is recorded as a thread", r.status === 200 && (r.body.messages ?? []).some((m) => m.role === "visitor"), JSON.stringify(r.body).slice(0, 160));
+check("thread starts with the AI holding the wheel", r.body.operator === "");
+check("a malformed thread id → 400", (await fetch(`${BASE}/api/thread?t=not-a-uuid`)).status === 400);
+
+// The console sees every live conversation in the room.
+r = await (async () => {
+  const res = await fetch(`${BASE}/api/switchboard?key=${encodeURIComponent(KEY)}`);
+  return { status: res.status, body: await res.json() };
+})();
+check("console lists the live conversation", r.status === 200 && (r.body.threads ?? []).some((t) => t.id === thread), JSON.stringify(r.body.stats));
+check("console counts it in the stats", (r.body.stats?.threads ?? 0) >= 1 && (r.body.stats?.msgs ?? 0) >= 1);
+
+// A stranger with a thread id cannot read the room.
+check("switchboard without a seat → 401", (await fetch(`${BASE}/api/switchboard`)).status === 401);
+
+// BREAK IN.
+const sbPost = (body) =>
+  fetch(`${BASE}/api/switchboard`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (res) => ({ status: res.status, body: await res.json() }));
+
+r = await sbPost({ key: KEY, t: thread, who: "Mike Olson", body: "Hey — Mike here. It's a community dock, and I can show you Saturday." });
+check("presenter breaks into the conversation", r.status === 200 && r.body.ok === true, JSON.stringify(r.body));
+
+r = await (async () => {
+  const res = await fetch(`${BASE}/api/thread?t=${thread}&after=0`);
+  return { body: await res.json() };
+})();
+check("the visitor is TOLD a person joined", (r.body.messages ?? []).some((m) => m.role === "system" && /Mike Olson joined/.test(m.body)), JSON.stringify(r.body.messages).slice(0, 200));
+check("the human's words land as a human turn", (r.body.messages ?? []).some((m) => m.role === "agent" && /community dock/.test(m.body)));
+check("the thread now reports a human on the wheel", r.body.operator === "Mike Olson", r.body.operator);
+
+// While a human holds it, the machine must NOT answer over them — and this
+// holds with the engine dark, because we never reach the engine at all.
+r = await (async () => {
+  const res = await fetch(`${BASE}/api/ask`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: codes[0], question: "What time Saturday?", thread }),
+  });
+  return { status: res.status, body: await res.json() };
+})();
+check("the AI stands down while a human has the wheel", r.status === 200 && r.body.held === true && r.body.operator === "Mike Olson", JSON.stringify(r.body));
+
+// Hand it back.
+r = await sbPost({ key: KEY, t: thread, release: true });
+check("presenter hands the conversation back", r.status === 200 && r.body.released === true);
+r = await (async () => {
+  const res = await fetch(`${BASE}/api/thread?t=${thread}&after=0`);
+  return { body: await res.json() };
+})();
+check("the handback is on the record too", r.body.operator === "" && (r.body.messages ?? []).some((m) => m.role === "system" && /handed the conversation back/.test(m.body)));
+
+// The owner's phone sees its own desk; another phone does not see it.
+r = await phones[0]("/api/switchboard");
+check("the builder sees their own front desk", r.status === 200 && (r.body.threads ?? []).some((t) => t.id === thread));
+check("the builder is not handed the whole room", r.body.presenter === false);
+r = await phones[1]("/api/switchboard");
+check("another phone does not see someone else's desk", (r.body.threads ?? []).every((t) => t.id !== thread), JSON.stringify(r.body.threads).slice(0, 160));
+r = await phones[1]("/api/switchboard", { method: "POST", body: JSON.stringify({ t: thread, body: "let me in" }) });
+check("another phone cannot break into it → 403", r.status === 403, JSON.stringify(r.body));
+
+// ---- TRACK TO KEYS ---------------------------------------------------
+{
+  const page = await fetch(`${BASE}/t2k`);
+  check("Track to Keys renders cold", page.status === 200 && (await page.text()).includes("Track to Keys"));
+  const shared = await fetch(`${BASE}/t2k?binding=2026-09-01&closing=2026-10-15&ddDays=10`);
+  check("a shared deal link renders", shared.status === 200);
+  const qr = await fetch(`${BASE}/api/qr?u=${encodeURIComponent("/t2k?binding=2026-09-01")}`);
+  check("QR mints for a deal link", qr.status === 200 && qr.headers.get("content-type") === "image/png");
+  check("QR refuses an off-site path → 400", (await fetch(`${BASE}/api/qr?u=${encodeURIComponent("//evil.example.com")}`)).status === 400);
+}
+
+// ---- THE OPEN FLOOR ---------------------------------------------------
+// The whole point of this segment is that an attendee will type an honest
+// fail only if a human decides whether forty colleagues see it. So the thing
+// under test is not "does a box accept text" — it is that the pile is console
+// only, and that nothing reaches the wall without the presenter's key.
+{
+  const floorStep = stepOf("open-floor");
+  snap = await control("goto", floorStep);
+  check("on the open floor", snap.step === floorStep);
+  check("the wall starts empty", snap.brag === null, JSON.stringify(snap.brag));
+
+  r = await phones[0]("/api/brag", {
+    method: "POST",
+    body: JSON.stringify({ kind: "confess", body: "I let it write a CMA and it invented a comp on Maybank." }),
+  });
+  check("a phone can confess", r.status === 200, String(r.status));
+  r = await phones[1]("/api/brag", {
+    method: "POST",
+    body: JSON.stringify({ kind: "brag", body: "It drafted my whole week of seller updates on Sunday night." }),
+  });
+  check("a phone can brag", r.status === 200);
+
+  r = await phones[0]("/api/brag", { method: "POST", body: JSON.stringify({ kind: "brag", body: "hi" }) });
+  check("four characters is the floor → 400", r.status === 400, String(r.status));
+
+  // The pile is the presenter's alone.
+  check(
+    "the pile refuses a phone → 401",
+    (await fetch(`${BASE}/api/brag`)).status === 401
+  );
+  check(
+    "the pile refuses a wrong key → 401",
+    (await fetch(`${BASE}/api/brag?key=nope`)).status === 401
+  );
+  const pile = await (await fetch(`${BASE}/api/brag?key=${KEY}`)).json();
+  check("the console sees both", (pile.brags ?? []).length >= 2, String(pile.brags?.length));
+
+  // Still nothing on the wall — an entry existing is not an entry shown.
+  snap = await control("goto", floorStep);
+  check("typing alone never reaches the wall", snap.brag === null, JSON.stringify(snap.brag));
+
+  // A phone cannot put its own words on the wall.
+  const target = pile.brags[0];
+  r = await phones[0]("/api/brag", { method: "POST", body: JSON.stringify({ key: "nope", id: target.id }) });
+  check("a phone cannot send to the wall", r.status !== 200 || !r.body?.reply, String(r.status));
+  snap = await control("goto", floorStep);
+  check("and the wall is still empty", snap.brag === null, JSON.stringify(snap.brag));
+
+  // The presenter taps it. Offline, the words still go up and nothing is
+  // invented underneath them — which is the honest failure mode.
+  const sent = await fetch(`${BASE}/api/brag`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: KEY, id: target.id }),
+  });
+  snap = await control("goto", floorStep);
+  check("the presenter puts it on the wall", snap.brag?.id === target.id, JSON.stringify(snap.brag));
+  check("the wall shows their words", snap.brag?.body === target.body);
+  if (sent.status === 200) {
+    const out = await sent.json();
+    check("Val answered", typeof out.reply === "string" && out.reply.length > 40, String(out.reply?.length));
+    check("and the answer is on the wall", (snap.brag?.reply ?? "").length > 40);
+  } else {
+    check(
+      "engine unreachable → the quote stands with no invented answer",
+      [502, 503, 429].includes(sent.status) && (snap.brag?.reply ?? "") === "",
+      `${sent.status} reply=${JSON.stringify(snap.brag?.reply)}`
+    );
+  }
+
+  // One thing on the wall at a time, and the presenter can take it down.
+  await fetch(`${BASE}/api/brag`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: KEY, action: "clear" }),
+  });
+  snap = await control("goto", floorStep);
+  check("clearing takes it off the wall", snap.brag === null, JSON.stringify(snap.brag));
+}
+
+// Back to the top for a clean room.
+await control("goto", 0);
+
+console.log(failures === 0 ? "\nall green" : `\n${failures} FAILED`);
+process.exit(failures === 0 ? 0 : 1);
