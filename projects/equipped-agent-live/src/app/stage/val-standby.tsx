@@ -16,6 +16,7 @@
 // what it circles, and it cannot reach an edge the orb doesn't reach.
 
 import { useState } from "react";
+import { ValAir } from "./val-air";
 import { ValParticles } from "./val-particles";
 import { ValLines, VAL_IDLE } from "./val-lines";
 import { TacLockup } from "./tac-lockup";
@@ -66,7 +67,9 @@ export function ValStandby() {
   const [form, setForm] = useState<{ id: string; says: string[]; closing: boolean } | null>(null);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-between overflow-hidden py-[1.5vh]">
+    <div className="relative isolate flex flex-1 flex-col items-center justify-between overflow-hidden py-[1.5vh]">
+      {/* The whole wall is in the weather, not just the stage. */}
+      <ValAir className="air-mask pointer-events-none absolute inset-0 -z-10" />
       <div className="flex w-full flex-col items-center gap-[1.4vh]">
         <TacLockup />
         <ValFeed />
@@ -82,6 +85,9 @@ export function ValStandby() {
               with a second look — a beige marble parked in front of the
               machinery. */}
           <ValParticles onForm={setForm} className="absolute inset-0" />
+          {/* Scanlines, masked to the middle of the stage: the field reads as
+              projected onto glass rather than painted on the wall. */}
+          <div className="holo-scan pointer-events-none absolute inset-0" aria-hidden />
 
           <div className="pointer-events-none absolute inset-0" aria-hidden>
             {TERMS.map((t, i) => {
@@ -109,7 +115,7 @@ export function ValStandby() {
       </div>
 
       <p className="val-standby-name mt-[1.5vh] font-[family-name:var(--font-display)] text-[clamp(28px,3.8vw,64px)] font-semibold leading-none text-cream">
-        VAL
+        <span className="val-glitch">VAL</span>
       </p>
       {/* Reserved height, so naming the shape never nudges the layout. */}
       <p className="mt-[0.9vh] text-[clamp(9px,0.85vw,14px)] font-semibold uppercase tracking-[0.3em] text-faint">
