@@ -38,7 +38,7 @@ const RING = (() => {
     // to the house lockup, and terms landed on both before this.
     if (a > 58 && a < 122) continue;
     if (a > 238 && a < 302) continue;
-    out.push({ angle: a, radius: out.length % 2 === 0 ? 1.18 : 1.36 });
+    out.push({ angle: a, radius: out.length % 2 === 0 ? 1.34 : 1.54 });
   }
   return out;
 })();
@@ -62,7 +62,7 @@ const TAGLINE = "Everything that already worked.";
 export function ValStandby() {
   // The symbol Val is currently holding, if any. While one is up the copy
   // sells it; the rest of the time Val talks about the room.
-  const [form, setForm] = useState<{ id: string; says: string[] } | null>(null);
+  const [form, setForm] = useState<{ id: string; says: string[]; closing: boolean } | null>(null);
 
   return (
     <div className="flex flex-1 flex-col items-center justify-between overflow-hidden py-[1.5vh]">
@@ -115,8 +115,16 @@ export function ValStandby() {
       {/* A held symbol gets its own pitch, on a faster clock — four lines
           inside a fifteen-second hold. Otherwise Val works the room. */}
       <ValLines
-        lines={form ? form.says : VAL_IDLE}
-        every={form ? 3600 : 7200}
+        lines={
+          form
+            ? form.closing
+              // Val is winding up to throw it — the copy stops moving and
+              // lands on the close while the shape flies apart.
+              ? [form.says[form.says.length - 1]]
+              : form.says
+            : VAL_IDLE
+        }
+        every={form ? 3400 : 7200}
       />
     </div>
   );
