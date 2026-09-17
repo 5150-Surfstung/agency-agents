@@ -69,6 +69,11 @@ body {
 /* ——— the stage: vignette + grain so the projector feels printed, not flat */
 .stage {
   isolation: isolate;
+  /* The ambient field below is inset -20% and drifts outward as it animates.
+     On the projector the frame already clips it; on a scrolling page it leaked
+     and added 140px of horizontal scroll that grew as the animation ran. `clip`
+     rather than `hidden` so this never becomes a scroll container. */
+  overflow-x: clip;
 }
 .stage::before {
   content: "";
