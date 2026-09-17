@@ -208,6 +208,16 @@ export default function Kit() {
             body="Two dates and your contract terms in; every deadline out, with what each one costs if it slips — plus a plain-English version you can text your client. The deal rides in the link, so sending it IS sending the deal."
           />
           <Tool
+            href="/social"
+            title="The Content Machine"
+            body="One listing, a platform, an angle — out comes a post that leads with a hook instead of an adjective, stays inside your facts, and stays fair-housing clean. The full prompt is card 'The post that doesn't sound like a post' above, so it works in your own Claude forever."
+          />
+          <Tool
+            href="/val"
+            title="Meet Val"
+            body="The library every one of these came out of: what it is, the rules that are always on, and the nine patterns already built for real estate."
+          />
+          <Tool
             href="/room"
             title="Your listing assistant"
             body="The assistant you built in the room, its QR, its lead inbox, and the switchboard — where you watch real conversations happen on your listing and step in when it's worth your voice."

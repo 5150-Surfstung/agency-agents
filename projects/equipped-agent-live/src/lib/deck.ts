@@ -451,6 +451,41 @@ export const DECK: Slide[] = [
     cue: "The wager out loud: 'if anyone makes one invent a fact tonight, lunch is on me.' Flagged shots land on this screen for you to judge — award or dismiss from the console. The lesson to say plainly when it holds: the assistant is only as good as the fact sheet behind it, and THAT is the part they control.",
   },
   {
+    id: "social",
+    kind: "demo",
+    eyebrow: "Live demo · the other bot I'll build you",
+    heading: "A week of content, out of one fact sheet.",
+    lanes: [
+      {
+        tag: "What most agents post",
+        heading: "Wallpaper nobody stops for",
+        lines: [
+          "'Check out this stunning home!' — that first line earns nothing.",
+          "Three ideas in one caption, which means it has none.",
+          "'DM me for more info' — a call to action that costs a stranger something.",
+          "And the landmine nobody mentions: describing WHO a house is right for.",
+        ],
+      },
+      {
+        tag: "What the machine does",
+        heading: "The hook does the work",
+        lines: [
+          "First line earns the second. A detail, a number, or a sentence somebody repeats.",
+          "One idea. One person. Show the detail and kill the adjective that fits any house.",
+          "A CTA that's free to answer: 'comment DOCK and I'll send the disclosure.'",
+          "Fair housing as a hard rule, not a footnote — you describe features, never people.",
+        ],
+      },
+    ],
+    link: {
+      href: "/social",
+      label: "The Content Machine",
+      note: "pick a platform and an angle on your own phone while I run one up here",
+    },
+    quote: "Ask it for something it wasn't given and it tells you what it needs instead of inventing it. Same rule you've watched all hour — this time in a caption.",
+    cue: "RUN IT LIVE and LET THE ROOM PICK — shout out a platform, shout out an angle, take the one you did not rehearse. That's the whole trick: unrehearsed is the version they believe. Read the NEEDS FROM YOU section OUT LOUD when it comes back: 'look — it wants an open-house time I never gave it, so it asked instead of making one up.' Then the offer, plainly: 'this is a bot. I build these. If you're here, I'll build yours on your listings, with your voice, and you run it.' IF YOU ARE BEHIND ON TIME, this is a cut — but it is the best cut-if-needed slide in the deck, so cut mls-live first.",
+  },
+  {
     id: "demo-t2k",
     kind: "demo",
     eyebrow: "Live demo · Track to Keys · open it yourself",
@@ -569,6 +604,7 @@ export const DECK: Slide[] = [
     lines: [
       "I'm not a recruiter with a slide deck. I'm the Director of AI Strategy & Innovation, and I'm here in Charleston.",
       "What that means Tuesday: we sit down with YOUR listings, YOUR farm, YOUR live transaction — and we build the thing.",
+      "The front desk, the content machine, the date chain, your site — built on your business, in your voice, and you own them.",
       "Everything you watched tonight, I built. So when yours breaks at 9pm you're not filing a ticket. You're texting the guy who wrote it.",
     ],
     quote: "Connecting agents to what matters most.",

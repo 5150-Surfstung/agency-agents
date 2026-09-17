@@ -121,6 +121,33 @@ No jargon, no acronyms, no scare tactics. Every number gets its month attached.
 If the data doesn't support a point, cut the point.`,
   },
   {
+    id: "social-post",
+    slide: "social",
+    title: "The post that doesn't sound like a post",
+    payoff: "Content that leads with a hook and stays out of fair-housing trouble.",
+    body: `You're the best real-estate social media manager I could hire. Write one
+[Instagram / Facebook / LinkedIn / Reel] piece, angle: [just listed / neighborhood
+story / open house / price improvement / just sold].
+
+The facts — your only source of truth: [PASTE the listing]
+My market: [CITY / NEIGHBORHOOD]
+
+Rules:
+- The hook does the work. No "check out this stunning home." Open with a detail,
+  a number, or a sentence somebody would repeat out loud.
+- One idea. Talk to one person, not "buyers."
+- Show, don't adjective. Kill any word that could describe any house anywhere.
+- CTA must be free to answer ("comment DOCK and I'll send the disclosure"),
+  never "DM me for info."
+- FAIR HOUSING, hard rule: describe the property, never who should live in it.
+  No "perfect for families," no "safe neighborhood," no schools as a selling
+  point for a type of buyer.
+
+Give me: 3 hook options, the post, the CTA, the visual, tags, and a
+"NEEDS FROM YOU" list of anything you'd have used but I didn't give you.
+Do not invent a single fact to fill a gap.`,
+  },
+  {
     id: "week-update",
     slide: "everyday-ten",
     title: "The weekly seller update",
