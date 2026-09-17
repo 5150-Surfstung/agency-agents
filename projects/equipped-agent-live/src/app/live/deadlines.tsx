@@ -20,9 +20,21 @@ import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { DEFAULT_DEAL, buildChain, prettyDate, toQuery } from "@/lib/t2k";
 
+/** yyyy-mm-dd, n days from today, at local noon so a timezone can never shift
+ *  the date by one. */
+function dayFromNow(n: number): string {
+  const d = new Date();
+  d.setHours(12, 0, 0, 0);
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function Deadlines() {
-  const [binding, setBinding] = useState("");
-  const [closing, setClosing] = useState("");
+  // Prefilled, not blank. A deal signed today closing in thirty days is the
+  // commonest shape there is, so the chain is already on screen when the page
+  // arrives and changing the dates is an edit rather than a chore.
+  const [binding, setBinding] = useState(() => dayFromNow(0));
+  const [closing, setClosing] = useState(() => dayFromNow(30));
   const [copied, setCopied] = useState(false);
 
   const deal = useMemo(() => ({ ...DEFAULT_DEAL, binding, closing }), [binding, closing]);
@@ -62,8 +74,10 @@ export function Deadlines() {
     <div className="chain">
       <h2 className="chain-ask display">Two dates. Every deadline in the deal.</h2>
       <p className="chain-sub">
-        Put in the binding date and the closing date from a file you are working
-        right now. Nothing leaves your phone — the whole thing is arithmetic.
+        This is already running on a deal signed today that closes in thirty
+        days. Put in the two real dates off a file you are working right now and
+        watch it redraw. Nothing leaves your phone — the whole thing is
+        arithmetic.
       </p>
 
       <div className="chain-in">

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Top } from "./top";
 import { Closer } from "./closer";
 import { Deadlines } from "./deadlines";
+import { MarketPanel } from "./market-panel";
 import { Profile } from "./profile";
 import { Rsvp } from "./rsvp";
 import { HOST } from "@/lib/contact";
@@ -119,6 +120,9 @@ export default function LivePage() {
           </div>
         }
       />
+
+      {/* Proof before argument. */}
+      <MarketPanel />
 
       {/* The second instrument. Pure arithmetic, so it costs nothing and
           answers instantly — and an agent with a live file uses it tonight. */}

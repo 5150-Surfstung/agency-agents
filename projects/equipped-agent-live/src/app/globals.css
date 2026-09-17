@@ -1772,3 +1772,140 @@ body {
   line-height: 1.6;
   color: var(--color-soft);
 }
+
+/* ── the market panel: real MLS numbers, which is the only unarguable thing
+      on this page ──────────────────────────────────────────────────────────
+   One accent throughout. The palette validator put moss and clay 2.4 ΔE
+   apart under protanopia, so direction is never carried by hue here — the
+   signed number and the word do that, and every sparkline is the same gold. */
+.market {
+  position: relative;
+  z-index: 1;
+  margin-top: 3rem;
+  border-top: 2px solid var(--color-gold);
+  padding-top: 1.5rem;
+}
+.market h2 {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(1.6rem, 6.4vw, 2.35rem);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  font-variation-settings: "wdth" 108;
+  color: var(--color-cream);
+  max-width: 26ch;
+}
+.market-lede {
+  margin: 0.85rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-soft);
+}
+
+.market-hero {
+  margin-top: 1.75rem;
+  border-left: 3px solid var(--color-gold);
+  border-radius: 0 10px 10px 0;
+  background: var(--color-sheet-2);
+  padding: 1.25rem 1.15rem;
+}
+.market-hero-fig {
+  margin: 0;
+  font-variation-settings: "wdth" 114;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(2.9rem, 13vw, 4.6rem);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  color: var(--color-gold-bright);
+}
+.market-hero-say {
+  margin: 0.85rem 0 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-soft);
+}
+.market-hero-say b { color: var(--color-cream); font-variant-numeric: tabular-nums; }
+
+.market-grid {
+  display: grid;
+  gap: 0;
+  margin: 1.75rem 0 0;
+  border-top: 1px solid var(--color-rule-strong);
+}
+.market-grid > div {
+  padding: 1.05rem 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+@media (min-width: 46rem) {
+  .market-grid { grid-template-columns: repeat(3, 1fr); gap: 0 1.75rem; }
+}
+.market-grid dt {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-faint);
+}
+.market-grid dd {
+  margin: 0.3rem 0 0;
+  font-variation-settings: "wdth" 112;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-size: 2.35rem;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--color-gold-bright);
+}
+.market-grid p {
+  margin: 0.5rem 0 0;
+  max-width: 30ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-soft);
+}
+.spark { display: block; margin-top: 0.6rem; overflow: visible; }
+
+.market-turn {
+  margin: 1.5rem 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--color-rule-strong);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-cream);
+}
+
+.market-table { margin-top: 1.5rem; }
+.market-table summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--color-gold);
+  padding: 0.5rem 0;
+}
+.market-table table {
+  width: 100%;
+  margin-top: 0.75rem;
+  border-collapse: collapse;
+  caption-side: bottom;
+  font-variant-numeric: tabular-nums;
+}
+.market-table caption {
+  padding-top: 0.85rem;
+  text-align: left;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--color-faint);
+}
+.market-table th, .market-table td {
+  padding: 0.45rem 0.4rem 0.45rem 0;
+  text-align: right;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--color-soft);
+  border-bottom: 1px solid var(--color-rule);
+  white-space: nowrap;
+}
+.market-table thead th {
+  text-align: right;
+  font-size: 0.6875rem;
+  color: var(--color-faint);
+}
+.market-table tbody th, .market-table thead th:first-child { text-align: left; color: var(--color-cream); }
