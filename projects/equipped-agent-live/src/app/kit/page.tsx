@@ -25,6 +25,33 @@ export default function Kit() {
           Everything from the hour, on one page. Free, no email, no form. Bookmark it — the
           only thing I want back is that you actually build one of these.
         </p>
+        <div className="mt-6 rounded-3xl border border-gold/60 bg-sheet-2 p-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gold">
+            If you only do one thing
+          </p>
+          <p className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold leading-snug text-cream">
+            Open Claude and paste the first card. Five minutes, tonight, in the parking lot.
+          </p>
+          <p className="mt-2 text-[15px] leading-relaxed text-soft">
+            It asks you five questions and then does the most annoying job in your week
+            with you, once, start to finish. You don&apos;t have to have learned anything
+            first — that is the point of it.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <a
+              href="#card-first-five"
+              className="rounded-full bg-gold px-4 py-2 text-xs font-bold text-sheet"
+            >
+              The first five minutes ↓
+            </a>
+            <a
+              href="#card-profile"
+              className="rounded-full border border-rule px-4 py-2 text-xs font-bold text-soft hover:border-gold hover:text-gold"
+            >
+              Then: teach it who you are ↓
+            </a>
+          </div>
+        </div>
         <nav className="mt-5 flex flex-wrap gap-2">
           {[
             ["#install", "1 · Get Claude"],
@@ -292,20 +319,37 @@ export default function Kit() {
 
       {/* ------------------------------------------------------------- week */}
       <Section id="week" n="7" title="The week">
-        <ol className="space-y-2">
+        <p className="max-w-2xl text-[15px] leading-relaxed text-soft">
+          Every day here is one card and one sitting. Nothing takes an evening. The
+          only one that matters is Monday — do that and the rest follow, skip it and
+          none of them will.
+        </p>
+        <ol className="mt-5 space-y-2">
           {[
-            ["Monday", "Pick the farm. One neighborhood. Not a city, not a zip — a neighborhood you could drive blindfolded."],
-            ["Tuesday", "Connect your MLS (section 3) and ask it the six questions. Write down what surprised you."],
-            ["Wednesday", "Build the fact sheet for one listing using the card in section 4."],
-            ["Thursday", "Deploy that listing's assistant. Put the QR on a rider. It answers at 11pm."],
-            ["Friday", "Ten rounds with the objection card before your next appointment. Ten. Not two."],
-          ].map(([d, t]) => (
-            <li key={d} className="flex gap-4 rounded-2xl border border-rule bg-sheet-2 p-4">
+            ["Tonight", "Teach it who you are. Twenty minutes, once, and every conversation after this is a different tool.", "profile"],
+            ["Monday", "Your inbox, in one pass — drafted, not sent. Do it before you do anything else.", "inbox"],
+            ["Tuesday", "Connect your MLS and ask it the six questions. Write down what surprised you.", "mls-pulse"],
+            ["Wednesday", "Build the fact sheet for one listing. This is the thing your assistant runs on.", "fact-sheet"],
+            ["Thursday", "Deploy that listing's assistant and put the QR on the rider. It answers at 11pm.", "first-brief"],
+            ["Friday", "Ten rounds with the objection card before your next appointment. Ten. Not two.", "objections"],
+          ].map(([d, t, card]) => (
+            <li key={d} className="flex flex-wrap items-baseline gap-x-4 gap-y-2 rounded-2xl border border-rule bg-sheet-2 p-4">
               <span className="w-24 shrink-0 text-sm font-bold uppercase tracking-wider text-gold">{d}</span>
-              <span className="text-[15px] leading-relaxed text-soft">{t}</span>
+              <span className="min-w-[16rem] flex-1 text-[15px] leading-relaxed text-soft">{t}</span>
+              <a
+                href={`#card-${card}`}
+                className="shrink-0 rounded-full border border-gold/60 px-3 py-1.5 text-[11px] font-bold text-gold hover:bg-gold hover:text-sheet"
+              >
+                the card ↓
+              </a>
             </li>
           ))}
         </ol>
+        <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-faint">
+          When a card doesn&apos;t give you what you wanted, don&apos;t start over — tell it
+          what was wrong in one sentence and ask it again. That one habit is most of
+          the skill.
+        </p>
       </Section>
 
       <footer className="mt-14 border-t border-rule pt-6">

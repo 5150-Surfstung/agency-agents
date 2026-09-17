@@ -26,6 +26,50 @@ export interface Card {
 
 export const CARDS: Card[] = [
   {
+    id: "first-five",
+    slide: "install",
+    title: "The first five minutes",
+    payoff: "Do this in the parking lot. It works before you've learned anything.",
+    body: `I'm a real-estate agent in [CITY]. I've just installed you and I've never
+used AI for work before.
+
+Ask me five questions — one at a time, waiting for my answer — that would let
+you help me with the single most annoying recurring task in my week.
+
+Then do that task with me, once, start to finish.
+
+Rules: plain English, no jargon. If you need something from me to do it
+properly, ask instead of guessing. Don't tell me what you COULD do — just do
+the one thing.`,
+  },
+  {
+    id: "profile",
+    slide: "install",
+    title: "Teach it who you are — once",
+    payoff: "The difference between a clever stranger and something that knows your business.",
+    body: `I'm going to tell you about my business. Turn it into a profile you keep and
+use in every future conversation with me, and tell me what's still missing.
+
+Me: [NAME], REALTOR® at [BROKERAGE] in [CITY / MARKET].
+Years in: [N]. Who I mostly work with: [buyers / sellers / both / investors].
+My farm: [NEIGHBORHOOD].
+What I'm known for: [in your own words, one sentence].
+How I write: [paste two emails you actually sent — your real voice, not your
+best writing].
+Price range I usually work in: [range].
+The parts of the job I want help with: [list them].
+The parts I will never hand over: [list them].
+
+Give me back:
+1. The profile, written so a stranger could pick it up and sound like me.
+2. The five things you'd still need to know to be genuinely useful.
+3. Where to save this so you have it every time — walk me through it for
+   [Claude on my phone / Claude on my laptop], step by step.
+
+Never invent a detail about me. Anything I didn't tell you, put in the
+missing list.`,
+  },
+  {
     id: "first-brief",
     slide: "how-to-talk",
     title: "The listing-prep brief",
@@ -200,6 +244,48 @@ Then give me:
 - one sentence to put in my notes so next-time-me catches it earlier
 
 Be direct. If my answers are vague, say so and ask again.`,
+  },
+  {
+    id: "inbox",
+    slide: "connect",
+    title: "Monday morning, in one pass",
+    payoff: "Every email that needs you, sorted, with the replies already drafted.",
+    body: `You have my Gmail connected. Go through everything from the last [3] days.
+
+Give me, in this order:
+1. NEEDS ME TODAY — anything with a deadline, a contract date, or a client
+   waiting on an answer. One line each, with who and by when.
+2. DRAFT AND WAIT — for each of those, write the reply in my voice. Don't send
+   anything. I read every one before it goes.
+3. CAN WAIT — one line each, no drafts.
+4. NOTHING NEEDED — just a count.
+
+Rules:
+- You draft, I read, I send. Every time, no exceptions.
+- Match how I've actually written to that person before — go look.
+- If an email needs a fact you don't have, write the reply with [BRACKETS]
+  where the fact goes. Never fill a gap with a guess.
+- Anything about a contract date, money, or a legal question: flag it, draft
+  nothing, and tell me why.`,
+  },
+  {
+    id: "week-ahead",
+    slide: "connect",
+    title: "The week before it happens",
+    payoff: "Walk into Monday knowing where the week breaks.",
+    body: `You have my calendar and my email connected. Look at the next [7] days.
+
+Tell me:
+1. What's actually on — by day, in one line each.
+2. Where it breaks. Double-bookings, drive times that don't work, a showing
+   and a closing forty minutes apart.
+3. What I've promised somebody this week that isn't on the calendar. Go find
+   it in my email.
+4. Three showing blocks of [45] minutes that don't collide with anything.
+5. The one thing most likely to go wrong, and what to do about it now.
+
+Rules: read-only. Don't create, move, or cancel anything — tell me and I'll do
+it. If you're inferring rather than reading, say which is which.`,
   },
   {
     id: "t2k-brief",
