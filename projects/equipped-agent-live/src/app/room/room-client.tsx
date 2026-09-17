@@ -632,7 +632,7 @@ function PollScreen({
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-sheet-3">
                   <div
-                    className={`bar-fill h-full rounded-full ${mine ? "bg-gold-bright" : "bg-gold"}`}
+                    className={`bar-fill bar-lit relative h-full rounded-full ${mine ? "bar-lead" : ""}`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -900,7 +900,7 @@ function BoardScreen({ state, onPosted }: { state: StatePayload; onPosted: () =>
               }`}
             >
               <span className={`text-sm font-bold ${r.me ? "text-gold-bright" : "text-cream"}`}>
-                {i === 0 ? "👑" : `${i + 1}.`} {r.emoji} <span className="tracking-[0.25em]">{r.initials}</span>
+                {i === 0 ? "👑" : `${i + 1}.`} {r.emoji} <span className="tracking-wide">{r.initials}</span>
                 {r.me ? " · you" : ""}
               </span>
               <span className="text-sm font-bold text-soft">{r.points}</span>

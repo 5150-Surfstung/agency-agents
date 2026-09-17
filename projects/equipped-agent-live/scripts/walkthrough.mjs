@@ -73,9 +73,9 @@ check("wrong PIN rejected", (await join("0000")).status === 401);
 // Three phones in — and suited up (jersey = initials + emoji).
 const phones = [];
 const JERSEYS = [
-  { initials: "AAA", emoji: "🦈" },
-  { initials: "BBB", emoji: "🔥" },
-  { initials: "CCC", emoji: "👑" },
+  { initials: "Ava Reyes", emoji: "🦈" },
+  { initials: "Ben", emoji: "🔥" },
+  { initials: "Coach Dee", emoji: "👑" },
 ];
 for (let i = 0; i < 3; i++) {
   const j = await join();
@@ -90,7 +90,7 @@ for (let i = 0; i < 3; i++) {
   const r = await phones[0]("/api/profile", { method: "POST", body: JSON.stringify({ initials: "X", emoji: "🦈" }) });
   check("1-letter jersey → 400", r.status === 400);
   const s = await phones[0]("/api/state");
-  check("state carries my jersey", s.body.me?.initials === "AAA" && s.body.me?.emoji === "🦈");
+  check("state carries my jersey", s.body.me?.initials === "Ava Reyes" && s.body.me?.emoji === "🦈");
 }
 
 // State requires a session.
@@ -156,8 +156,8 @@ check("answer hidden pre-reveal", JSON.stringify(r.body).includes("soldK") === f
 snap = await control("poll");
 check("price values on console", Array.isArray(snap.priceValues) && snap.priceValues.some((v) => v.value === 824));
 check(
-  "podium paid, closest first (AAA at 824 vs 797)",
-  Array.isArray(snap.podium) && snap.podium[0]?.initials === "AAA" && snap.podium[0]?.points === 100,
+  "podium paid, closest first (Ava at 824 vs 797)",
+  Array.isArray(snap.podium) && snap.podium[0]?.initials === "Ava Reyes" && snap.podium[0]?.points === 100,
   JSON.stringify(snap.podium)
 );
 r = await phones[0]("/api/state");
@@ -167,7 +167,7 @@ check(
   JSON.stringify({ soldK: r.body.priceReveal?.soldK, anchorK: r.body.priceReveal?.anchorK })
 );
 check("reveal labels the number honestly", r.body.priceReveal?.soldLabel === "ACTUALLY CLOSED");
-check("my rank on my phone (AAA = #1)", r.body.priceReveal?.myRank === 1, String(r.body.priceReveal?.myRank));
+check("my rank on my phone (Ava = #1)", r.body.priceReveal?.myRank === 1, String(r.body.priceReveal?.myRank));
 r = await phones[2]("/api/state");
 check("farthest guess ranks #3", r.body.priceReveal?.myRank === 3, String(r.body.priceReveal?.myRank));
 
@@ -240,10 +240,10 @@ check("1-letter initials → 400", r.status === 400);
 snap = await control("goto", stepOf("leaderboard"));
 check("ring board shows MO 9/10", (snap.scoreboard ?? []).some((s) => s.initials === "MO" && s.best === 9));
 
-// THE BOARD: AAA = time 10 + price1 10 + podium 100 + built 25 + ring 90 = 235.
+// THE BOARD: Ava = time 10 + price1 10 + podium 100 + built 25 + ring 90 = 235.
 check(
-  "THE BOARD crowns AAA at 235",
-  (snap.standings ?? [])[0]?.initials === "AAA" && (snap.standings ?? [])[0]?.points === 235,
+  "THE BOARD crowns Ava at 235",
+  (snap.standings ?? [])[0]?.initials === "Ava Reyes" && (snap.standings ?? [])[0]?.points === 235,
   JSON.stringify((snap.standings ?? []).slice(0, 3))
 );
 check("THE BOARD lists all three jerseys", (snap.standings ?? []).length === 3);

@@ -227,7 +227,8 @@ class MemoryStore implements Store {
 
   async profileSet(_key: string, deviceId: string, initials: string, emoji: string) {
     this.players.set(deviceId, {
-      initials: initials.replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase(),
+      // Mirrors live_profile_set (007): a display name, not three capitals.
+      initials: initials.replace(/[^a-zA-Z0-9 '\-]/g, "").replace(/\s+/g, " ").trim().slice(0, 14),
       emoji: emoji.slice(0, 8),
       at: this.players.get(deviceId)?.at ?? Date.now(),
     });

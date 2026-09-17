@@ -76,7 +76,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
 
   // Lanes are the densest thing this stage renders: two columns of copy plus,
   // often, a scannable link and a quote. Everything shrinks when they appear.
-  const dense = Boolean(slide.lanes || (slide.link && slide.stats));
+  const dense = Boolean(slide.lanes || (slide.link && slide.stats) || slide.price || slide.kind === "close");
 
   // The pre-show is its own screen, not a slide with the furniture hidden.
   if (slide.kind === "standby") {
@@ -95,7 +95,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
             Without this the show has one cinematic screen and then thirty-three
             slides of type, and the drop-off costs more than the standby
             screen earns. */}
-        {slide.kind !== "title" && slide.id !== "val" && (
+        {slide.kind !== "title" && slide.id !== "val" && slide.kind !== "close" && (
           <ValParticles
             quiet
             pin={slide.valSymbol}
@@ -103,8 +103,9 @@ export function SlideStage({ snap, slide, presentPop = false }: {
           />
         )}
 
-        {/* On its own slide Val gets the full body, not the mark. */}
-        {slide.id === "val" && (
+        {/* On its own slide — and for the send-off — Val gets the full body,
+            cycling every symbol of the night, not the mark. */}
+        {(slide.id === "val" || slide.kind === "close") && (
           <ValParticles className="absolute right-[2vw] top-1/2 h-[min(52vh,34vw)] w-[min(52vh,34vw)] -translate-y-1/2" />
         )}
         {slide.eyebrow && slide.kind !== "title" && (
@@ -135,23 +136,49 @@ export function SlideStage({ snap, slide, presentPop = false }: {
 
         {slide.stats && slide.id !== "demo-farming" && (
           <div className="rise d2 mt-[4vh] flex flex-wrap gap-[3vw]">
-            {slide.stats.map((s) => (
+            {slide.stats.map((s, i) => (
               <div key={s.label} className="min-w-[16vw]">
-                <p className="font-[family-name:var(--font-display)] text-[clamp(36px,4.6vw,72px)] font-bold text-gold-bright">
+                <p
+                  className="stat-num font-[family-name:var(--font-display)] text-[clamp(36px,4.6vw,72px)] font-bold tabular-nums text-gold-bright"
+                  style={{ animationDelay: `${1.05 + i * 0.12}s` }}
+                >
                   <CountUp text={s.value} />
                 </p>
-                <p className="mt-1 max-w-[24ch] text-[clamp(13px,1.15vw,18px)] leading-snug text-soft">{s.label}</p>
+                <span
+                  className="wipe mb-[0.8vh] block h-[0.4vh] w-[5vw] rounded-full bg-gold"
+                  style={{ animationDelay: `${0.5 + i * 0.12}s` }}
+                />
+                <p className="max-w-[24ch] text-[clamp(13px,1.15vw,18px)] leading-snug text-soft">{s.label}</p>
               </div>
             ))}
           </div>
         )}
 
         {slide.lines && slide.kind !== "title" && (
-          <div className="rise d3 mt-[3.5vh] flex max-w-[64ch] flex-col gap-[1.2vh]">
+          <div
+            className={`rise d3 mt-[3.5vh] flex flex-col gap-[1.2vh] ${
+              slide.kind === "close" ? "max-w-[48ch]" : "max-w-[64ch]"
+            }`}
+          >
             {slide.lines.map((l) => (
               <p key={l} className="text-[clamp(16px,1.6vw,26px)] leading-relaxed text-soft">
                 {l}
               </p>
+            ))}
+          </div>
+        )}
+
+        {/* ——— the send-off: the four pillars, in order, last thing on the wall ——— */}
+        {slide.kind === "close" && (
+          <div className="mt-[3vh] flex max-w-[52ch] flex-wrap gap-[0.8vw]">
+            {PILLARS.map((p, i) => (
+              <span
+                key={p}
+                className="chip-in rounded-full border border-gold/60 bg-sheet-2/70 px-[1.2vw] py-[0.7vh] text-[clamp(12px,1.2vw,19px)] font-bold uppercase tracking-[0.16em] text-gold-bright"
+                style={{ animationDelay: `${1.2 + i * 0.18}s` }}
+              >
+                {p}
+              </span>
             ))}
           </div>
         )}
@@ -299,7 +326,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
 
         {/* ——— price game canvas ——— */}
         {price && (
-          <div className="rise d2 mt-[3vh] w-full max-w-[80ch]">
+          <div className="rise d2 mt-[2vh] w-full max-w-[112ch]">
             {snap.pollState !== "revealed" && (
               <ul className="flex flex-col gap-[0.6vh] text-[clamp(15px,1.5vw,24px)] text-soft">
                 {price.facts.map((f) => (
@@ -316,7 +343,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
               <div className="mt-[2.5vh] flex items-center gap-[1.5vw]">
                 <span className="ring-pulse inline-block h-[2vh] w-[2vh] rounded-full bg-moss" />
                 <p className="text-[clamp(20px,2.4vw,40px)] font-semibold text-cream">
-                  <span className="font-[family-name:var(--font-display)] text-[clamp(28px,3.4vw,56px)] font-bold text-gold-bright">
+                  <span className="font-[family-name:var(--font-display)] text-[clamp(28px,3.4vw,56px)] font-bold tabular-nums text-gold-bright">
                     {priceTotal}
                   </span>{" "}
                   guesses locked · <span className="text-faint">space reveals</span>
@@ -337,16 +364,18 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                   aiGuess={snap.aiGuess}
                 />
                 {snap.podium && snap.podium.length > 0 && (
-                  <div className="mt-[2vh] flex flex-wrap items-center gap-[1.6vw]">
+                  <div className="mt-[1.6vh] flex flex-wrap items-center gap-[1.2vw]">
                     {snap.podium.map((p, i) => (
                       <div
                         key={p.initials + i}
-                        className="bar-row flex items-baseline gap-[0.8vw] rounded-2xl border border-gold/60 bg-sheet-2 px-[1.4vw] py-[1vh]"
+                        className={`bar-row relative flex items-baseline gap-[0.6vw] overflow-hidden rounded-2xl border bg-sheet-2 px-[1.2vw] py-[0.8vh] ${
+                          i === 0 ? "podium border-gold" : "border-gold/40"
+                        }`}
                         style={{ animationDelay: `${1 + i * 0.25}s` }}
                       >
-                        <span className="text-[clamp(20px,2.2vw,36px)]">{["🥇", "🥈", "🥉"][i]}</span>
-                        <span className="font-[family-name:var(--font-display)] text-[clamp(18px,2vw,32px)] font-bold text-cream">
-                          {p.emoji} <span className="tracking-[0.2em]">{p.initials}</span>
+                        <span className="text-[clamp(18px,1.8vw,30px)]">{["🥇", "🥈", "🥉"][i]}</span>
+                        <span className="font-[family-name:var(--font-display)] text-[clamp(16px,1.7vw,28px)] font-bold text-cream">
+                          {p.emoji} <span className="tracking-wide">{p.initials}</span>
                         </span>
                         <span className="text-[clamp(13px,1.2vw,19px)] font-semibold text-soft">
                           {fmtK(p.value)} · off {fmtK(p.offBy)}
@@ -445,21 +474,30 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                 </p>
               ) : (
                 <div className="mt-[1.2vh] flex flex-col gap-[0.8vh]">
-                  {(snap.standings ?? []).slice(0, 8).map((r, i) => (
+                  {(snap.standings ?? []).slice(0, 8).map((r, i, all) => (
                     <div
                       key={r.deviceId}
-                      className={`bar-row flex items-baseline justify-between rounded-xl border px-[1.4vw] py-[0.9vh] ${
-                        i === 0 ? "border-gold bg-sheet-2" : "border-rule bg-sheet-2"
+                      className={`bar-row relative overflow-hidden rounded-xl border bg-sheet-2 px-[1.4vw] py-[0.8vh] ${
+                        i === 0 ? "podium border-gold" : "border-rule"
                       }`}
                       style={{ animationDelay: `${i * 0.08}s` }}
                     >
-                      <span className="font-[family-name:var(--font-display)] text-[clamp(18px,2vw,32px)] font-bold text-cream">
-                        {i === 0 ? "👑 " : `${i + 1}. `}
-                        {r.emoji} <span className="tracking-[0.25em]">{r.initials}</span>
-                      </span>
-                      <span className={`text-[clamp(17px,1.9vw,30px)] font-bold ${i === 0 ? "winner-pulse text-gold-bright" : "text-gold-bright"}`}>
-                        {r.points}
-                      </span>
+                      <div className="flex items-baseline justify-between gap-[1vw]">
+                        <span className="flex items-baseline gap-[0.6vw] font-[family-name:var(--font-display)] text-[clamp(18px,2vw,32px)] font-bold text-cream">
+                          <Rank i={i} />
+                          <span>{r.emoji}</span>
+                          <span className="truncate tracking-wide">{r.initials}</span>
+                        </span>
+                        <span className={`shrink-0 tabular-nums text-[clamp(17px,1.9vw,30px)] font-bold ${i === 0 ? "winner-pulse text-gold-bright" : "text-gold-bright"}`}>
+                          {r.points}
+                        </span>
+                      </div>
+                      <div className="mt-[0.5vh] h-[0.6vh] overflow-hidden rounded-full bg-sheet-3">
+                        <div
+                          className={`bar-lit relative h-full rounded-full transition-[width] duration-700 ease-out ${i === 0 ? "bar-lead" : ""}`}
+                          style={{ width: `${Math.max(4, Math.round((r.points / Math.max(1, all[0].points)) * 100))}%` }}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -478,16 +516,27 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                   {(snap.scoreboard ?? []).slice(0, 8).map((r, i) => (
                     <div
                       key={r.initials + i}
-                      className="bar-row flex items-baseline justify-between rounded-xl border border-rule bg-sheet-2 px-[1.4vw] py-[0.9vh]"
+                      className={`bar-row relative overflow-hidden rounded-xl border bg-sheet-2 px-[1.4vw] py-[0.8vh] ${
+                        i === 0 ? "podium border-gold" : "border-rule"
+                      }`}
                       style={{ animationDelay: `${0.3 + i * 0.08}s` }}
                     >
-                      <span className="font-[family-name:var(--font-display)] text-[clamp(18px,2vw,32px)] font-bold text-cream">
-                        <span className="tracking-[0.25em]">{r.initials}</span>
-                      </span>
-                      <span className="text-[clamp(16px,1.8vw,28px)] font-bold text-gold-bright">
-                        {r.best}/10{" "}
-                        <span className="text-[clamp(11px,1vw,15px)] font-semibold text-faint">· {r.rounds} rounds</span>
-                      </span>
+                      <div className="flex items-baseline justify-between gap-[1vw]">
+                        <span className="flex items-baseline gap-[0.6vw] font-[family-name:var(--font-display)] text-[clamp(18px,2vw,32px)] font-bold text-cream">
+                          <Rank i={i} />
+                          <span className="truncate tracking-wide">{r.initials}</span>
+                        </span>
+                        <span className="shrink-0 tabular-nums text-[clamp(16px,1.8vw,28px)] font-bold text-gold-bright">
+                          {r.best}/10{" "}
+                          <span className="text-[clamp(11px,1vw,15px)] font-semibold text-faint">· {r.rounds} rounds</span>
+                        </span>
+                      </div>
+                      <div className="mt-[0.5vh] h-[0.6vh] overflow-hidden rounded-full bg-sheet-3">
+                        <div
+                          className={`bar-lit relative h-full rounded-full ${i === 0 ? "bar-lead" : ""}`}
+                          style={{ width: `${Math.max(4, r.best * 10)}%` }}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -496,6 +545,19 @@ export function SlideStage({ snap, slide, presentPop = false }: {
           </div>
         )}
       </section>
+  );
+}
+
+/** A rank medallion: gold and crowned for first, quiet for everyone else. */
+function Rank({ i }: { i: number }) {
+  return (
+    <span
+      className={`inline-flex h-[1.35em] w-[1.35em] shrink-0 items-center justify-center self-center rounded-full text-[0.55em] tabular-nums ${
+        i === 0 ? "bg-gold text-sheet shadow-[0_0_1.2vh_rgba(217,174,100,0.7)]" : "border border-rule text-faint"
+      }`}
+    >
+      {i === 0 ? "👑" : i + 1}
+    </span>
   );
 }
 
@@ -535,26 +597,30 @@ function PriceHistogram({
   }
   const roomAvg = totalGuesses ? Math.round(weighted / totalGuesses) : null;
   const peak = Math.max(1, ...buckets);
+  const hitBucket =
+    soldK === null ? -1 : Math.min(BUCKETS - 1, Math.max(0, Math.floor(((soldK - minK) / span) * BUCKETS)));
   const xOf = (k: number) => `${Math.min(100, Math.max(0, ((k - minK) / span) * 100))}%`;
 
   return (
-    <div className="mt-[2vh]">
-      <div className="relative h-[26vh] w-full">
+    <div className="mt-[4.5vh]">
+      <div className="relative h-[22vh] w-full">
         {/* the room's guesses */}
         <div className="absolute inset-0 flex items-end gap-[2px]">
           {buckets.map((n, i) => (
             <div
               key={i}
-              className="bar-grow flex-1 rounded-t-[4px] bg-gold/70"
-              style={{ height: `${(n / peak) * 100}%`, animationDelay: `${i * 0.03}s` }}
+              className={`bar-grow hist-bar flex-1 rounded-t-[4px] ${i === hitBucket ? "hist-hit" : ""}`}
+              style={{ height: `${Math.max(n ? 3 : 0, (n / peak) * 100)}%`, animationDelay: `${i * 0.03}s` }}
             />
           ))}
         </div>
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gold/40" />
         {/* the record's answer */}
         {soldK !== null && (
           <div className="marker absolute bottom-0 top-0" style={{ left: xOf(soldK) }}>
             <div className="h-full w-[3px] rounded bg-gold-bright shadow-[0_0_18px_rgba(217,174,100,0.9)]" />
-            <p className="absolute -top-[3.4vh] -translate-x-1/2 whitespace-nowrap font-[family-name:var(--font-display)] text-[clamp(20px,2.4vw,40px)] font-bold text-gold-bright">
+            <span className="ring-pulse absolute -bottom-[0.7vh] left-1/2 h-[1.5vh] w-[1.5vh] -translate-x-1/2 rounded-full bg-gold-bright" />
+            <p className="absolute -top-[5.4vh] -translate-x-1/2 whitespace-nowrap font-[family-name:var(--font-display)] text-[clamp(20px,2.4vw,40px)] font-bold text-gold-bright">
               {soldLabel} {fmtK(soldK)}
             </p>
           </div>
@@ -578,7 +644,7 @@ function PriceHistogram({
           </div>
         )}
       </div>
-      <div className="mt-[4vh] flex flex-wrap items-baseline gap-[3vw] text-[clamp(14px,1.3vw,21px)] text-soft">
+      <div className="mt-[3.6vh] flex flex-wrap items-baseline gap-[3vw] text-[clamp(14px,1.3vw,21px)] text-soft">
         <span>
           <b className="text-cream">{totalGuesses}</b> guesses
         </span>

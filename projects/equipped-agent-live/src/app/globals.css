@@ -593,6 +593,42 @@ body {
   from { background-position: 200% 0; }
   to   { background-position: -200% 0; }
 }
+/* ——— STAT TILES. The number counts, then lands with a bloom. */
+.slide-enter .stat-num {
+  animation: stat-land 0.9s ease-out both;
+}
+@keyframes stat-land {
+  0%   { text-shadow: 0 0 0 transparent; }
+  35%  { text-shadow: 0 0 0.45em color-mix(in srgb, var(--color-gold-bright) 75%, transparent); filter: brightness(1.28); }
+  100% { text-shadow: 0 0 0 transparent; filter: brightness(1); }
+}
+
+/* ——— THE BOARD. First place sits on a lit podium with a slow sheen. */
+.podium {
+  box-shadow:
+    0 0 2vh color-mix(in srgb, var(--color-gold) 35%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--color-gold-bright) 55%, transparent);
+}
+.podium::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 32%, rgba(255,255,255,0.11) 50%, transparent 68%);
+  background-size: 250% 100%;
+  animation: bar-sheen 3.6s linear infinite;
+}
+
+/* ——— PRICE GAME. Bars are lit top-down; the bucket holding the answer glows. */
+.hist-bar {
+  background: linear-gradient(180deg, #f2e6c6 0%, var(--color-gold) 40%, #b8843a 100%);
+  opacity: 0.78;
+}
+.hist-hit {
+  opacity: 1;
+  box-shadow: 0 0 1.8vh color-mix(in srgb, var(--color-gold-bright) 70%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .stage::after, .bar-lit::after, .slide-enter::before { animation: none; }
+  .stage::after, .bar-lit::after, .slide-enter::before, .slide-enter .stat-num, .podium::after { animation: none; }
 }
