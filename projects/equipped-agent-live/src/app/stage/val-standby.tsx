@@ -44,6 +44,22 @@ const RING = (() => {
   return out;
 })();
 
+/** The line under the wordmark when Val isn't holding a shape.
+ *
+ *  Swap this for any of the alternates and nothing else changes:
+ *    "Everything that already worked."          ← current
+ *    "The part you can't buy."
+ *    "Built from what broke."
+ *    "Nothing in here is a guess."
+ *    "Leading agents into the new era of real estate."
+ *
+ *  The current one is deliberate: Val's whole character is that nothing gets
+ *  in until it has already survived a real build, so a line about what it has
+ *  DONE lands harder than a line about where it is going — and it pays off
+ *  forty minutes later when the Val slide explains the library.
+ */
+const TAGLINE = "Everything that already worked.";
+
 export function ValStandby() {
   // What Val has currently made, if anything. Naming it under the wordmark is
   // the difference between "pretty screensaver" and "that thing knows."
@@ -95,8 +111,13 @@ export function ValStandby() {
         VAL
       </p>
       {/* Reserved height, so naming the shape never nudges the layout. */}
+      {/* Val names what it just built; the rest of the time it says what it is. */}
       <p className="mt-[1.2vh] h-[2.6vh] text-[clamp(11px,1.05vw,18px)] font-semibold uppercase tracking-[0.3em] text-gold">
-        <span className={form ? "form-name" : "opacity-0"}>{form ?? "\u00a0"}</span>
+        {form ? (
+          <span key={form} className="form-name">{form}</span>
+        ) : (
+          <span className="text-faint">{TAGLINE}</span>
+        )}
       </p>
 
       <ValLines />
