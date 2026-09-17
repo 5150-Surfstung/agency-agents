@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { IndexChart } from "./index-chart";
+import { ValOrb } from "./val-orb";
 import type { Attack, Lead, Player, ScoreRow, Slide } from "@/lib/types";
 
 export interface Snapshot {
@@ -77,7 +78,12 @@ export function SlideStage({ snap, slide, presentPop = false }: {
   const dense = Boolean(slide.lanes || (slide.link && slide.stats));
 
   return (
-      <section key={snap.step} className="slide-enter flex flex-1 flex-col justify-center">
+      <section key={snap.step} className="slide-enter relative flex flex-1 flex-col justify-center">
+        {/* Val is the only thing in the hour with nothing to look at, so it
+            gets a body — parked in the space a dense slide leaves empty. */}
+        {slide.id === "val" && (
+          <ValOrb className="absolute right-[3vw] top-1/2 -translate-y-1/2 text-[min(46vh,30vw)]" />
+        )}
         {slide.eyebrow && slide.kind !== "title" && (
           <p className="rise text-[clamp(12px,1.2vw,18px)] font-semibold uppercase tracking-[0.22em] text-gold">
             {slide.eyebrow}
@@ -129,7 +135,11 @@ export function SlideStage({ snap, slide, presentPop = false }: {
 
         {/* ——— two lanes: nobody in this room is bored and nobody is lost ——— */}
         {slide.lanes && (
-          <div className="rise d3 mt-[2.4vh] grid w-full max-w-[116ch] gap-[1.6vw] sm:grid-cols-2">
+          <div
+            className={`rise d3 mt-[2.4vh] grid w-full gap-[1.6vw] sm:grid-cols-2 ${
+              slide.id === "val" ? "max-w-[74ch]" : "max-w-[116ch]"
+            }`}
+          >
             {slide.lanes.map((lane) => (
               <div key={lane.tag} className="rounded-2xl border border-rule bg-sheet-2/70 p-[1.3vw]">
                 <p className="text-[clamp(10px,0.9vw,14px)] font-bold uppercase tracking-[0.2em] text-gold">

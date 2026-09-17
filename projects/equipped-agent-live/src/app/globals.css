@@ -326,3 +326,128 @@ body {
   }
   .gleam { color: var(--color-cream); background-image: none; }
 }
+
+/* ——— THE VAL ORB ——————————————————————————————————————————————————
+   Drawn entirely in CSS so there is no asset to go missing on somebody
+   else's projector. Sized by its container's font-size via em, so one
+   component serves a 100-inch screen and a phone. */
+.val-orb {
+  position: relative;
+  width: 1em;
+  height: 1em;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+.val-orb > * {
+  position: absolute;
+  border-radius: 9999px;
+}
+.val-orb__glow {
+  inset: -18%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--color-gold) 34%, transparent) 0%,
+    color-mix(in srgb, var(--color-gold) 10%, transparent) 42%,
+    transparent 70%
+  );
+  filter: blur(6px);
+  animation: orb-breathe 6s ease-in-out infinite;
+}
+.val-orb__core {
+  inset: 14%;
+  background:
+    radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--color-cream) 72%, transparent) 0%, transparent 38%),
+    conic-gradient(
+      from 0deg,
+      var(--color-gold) 0deg,
+      var(--color-moss) 92deg,
+      var(--color-gold-bright) 186deg,
+      var(--color-clay) 268deg,
+      var(--color-gold) 360deg
+    );
+  filter: blur(1px) saturate(1.12);
+  animation: orb-spin 26s linear infinite, orb-breathe 6s ease-in-out infinite;
+  box-shadow:
+    inset 0 0 2.2em color-mix(in srgb, var(--color-sheet) 62%, transparent),
+    0 0 2.4em color-mix(in srgb, var(--color-gold) 34%, transparent);
+}
+/* The glass highlight that makes it read as a sphere and not a disc. */
+.val-orb__sheen {
+  inset: 14%;
+  background: radial-gradient(
+    circle at 36% 26%,
+    color-mix(in srgb, #ffffff 40%, transparent) 0%,
+    transparent 44%
+  );
+  mix-blend-mode: screen;
+}
+.val-orb__ring {
+  border: 1px solid color-mix(in srgb, var(--color-gold) 46%, transparent);
+  background: transparent;
+}
+.val-orb__ring--a {
+  inset: 2%;
+  transform: rotateX(74deg);
+  animation: orb-ring-a 12s linear infinite;
+}
+.val-orb__ring--b {
+  inset: -4%;
+  border-color: color-mix(in srgb, var(--color-moss) 42%, transparent);
+  transform: rotateX(70deg) rotateZ(58deg);
+  animation: orb-ring-b 19s linear infinite reverse;
+}
+.val-orb__ring--c {
+  inset: -11%;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--color-gold-bright) 30%, transparent);
+  animation: orb-spin 34s linear infinite;
+}
+.val-orb__mote {
+  width: 0.05em;
+  height: 0.05em;
+  background: var(--color-gold-bright);
+  box-shadow: 0 0 0.5em var(--color-gold-bright);
+  transform-origin: 50% 50%;
+  animation: orb-orbit 14s linear infinite;
+}
+.val-orb__mote--0 { animation-delay: 0s; animation-duration: 14s; }
+.val-orb__mote--1 { animation-delay: -2.4s; animation-duration: 17s; }
+.val-orb__mote--2 { animation-delay: -5.1s; animation-duration: 11s; }
+.val-orb__mote--3 { animation-delay: -7.6s; animation-duration: 20s; }
+.val-orb__mote--4 { animation-delay: -9.8s; animation-duration: 15s; }
+.val-orb__mote--5 { animation-delay: -12.2s; animation-duration: 23s; }
+.val-orb__label {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-display), serif;
+  font-size: 0.17em;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  color: var(--color-sheet);
+  text-shadow: 0 0 0.6em color-mix(in srgb, var(--color-cream) 70%, transparent);
+  border-radius: 0;
+}
+@keyframes orb-spin { to { transform: rotate(360deg); } }
+@keyframes orb-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+@keyframes orb-ring-a {
+  from { transform: rotateX(74deg) rotateZ(0deg); }
+  to { transform: rotateX(74deg) rotateZ(360deg); }
+}
+@keyframes orb-ring-b {
+  from { transform: rotateX(70deg) rotateZ(58deg); }
+  to { transform: rotateX(70deg) rotateZ(418deg); }
+}
+@keyframes orb-orbit {
+  from { transform: rotate(0deg) translateX(0.56em) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(0.56em) rotate(-360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .val-orb__glow, .val-orb__core, .val-orb__ring, .val-orb__mote {
+    animation: none;
+  }
+}
