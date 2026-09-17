@@ -246,6 +246,8 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                 const pct = total ? Math.round((n / total) * 100) : 0;
                 const isWin = snap.pollState === "revealed" && i === winner && total > 0;
                 const dim = snap.pollState === "closed";
+                // The race is the show: whoever is ahead glows while it's open.
+                const leading = snap.pollState === "open" && total > 0 && i === winner;
                 return (
                   <div key={opt}>
                     <div className="flex items-baseline justify-between gap-[2vw]">
@@ -267,10 +269,10 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                         </span>
                       )}
                     </div>
-                    <div className="mt-[0.6vh] h-[1.7vh] overflow-hidden rounded-full bg-sheet-3">
+                    <div className="mt-[0.6vh] h-[2vh] overflow-hidden rounded-full bg-sheet-3">
                       <div
-                        className={`h-full rounded-full transition-[width] duration-700 ease-out ${
-                          isWin ? "winner-pulse bg-gold-bright" : "bg-gold/80"
+                        className={`bar-lit relative h-full rounded-full transition-[width] duration-700 ease-out ${
+                          isWin ? "winner-pulse bar-lead" : leading ? "bar-lead" : ""
                         }`}
                         style={{ width: snap.pollState === "closed" ? "0%" : `${pct}%` }}
                       />
