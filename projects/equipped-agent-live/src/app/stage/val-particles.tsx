@@ -116,56 +116,6 @@ const keyPlate: [number, number][] = [
 const keyTeeth: [number, number][] = [[0.34, 0.06], [0.34, 0.3], [0.44, 0.3], [0.44, 0.06]];
 const keyTeeth2: [number, number][] = [[0.52, 0.06], [0.52, 0.24], [0.62, 0.24], [0.62, 0.06]];
 
-// THE DOOR THE KEY OPENS. Track to Keys ends at a door, so the shape should
-// too. The frame and jamb stay put; the panel swings off its hinge; the key
-// turns in the lock and then withdraws. Three parts, one mechanism, and it
-// only reads because the whole object is turning while it happens.
-const DOOR_D = 0.06;
-const DOOR_W = 0.42;      // half-width of the opening
-const DOOR_H = 0.72;      // half-height
-const HINGE_X = -DOOR_W;  // the panel swings about this vertical line
-const LOCK: P3 = [DOOR_W - 0.13, -0.02, DOOR_D];
-const doorFrame: [number, number][] = [
-  [-DOOR_W - 0.07, DOOR_H], [-DOOR_W - 0.07, -DOOR_H - 0.07],
-  [DOOR_W + 0.07, -DOOR_H - 0.07], [DOOR_W + 0.07, DOOR_H],
-];
-const doorSill: [number, number][] = [[-DOOR_W - 0.07, DOOR_H], [DOOR_W + 0.07, DOOR_H]];
-const doorPanel: [number, number][] = [
-  [-DOOR_W, DOOR_H], [-DOOR_W, -DOOR_H], [DOOR_W, -DOOR_H], [DOOR_W, DOOR_H], [-DOOR_W, DOOR_H],
-];
-/** Two sunk panels, because a plain rectangle is a plank. */
-const doorInset = (y0: number, y1: number): [number, number][] => [
-  [-DOOR_W + 0.1, y0], [DOOR_W - 0.1, y0], [DOOR_W - 0.1, y1], [-DOOR_W + 0.1, y1], [-DOOR_W + 0.1, y0],
-];
-const doorRose: [number, number][] = ring(LOCK[0], LOCK[1], 0.075, 14);
-const doorKnob: [number, number][] = ring(LOCK[0], LOCK[1] + 0.17, 0.06, 12);
-const doorHinges: [number, number][][] = [-0.42, 0.42].map((y) => [
-  [HINGE_X, y - 0.07], [HINGE_X - 0.05, y - 0.07], [HINGE_X - 0.05, y + 0.07], [HINGE_X, y + 0.07],
-]);
-/** The three parts, kept separate so the split indices are derived and not
- *  counted by hand — miscounting them by one silently swings the wrong half
- *  of the object. */
-const doorFixed: Line3[] = [
-  at(doorFrame, DOOR_D), at(doorFrame, -DOOR_D),
-  at(doorSill, DOOR_D),
-  ...joins([[-DOOR_W - 0.07, DOOR_H], [DOOR_W + 0.07, DOOR_H], [-DOOR_W - 0.07, -DOOR_H - 0.07], [DOOR_W + 0.07, -DOOR_H - 0.07]], DOOR_D, -DOOR_D),
-  ...doorHinges.map((h) => at(h, DOOR_D)),
-];
-const doorSwings: Line3[] = [
-  at(doorPanel, DOOR_D), at(doorPanel, -DOOR_D),
-  at(doorInset(-0.56, -0.1), DOOR_D),
-  at(doorInset(0.06, 0.56), DOOR_D),
-  at(doorRose, DOOR_D),
-  at(doorKnob, DOOR_D), at(doorKnob, -DOOR_D),
-  ...joins([[-DOOR_W, DOOR_H], [DOOR_W, DOOR_H], [DOOR_W, -DOOR_H], [-DOOR_W, -DOOR_H]], DOOR_D, -DOOR_D),
-];
-const doorKey: Line3[] = [
-  at(keyPlate, KEY_D), at(keyPlate, -KEY_D),
-  at(keyTeeth, KEY_D), at(keyTeeth, -KEY_D),
-  at(keyTeeth2, KEY_D), at(keyTeeth2, -KEY_D),
-  at(ring(-0.44, 0, 0.11, 14), KEY_D),
-  ...joins([[-0.71, 0], [-0.17, 0], [0.66, -0.06], [0.66, 0.06], [-0.44, -0.27], [-0.44, 0.27]], KEY_D, -KEY_D),
-];
 
 /** Four letters of a stroke font. A sign with no word on it is a rectangle on
  *  a stick, which is exactly what the first version looked like. Coordinates
@@ -471,12 +421,6 @@ const SHAPES: {
    *  the table uses these: a hub of four anonymous bubbles is a diagram, and
    *  naming the four people is the entire point of it. */
   tags?: { at: P3; text: string }[];
-  /** A mechanism. Lines from index `from` onward belong to a part that MOVES
-   *  while the shape is held: `turn` rotates it in its own face (a key in a
-   *  lock), `swing` rotates it about a vertical hinge (a door opening). Only
-   *  the key uses this, and it is the difference between a key beside a door
-   *  and a key that opens one. */
-  moves?: { from: number; kind: "turn" | "swing"; pivot: P3 }[];
 }[] = [
   {
     id: "house",
@@ -498,12 +442,12 @@ const SHAPES: {
       "Track to Keys. Every date, every promise, kept.",
     ],
     accent: [242, 239, 231],
-    // Line order IS the mechanism: fixed frame, then the panel that swings,
-    // then the key that turns. The split indices come from the arrays.
-    lines: [...doorFixed, ...doorSwings, ...doorKey],
-    moves: [
-      { from: doorFixed.length, kind: "swing", pivot: [HINGE_X, 0, 0] },
-      { from: doorFixed.length + doorSwings.length, kind: "turn", pivot: LOCK },
+    lines: [
+      at(keyPlate, KEY_D), at(keyPlate, -KEY_D),
+      at(keyTeeth, KEY_D), at(keyTeeth, -KEY_D),
+      at(keyTeeth2, KEY_D), at(keyTeeth2, -KEY_D),
+      at(ring(-0.44, 0, 0.11, 14), KEY_D),
+      ...joins([[-0.71, 0], [-0.17, 0], [0.66, -0.06], [0.66, 0.06], [-0.44, -0.27], [-0.44, 0.27]], KEY_D, -KEY_D),
     ],
   },
   {
@@ -796,7 +740,6 @@ const FORMS = SHAPES.map((s) => {
     says: s.says,
     accent: s.accent,
     tags: s.tags,
-    moves: s.moves,
     grp: big.grp,
     grpS: small.grp,
     pts: big.pts,
@@ -1657,22 +1600,6 @@ export function ValParticles({
       // near it flare as they are "read in".
       const sweepY = morphing ? -1.1 + Math.min(1, Math.max(0, mix)) * 2.2 : 99;
 
-      // The mechanism, if this shape has one. It runs inside the hold, so the
-      // room gets to watch the key turn and the door open rather than catching
-      // it mid-flight.
-      let mTurn = 0, mWithdraw = 0, mSwing = 0;
-      if (!quiet && form.moves && !morphing && !calm) {
-        const hu = (p - MORPH) / HOLD;
-        const seg = (a0: number, a1: number) => easeInOut(Math.min(1, Math.max(0, (hu - a0) / (a1 - a0))));
-        mTurn = seg(0.1, 0.32);
-        mWithdraw = seg(0.34, 0.48);
-        mSwing = seg(0.44, 0.78);
-      }
-      const grp = quiet ? form.grpS : form.grp;
-      const moves = form.moves;
-      const turnC = Math.cos(mTurn * Math.PI * 0.55), turnS = Math.sin(mTurn * Math.PI * 0.55);
-      const swingC = Math.cos(mSwing * 1.15), swingS = Math.sin(mSwing * 1.15);
-
       for (let i = 0; i < builders.length; i++) {
         const d = builders[i];
         const from = srcPts[i];
@@ -1701,25 +1628,9 @@ export function ValParticles({
         const lx2 = (from[0] + (tgt[0] - from[0]) * k) * settle;
         const ly2 = (from[1] + (tgt[1] - from[1]) * k) * settle;
         const lz2 = (from[2] + (tgt[2] - from[2]) * k) * settle;
-        let px2 = lx2 + (coreX - lx2) * inward;
-        let py2 = ly2 + (coreY - ly2) * inward;
-        let pz2 = lz2 + (coreZ - lz2) * inward;
-        if (moves && mTurn + mSwing > 0) {
-          const g = grp[i];
-          const mv = moves[1] && g >= moves[1].from ? moves[1] : g >= moves[0].from ? moves[0] : null;
-          if (mv?.kind === "turn") {
-            // in the plane of the door's face, about the lock
-            const dx = px2 - mv.pivot[0], dy = py2 - mv.pivot[1];
-            px2 = mv.pivot[0] + dx * turnC - dy * turnS;
-            py2 = mv.pivot[1] + dx * turnS + dy * turnC;
-            pz2 += mWithdraw * 0.55; // and then it comes back out of the lock
-          } else if (mv?.kind === "swing") {
-            // about the vertical hinge line
-            const dx = px2 - mv.pivot[0];
-            px2 = mv.pivot[0] + dx * swingC - pz2 * swingS;
-            pz2 = dx * swingS + pz2 * swingC;
-          }
-        }
+        const px2 = lx2 + (coreX - lx2) * inward;
+        const py2 = ly2 + (coreY - ly2) * inward;
+        const pz2 = lz2 + (coreZ - lz2) * inward;
         const q = project(px2, py2, pz2);
         const depth = Math.min(1, Math.max(0, (q.persp - 0.66) / 0.9));
         const flash = Math.max(0, 1 - Math.abs(py2 - sweepY) * 7);

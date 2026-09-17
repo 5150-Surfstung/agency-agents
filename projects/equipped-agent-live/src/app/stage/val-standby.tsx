@@ -24,26 +24,6 @@ import { ValFeed } from "./val-feed";
 
 // The language of the room, not AI jargon. These are words an agent already
 // thinks in — which is the point Val is making without saying it.
-const TERMS = [
-  "speed to lead", "days on market", "absorption rate", "months of supply",
-  "sale-to-list", "under contract", "due diligence", "the farm",
-  "appraisal gap", "showing window", "the rider", "the record",
-];
-
-/** Evenly spaced around the field, skipping the bottom arc where the VAL
- *  wordmark sits, and sitting just outside the radius the shapes reach. */
-const RING = (() => {
-  const out: { angle: number; radius: number }[] = [];
-  for (let a = 0; a < 360; a += 26) {
-    // CSS rotation: 0 is right, 90 is DOWN, 270 is UP. Keep the terms on the
-    // left and right flanks — the bottom belongs to the wordmark and the top
-    // to the house lockup, and terms landed on both before this.
-    if (a > 58 && a < 122) continue;
-    if (a > 238 && a < 302) continue;
-    out.push({ angle: a, radius: out.length % 2 === 0 ? 1.34 : 1.54 });
-  }
-  return out;
-})();
 
 /** The line under the wordmark when Val isn't holding a shape.
  *
@@ -89,28 +69,6 @@ export function ValStandby() {
               projected onto glass rather than painted on the wall. */}
           <div className="holo-scan pointer-events-none absolute inset-0" aria-hidden />
 
-          <div className="pointer-events-none absolute inset-0" aria-hidden>
-            {TERMS.map((t, i) => {
-              const { angle, radius } = RING[i % RING.length];
-              return (
-                <span
-                  key={t}
-                  className="absolute left-1/2 top-1/2"
-                  style={{ transform: `rotate(${angle}deg) translateX(${radius}em) rotate(${-angle}deg)` }}
-                >
-                  <span
-                    className="val-term block -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[clamp(10px,0.85vw,15px)] font-semibold uppercase tracking-[0.18em] text-gold"
-                    style={{
-                      animationDelay: `${(i * 1.6) % 19}s`,
-                      animationDuration: `${18 + (i % 4) * 2}s`,
-                    }}
-                  >
-                    {t}
-                  </span>
-                </span>
-              );
-            })}
-          </div>
         </div>
       </div>
 

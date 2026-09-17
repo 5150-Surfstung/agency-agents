@@ -10,6 +10,30 @@
 import { useEffect, useRef } from "react";
 
 const GLYPHS = "0123456789ABCDEF·▸";
+
+// WHAT GOES IN AND WHAT COMES OUT.
+//
+// Words cross the whole room and are taken into Val, and others are thrown
+// back out of her. What goes IN is what an agent already has and already says
+// — the leads, the CRM, the farm, the referrals. What comes OUT is what The
+// Agent Connection puts around it. The split is the entire pitch, made without
+// a sentence, and it runs for the whole pre-show.
+//
+// This lives on the full-bleed canvas rather than the orb's own: that one is
+// only as wide as the orb box, so a word had nowhere to travel and every one
+// of them landed on top of the shape.
+const WORDS_IN = [
+  "LEADS", "CRM", "REFERRALS", "YOUR DATABASE", "THE FARM", "PAST CLIENTS",
+  "LISTING APPOINTMENTS", "OPEN HOUSES", "YOUR SPHERE", "COMPS",
+  "SHOWING REQUESTS", "THE CONTRACT", "YOUR MLS", "FOLLOW-UP",
+];
+const WORDS_OUT = [
+  "MENTORSHIP", "CONNECTIONS", "TRAINING", "LEADING AI TECHNOLOGY",
+  "COLLABORATION", "THE OFFICE", "TRACK TO KEYS", "SPEED TO LEAD",
+  "SMARTER TOOLS", "STRONGER AGENTS", "BIGGER OPPORTUNITIES", "REAL IMPACT",
+  "PEOPLE · TOOLS · OPPORTUNITY", "AN ON-SITE DIRECTOR", "YOUR OWN FRONT DESK",
+  "A PLAN THAT FITS YOU", "THE AGENT CONNECTION",
+];
 const COL = ["124,186,214", "246,244,238", "217,174,100"];
 
 export function ValAir({ className = "" }: { className?: string }) {
@@ -59,6 +83,12 @@ export function ValAir({ className = "" }: { className?: string }) {
     };
     for (const c of columns) seedColumn(c, true);
 
+    type Word = { text: string; out: boolean; a: number; u: number; speed: number; wait: number; live: boolean };
+    const words: Word[] = Array.from({ length: 6 }, (_, i) => ({
+      text: "", out: false, a: 0, u: 0, speed: 0, wait: i * 1.1, live: false,
+    }));
+    let wIn = 0, wOut = 0, wSlot = 0;
+
     let raf = 0;
     let last = 0;
     let scanY = -1;
@@ -82,9 +112,7 @@ export function ValAir({ className = "" }: { className?: string }) {
         else if (lite && avgDt < 36) lite = false;
       }
       last = now;
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.fillStyle = "rgba(0,0,0,0.38)";
-      ctx.fillRect(0, 0, w, h);
+      ctx.clearRect(0, 0, w, h);
       ctx.globalCompositeOperation = "lighter";
 
       // streaks
@@ -141,6 +169,58 @@ export function ValAir({ className = "" }: { className?: string }) {
           const a = i === 0 ? 0.3 : 0.11 * (1 - i / c.n);
           ctx.fillStyle = `rgba(124,186,214,${a})`;
           ctx.fillText(c.chars[i], c.x, y);
+        }
+      }
+
+      // the vocabulary: in from the room, out of Val, and back into the room
+      {
+        // Where Val sits on this canvas: centred in the column, a little above
+        // the middle, because the wordmark and the lines live underneath her.
+        const vx = w / 2, vy = h * 0.46;
+        const reach = Math.max(w, h) * 0.62;
+        const fs = Math.max(13, Math.round(Math.min(w, h) * 0.032));
+        ctx.font = `700 ${fs}px ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        for (const wd of words) {
+          if (!wd.live) {
+            wd.wait -= dt;
+            if (wd.wait > 0) continue;
+            // Alternate, so the room always sees the trade being made.
+            wd.out = wSlot % 2 === 1;
+            if (wd.out) { wd.text = WORDS_OUT[wOut % WORDS_OUT.length]; wOut++; }
+            else { wd.text = WORDS_IN[wIn % WORDS_IN.length]; wIn++; }
+            // Golden-angle stepping so consecutive words never share a lane.
+            wd.a = wSlot * 2.399963 + (Math.random() - 0.5) * 0.5;
+            wSlot++;
+            wd.speed = 0.17 + Math.random() * 0.08;
+            wd.u = 0;
+            wd.live = true;
+          }
+          wd.u += dt * wd.speed;
+          if (wd.u >= 1) {
+            wd.live = false;
+            wd.wait = 0.2 + Math.random() * 1.1;
+            continue;
+          }
+          const e = wd.u < 0.5 ? 2 * wd.u * wd.u : 1 - Math.pow(-2 * wd.u + 2, 2) / 2;
+          // Inbound falls from the room into her; outbound is thrown back out.
+          const rr = wd.out ? e : 1 - e;
+          const x = vx + Math.cos(wd.a) * reach * rr;
+          const y = vy + Math.sin(wd.a) * reach * 0.3 * rr;
+          // It shrinks and dims as it reaches her, so it is absorbed rather
+          // than parked on top of the shape.
+          const near = Math.min(1, Math.max(0, (rr - 0.12) / 0.26));
+          const edge = Math.min(1, (1 - rr) / 0.12);
+          const A = near * edge * 0.92;
+          if (A <= 0.02) continue;
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.scale(0.55 + rr * 0.55, 0.55 + rr * 0.55);
+          // What comes out of Val is gold; what goes in is the cool side.
+          ctx.fillStyle = wd.out ? `rgba(226,190,124,${A})` : `rgba(150,186,212,${A * 0.8})`;
+          ctx.fillText(wd.text, 0, 0);
+          ctx.restore();
         }
       }
 
