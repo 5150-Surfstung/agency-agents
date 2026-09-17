@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signupMailto } from "@/lib/signup";
+import { valOnName, valSay, VAL_NAMES } from "@/lib/val";
 import { BuildScreen } from "./build-screen";
 import { DuelScreen } from "./duel-screen";
 
@@ -250,18 +251,20 @@ export function RoomClient() {
 // ------------------------------------------------------------ jersey gate
 
 function JerseyScreen({ onDone }: { onDone: () => void }) {
-  const [initials, setInitials] = useState("");
-  const [emoji, setEmoji] = useState<string>("🦈");
+  const [name, setName] = useState("");
+  const [emoji, setEmoji] = useState<string>("\u{1F988}");
   const [busy, setBusy] = useState(false);
+  const clean = name.trim();
+  const ready = clean.length >= 2;
 
   async function suitUp() {
-    if (busy || initials.length < 2) return;
+    if (busy || !ready) return;
     setBusy(true);
     try {
       const res = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initials, emoji }),
+        body: JSON.stringify({ initials: clean, emoji }),
       });
       if (res.ok) {
         buzz([20, 40, 20]);
@@ -276,24 +279,49 @@ function JerseyScreen({ onDone }: { onDone: () => void }) {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-10 pt-6">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">You&apos;re in · suit up</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">You&apos;re in</p>
       <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-cream">
-        Pick your jersey.
+        First things first — name me.
       </h1>
-      <p className="mt-2 text-sm text-soft">
-        Tonight is a game — polls, a pricing showdown, a machine to stump, a board to climb. Everything you do scores
-        under these three letters.
+      <p className="mt-2 text-sm leading-relaxed text-soft">
+        I&apos;m the one who&apos;s going to answer your listing&apos;s phone tonight. Give me a name
+        you&apos;d actually say out loud, and it goes on everything you do from here.
       </p>
+
       <input
-        value={initials}
-        onChange={(e) => setInitials(e.target.value.replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase())}
-        placeholder="ABC"
-        aria-label="Your initials"
-        maxLength={3}
+        value={name}
+        onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9 '-]/g, "").slice(0, 14))}
+        placeholder="Nova"
+        aria-label="Name your assistant"
+        maxLength={14}
         autoFocus
-        className="mt-6 w-full rounded-2xl border border-rule bg-sheet-2 px-4 py-4 text-center text-4xl font-bold tracking-[0.5em] text-cream placeholder:text-2xl placeholder:tracking-[0.3em] placeholder:text-faint focus:border-gold focus:outline-none"
+        autoComplete="off"
+        className="mt-6 w-full rounded-2xl border border-rule bg-sheet-2 px-4 py-4 text-center font-[family-name:var(--font-display)] text-4xl font-semibold text-cream placeholder:text-faint focus:border-gold focus:outline-none"
       />
-      <div className="mt-4 grid grid-cols-6 gap-2">
+
+      {/* Val answers while they type. This is the whole point of the screen:
+          they stop thinking of it as "an AI" before the hour has started. */}
+      <p className="mt-3 min-h-[3rem] text-center font-[family-name:var(--font-display)] text-lg italic leading-snug text-gold-bright">
+        {clean.length >= 2 ? valOnName(clean) : "\u201cGo on. Name me.\u201d"}
+      </p>
+
+      <p className="mt-2 text-center text-[11px] uppercase tracking-[0.18em] text-faint">or borrow one of mine</p>
+      <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+        {VAL_NAMES.slice(0, 8).map((n) => (
+          <button
+            key={n}
+            onClick={() => setName(n)}
+            className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
+              clean === n ? "border-gold bg-gold text-sheet" : "border-rule bg-sheet-2 text-soft"
+            }`}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+
+      <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-faint">give me a face</p>
+      <div className="mt-2 grid grid-cols-6 gap-2">
         {JERSEY_EMOJI.map((e) => (
           <button
             key={e}
@@ -307,17 +335,21 @@ function JerseyScreen({ onDone }: { onDone: () => void }) {
           </button>
         ))}
       </div>
+
       <button
         onClick={() => void suitUp()}
-        disabled={busy || initials.length < 2}
+        disabled={busy || !ready}
         className="mt-6 rounded-2xl bg-gold px-5 py-4 text-lg font-bold text-sheet disabled:opacity-40"
       >
-        {busy ? "…" : `Play as ${emoji} ${initials || "———"}`}
+        {busy ? "\u2026" : ready ? `Wake up ${emoji} ${clean}` : "Name me first"}
       </button>
-      <p className="mt-3 text-center text-[11px] text-faint">Two or three letters. The crown is decided tonight.</p>
+      <p className="mt-3 text-center text-[11px] text-faint">
+        Two letters minimum. This name rides every point you score tonight.
+      </p>
     </main>
   );
 }
+
 
 // ------------------------------------------------------------ the mirror
 
@@ -939,6 +971,15 @@ function Compass({ state }: { state: StatePayload }) {
     tone = "text-gold-bright";
   }
 
+  // One line from Val per beat, keyed to the slide so it holds still while
+  // the room is on it rather than shuffling under somebody's thumb.
+  const moment = armed
+    ? (slide.price ? "priceOpen" : "pollOpen")
+    : slide.kind === "close"
+      ? "close"
+      : "waiting";
+  const quip = valSay(moment, slide.id);
+
   const away = state.next ? state.next.step - state.step : 0;
   return (
     <div className="rounded-2xl border border-rule bg-sheet-2 px-4 py-3">
@@ -949,6 +990,12 @@ function Compass({ state }: { state: StatePayload }) {
         </span>
       </div>
       <p className={`mt-1 text-[15px] font-bold ${tone}`}>{doing}</p>
+      {/* Val, in your pocket. Same voice as the big screen, one line at a time. */}
+      {quip && (
+        <p className="mt-1.5 border-l-2 border-gold/50 pl-2.5 font-[family-name:var(--font-display)] text-[13px] italic leading-snug text-gold-bright">
+          {quip}
+        </p>
+      )}
       {state.next && away > 0 && (
         <p className="mt-0.5 text-[12px] text-faint">
           Next on your phone: {state.next.label} · {away === 1 ? "next slide" : `${away} slides away`}
