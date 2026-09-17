@@ -779,6 +779,7 @@ export function ValParticles({
   pin,
   quiet = false,
   beat,
+  mode = null,
 }: {
   className?: string;
   /** Any number that changes when the room does something — votes landing,
@@ -790,6 +791,13 @@ export function ValParticles({
   pin?: string;
   /** Dimmer, smaller, no plinth and no HUD: a presence, not a performance. */
   quiet?: boolean;
+  /** Drives Val out of her own loop and into the room's: `listen` opens her up
+   *  and holds her loose and breathing, `think` collapses everything into the
+   *  core and spins it, `speak` forms the table and pushes light outward. The
+   *  caller sets this from what is ACTUALLY happening — a request in flight is
+   *  `think`, a reply on screen is `speak` — so the animation cannot claim a
+   *  state the system is not in. */
+  mode?: "listen" | "think" | "speak" | null;
   /** Fires with the held shape while it is assembled, null while drifting, so
    *  the copy underneath can SELL what Val just made rather than label it. */
   onForm?: (shape: { id: string; says: string[]; closing: boolean } | null) => void;
@@ -798,6 +806,8 @@ export function ValParticles({
   const canvas = useRef<HTMLCanvasElement>(null);
   const formCb = useRef(onForm);
   formCb.current = onForm;
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
   const beatAt = useRef(-1e9);
   const beatSeen = useRef(beat);
   if (beat !== beatSeen.current) {
@@ -1045,6 +1055,12 @@ export function ValParticles({
     let lite = false;
     let avgDt = 16.7;
     let fadeA = 0.5;
+    // How far Val has left her own loop for the room's. Eased, so entering and
+    // leaving a mode is a move rather than a cut.
+    let modeAmt = 0;
+    let modeSince = 0;
+    let modeWas: string | null = null;
+    const tableIdx = Math.max(0, FORMS.findIndex((f) => f.id === "table"));
     let announced: string | null | undefined;
     let yaw = 0;
     let last = 0;
@@ -1090,11 +1106,22 @@ export function ValParticles({
       // Energy of the change: nothing at either end, everything in the middle.
       const flux = morphing ? Math.sin(Math.PI * Math.min(1, Math.max(0, p / MORPH))) : 0;
 
+      // ---- the room's state, if the room has one ----
+      const md = quiet ? null : modeRef.current;
+      if (md !== modeWas) {
+        modeWas = md;
+        modeSince = t;
+      }
+      modeAmt += ((md ? 1 : 0) - modeAmt) * Math.min(1, dt * 2.4);
+      const modeAge = (t - modeSince) / 1000;
+      // Thinking spins; listening turns slowly and openly; answering settles.
+      const modeSpin = md === "think" ? 3.4 : md === "listen" ? 0.55 : 1;
+
       // Downstream still speaks the old language: `pull` is how settled the
       // object is, and it now dips through a morph instead of falling to zero.
       const pull = calm ? 1 : 1 - flux * 0.55;
       const shooting = morphing;
-      const spin = 1 + flux * 2.2;
+      const spin = (1 + flux * 2.2) * (modeAmt > 0.01 ? 1 + (modeSpin - 1) * modeAmt : 1);
       const burst = 0;
       const vis = 1;
       // Edges belong to whichever shape the particles are nearer to, and they
@@ -1106,6 +1133,7 @@ export function ValParticles({
       const srcPts = quiet ? prevForm.ptsS : prevForm.pts;
       // The fourth line lands late in the hold, as the shape starts to go.
       const closing = !quiet && !morphing && p > MORPH + HOLD * 0.62;
+
 
       // The copy follows the motion: it cycles through the hold, then locks
       // onto the closing line as Val winds up to throw the shape.
@@ -1628,9 +1656,36 @@ export function ValParticles({
         const lx2 = (from[0] + (tgt[0] - from[0]) * k) * settle;
         const ly2 = (from[1] + (tgt[1] - from[1]) * k) * settle;
         const lz2 = (from[2] + (tgt[2] - from[2]) * k) * settle;
-        const px2 = lx2 + (coreX - lx2) * inward;
-        const py2 = ly2 + (coreY - ly2) * inward;
-        const pz2 = lz2 + (coreZ - lz2) * inward;
+        let px2 = lx2 + (coreX - lx2) * inward;
+        let py2 = ly2 + (coreY - ly2) * inward;
+        let pz2 = lz2 + (coreZ - lz2) * inward;
+
+        // WHERE THE ROOM PUTS HER.
+        //   listen — the loose shell, breathing, open: nothing held, waiting.
+        //   think  — everything pulled into a tight swirling ball at the core.
+        //   speak  — the table: Val in the middle of four people, talking.
+        if (modeAmt > 0.002) {
+          let mx: number, my: number, mz: number;
+          if (md === "think") {
+            const sw = modeAge * 3.1;
+            const c2 = Math.cos(sw), s3 = Math.sin(sw);
+            const rr2 = 0.2 + d.lag * 0.14;
+            mx = (d.x * c2 + d.z * s3) * rr2;
+            mz = (d.z * c2 - d.x * s3) * rr2;
+            my = d.y * rr2;
+          } else if (md === "speak") {
+            const tp = FORMS[tableIdx][quiet ? "ptsS" : "pts"][i];
+            mx = tp[0]; my = tp[1]; mz = tp[2];
+          } else {
+            // A slow swell that runs around the shell rather than pulsing the
+            // whole thing at once — it looks like breathing, not a heartbeat.
+            const br = 0.78 + 0.1 * Math.sin(modeAge * 1.5 + d.y * 3.4);
+            mx = d.x * br; my = d.y * br; mz = d.z * br;
+          }
+          px2 += (mx - px2) * modeAmt;
+          py2 += (my - py2) * modeAmt;
+          pz2 += (mz - pz2) * modeAmt;
+        }
         const q = project(px2, py2, pz2);
         const depth = Math.min(1, Math.max(0, (q.persp - 0.66) / 0.9));
         const flash = Math.max(0, 1 - Math.abs(py2 - sweepY) * 7);
@@ -1860,7 +1915,7 @@ export function ValParticles({
       // as it materialises, with a bar that fills as it does. Nothing here
       // names the object — the copy under the stage sells it — and the only
       // number on it is one this file can vouch for: the node count.
-      if (!quiet && !morphing && vis > 0.2) {
+      if (!quiet && (!morphing || modeAmt > 0.5) && vis > 0.2) {
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         for (let i = 0; i < builders.length; i++) {
           if (bx2[i] < minX) minX = bx2[i];
@@ -1892,12 +1947,31 @@ export function ValParticles({
         const fi = FORMS.indexOf(form);
         ctx.fillText(`▸ RENDER ${String(fi + 1).padStart(2, "0")}/${FORMS.length} · ${builders.length} NODES`, minX, minY - fs * 0.9);
         ctx.textAlign = "right";
-        ctx.fillText(closing ? "RELEASING" : "LOCKED", maxX, minY - fs * 0.9);
+        ctx.fillText(
+          md === "listen" ? "LISTENING" : md === "think" ? "THINKING" : md === "speak" ? "ANSWERING"
+            : closing ? "RELEASING" : "LOCKED",
+          maxX, minY - fs * 0.9
+        );
         const bw = Math.min(unit * 0.3, maxX - minX);
         ctx.fillStyle = `rgba(217,174,100,${0.2 * on})`;
         ctx.fillRect(minX, minY - fs * 0.45, bw, 2);
         ctx.fillStyle = `rgba(217,174,100,${0.85 * on})`;
         ctx.fillRect(minX, minY - fs * 0.45, bw, 2);
+      }
+
+      // ---- LISTENING: a ring leaving the core, every second and a half ----
+      // The one piece of pure theatre here, and it earns its place: a room
+      // needs to see that the thing is ON and waiting on them.
+      if (!quiet && md === "listen" && modeAmt > 0.15) {
+        for (let k2 = 0; k2 < 2; k2++) {
+          const ph = ((modeAge / 1.5) + k2 * 0.5) % 1;
+          const rr2 = unit * (0.2 + ph * 0.78);
+          ctx.beginPath();
+          ctx.arc(w / 2, h / 2, rr2, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(124,186,214,${0.3 * (1 - ph) * modeAmt})`;
+          ctx.lineWidth = 1.6 * (1 - ph) + 0.4;
+          ctx.stroke();
+        }
       }
 
       // ---- THE MONTH FILLING ----

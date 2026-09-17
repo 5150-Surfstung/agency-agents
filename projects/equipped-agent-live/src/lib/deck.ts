@@ -102,16 +102,15 @@ export const DECK: Slide[] = [
   },
   {
     id: "open-floor",
-    valSymbol: "contract",
-    kind: "content",
-    eyebrow: "Open floor · two minutes",
+    kind: "openfloor",
+    eyebrow: "Open floor · Val is listening",
     heading: "Brag or confess. Both count.",
     lines: [
-      "Shout it out: the best thing AI has done for your business this month —",
-      "or the worst. The fail. The made-up comp. The email you're glad you read twice.",
-      "Best story gets named from the stage. The polls are anonymous; the stories are volunteer-only.",
+      "Type it on your phone: the best thing AI has done for your business this month — or the worst.",
+      "The fail. The made-up comp. The email you're glad you read twice. Anonymous, always.",
+      "I'll read them out. Val answers on the wall.",
     ],
-    cue: "WORK THE ROOM — two to three minutes, no more. Call on a 'my assistant has an assistant' voter for a brag and a 'be gentle' voter for a fear. REPEAT every story back in one line so the whole room hears it. The fails are your gold: 'a made-up comp — hold that thought, because in thirty minutes you're going to watch an AI REFUSE to do exactly that, and you're going to get points for it.'",
+    cue: "THIS IS THE FIRST TIME VAL DOES SOMETHING FOR A PERSON IN THIS ROOM. Give them sixty seconds to type — the screen says Val is listening and it means it. Then READ ONE OUT LOUD before you tap it, so the room hears it in your voice first. Tap it, and Val takes it in on screen and answers. Take a confession second: the fails are your gold, and watching Val treat a fail as the most useful thing said all night is worth more than any brag. Nothing reaches the wall until YOU tap it — the pile is on your console only. Two or three entries, no more, then move.",
   },
   {
     id: "install",

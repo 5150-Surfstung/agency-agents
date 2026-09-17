@@ -117,6 +117,7 @@ export async function GET() {
           ? { key: slide.price.key, facts: slide.price.facts, minK: slide.price.minK, maxK: slide.price.maxK, stepK: slide.price.stepK }
           : null,
       },
+      brag: slide.kind === "openfloor" ? await store.bragCurrent(sess.roomKey) : null,
       pollState: state.pollState,
       me: me && me.initials ? me : null,
       myVote,

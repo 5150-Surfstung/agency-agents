@@ -106,6 +106,11 @@ async function snapshot(key: string) {
     duelStats = await store.duelStats(key);
   }
 
+  // The one open-floor entry a human has put on the wall, if any. Never the
+  // pile — the console fetches that separately.
+  let brag = null;
+  if (slide.kind === "openfloor") brag = await store.bragCurrent(key);
+
   let scoreboard = null;
   let standings = null;
   if (slide.kind === "leaderboard" || slide.kind === "close") {
@@ -130,6 +135,7 @@ async function snapshot(key: string) {
     present,
     spendUsd: Math.round(spend * 100) / 100,
     pin,
+    brag,
     engineOnline: engineOnline(),
     smsOnline: smsOnline(),
     backend: store.backend(),

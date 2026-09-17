@@ -8,6 +8,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { HOUSE_CODE } from "./deck";
 import { presenterKey, roomPin } from "./room";
 import type {
+  Brag,
   AiGuess, Assistant, AssistantLead, Attack, Lead, Pack, Player, PollState,
   RosterEntry, RoomState, ScoreRow, StumpEntry, ThreadMsg, ThreadRole, ThreadRow, ToolEvent, Vote,
 } from "./types";
@@ -106,6 +107,14 @@ export interface Store {
   threadSay(key: string, deviceId: string, threadId: string, who: string, body: string): Promise<number>;
   threadRelease(key: string, deviceId: string, threadId: string): Promise<void>;
   threadStats(key: string): Promise<{ threads: number; waiting: number; taken: number; msgs: number }>;
+
+  /** THE OPEN FLOOR. Phones write; only the console reads the pile; only the
+   *  presenter puts one on the wall. */
+  bragAdd(key: string, deviceId: string, kind: "brag" | "confess", body: string): Promise<void>;
+  bragList(key: string): Promise<Brag[]>;
+  bragAnswer(key: string, id: number, reply: string): Promise<void>;
+  bragCurrent(key: string): Promise<Brag | null>;
+  bragClear(key: string): Promise<void>;
 }
 
 // ---------------------------------------------------------------- memory
@@ -465,6 +474,28 @@ class MemoryStore implements Store {
     t.operator = "";
     t.lastAt = Date.now();
   }
+  private brags: Brag[] = [];
+  private bragSeq = 1;
+  async bragAdd(_key: string, _deviceId: string, kind: "brag" | "confess", body: string) {
+    const clean = body.trim().slice(0, 400);
+    if (clean.length < 4) throw new Error("too_short");
+    this.brags.unshift({ id: this.bragSeq++, kind, body: clean, reply: "", shown: false, at: new Date().toISOString() });
+  }
+  async bragList() {
+    return this.brags.slice(0, 40);
+  }
+  async bragAnswer(_key: string, id: number, reply: string) {
+    for (const b of this.brags) b.shown = false;
+    const hit = this.brags.find((b) => b.id === id);
+    if (hit) { hit.reply = reply.slice(0, 2000); hit.shown = true; }
+  }
+  async bragCurrent() {
+    return this.brags.find((b) => b.shown) ?? null;
+  }
+  async bragClear() {
+    for (const b of this.brags) b.shown = false;
+  }
+
   async threadStats(key: string) {
     if (key !== presenterKey()) throw new Error("not_presenter");
     const rows = [...this.threads.entries()];
@@ -854,6 +885,33 @@ class RpcStore implements Store {
   async threadRelease(key: string, deviceId: string, threadId: string) {
     await this.call("live_thread_release", { p_key: key, p_device: deviceId, p_thread: threadId });
   }
+  async bragAdd(key: string, deviceId: string, kind: "brag" | "confess", body: string) {
+    await this.call("live_brag_add", { p_key: key, p_device: deviceId, p_kind: kind, p_body: body });
+  }
+  async bragList(key: string): Promise<Brag[]> {
+    const rows = await this.call<Brag[]>("live_brag_list", { p_key: key, p_limit: 40 });
+    return (rows ?? []).map((r) => ({
+      id: Number(r.id), kind: r.kind === "confess" ? "confess" : "brag",
+      body: String(r.body ?? ""), reply: String(r.reply ?? ""),
+      shown: Boolean(r.shown), at: String(r.at ?? ""),
+    }));
+  }
+  async bragAnswer(key: string, id: number, reply: string) {
+    await this.call("live_brag_answer", { p_key: key, p_id: id, p_reply: reply });
+  }
+  async bragCurrent(key: string): Promise<Brag | null> {
+    const rows = await this.call<Brag[]>("live_brag_current", { p_key: key });
+    const r = rows?.[0];
+    if (!r) return null;
+    return {
+      id: Number(r.id), kind: r.kind === "confess" ? "confess" : "brag",
+      body: String(r.body ?? ""), reply: String(r.reply ?? ""), shown: true, at: "",
+    };
+  }
+  async bragClear(key: string) {
+    await this.call("live_brag_clear", { p_key: key });
+  }
+
   async threadStats(key: string) {
     const rows = await this.call<{ threads: number; waiting: number; taken: number; msgs: number }[]>(
       "live_thread_stats", { p_key: key }

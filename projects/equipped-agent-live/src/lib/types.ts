@@ -55,7 +55,8 @@ export interface Slide {
   kind:
     | "standby" | "title" | "content" | "demo" | "poll" | "price"
     | "build" | "duel"
-    | "stump" | "arcade" | "seed" | "leaderboard" | "close";
+    | "stump" | "arcade" | "seed" | "leaderboard" | "close"
+    | "openfloor";
   eyebrow?: string;
   heading: string;
   lines?: string[];
@@ -205,6 +206,17 @@ export interface AssistantLead {
 
 /** Who is speaking in a thread. `agent` is a HUMAN who broke in; `system` is
  *  the handoff line the room sees, never a line anyone typed. */
+/** An open-floor entry: a brag or a confession typed on a phone. `reply` is
+ *  Val's answer, written only when the presenter sends it to the wall. */
+export type Brag = {
+  id: number;
+  kind: "brag" | "confess";
+  body: string;
+  reply: string;
+  shown: boolean;
+  at: string;
+};
+
 export type ThreadRole = "visitor" | "assistant" | "agent" | "system";
 
 export interface ThreadMsg {

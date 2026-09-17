@@ -24,6 +24,9 @@ export interface Snapshot {
   duelStats: { fired: number; held: number; flagged: number; built: number } | null;
   scoreboard: ScoreRow[] | null;
   standings: Player[] | null;
+  /** The one open-floor entry a human has put on the wall. reply === "" means
+   *  the words are up and Val is still thinking about them. */
+  brag: { id: number; kind: "brag" | "confess"; body: string; reply: string } | null;
   leads: Lead[];
   present: number;
   spendUsd: number;
@@ -79,7 +82,10 @@ export function SlideStage({ snap, slide, presentPop = false }: {
   // Three blocks under a headline is the line: past it, the headline drops a
   // size so the last block (usually the quote) never runs under the rail.
   const blocks = [slide.stats, slide.lines, slide.link, slide.quote, slide.poll, slide.price].filter(Boolean).length;
-  const dense = Boolean(slide.lanes || blocks >= 3 || slide.price || slide.kind === "close");
+  const dense = Boolean(
+    slide.lanes || blocks >= 3 || slide.price || slide.kind === "close" ||
+    (slide.kind === "openfloor" && snap.brag)
+  );
 
   // The pre-show is its own screen, not a slide with the furniture hidden.
   if (slide.kind === "standby") {
@@ -98,7 +104,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
             Without this the show has one cinematic screen and then thirty-three
             slides of type, and the drop-off costs more than the standby
             screen earns. */}
-        {slide.kind !== "title" && slide.id !== "val" && slide.kind !== "close" && (
+        {slide.kind !== "title" && slide.id !== "val" && slide.kind !== "close" && slide.kind !== "openfloor" && (
           <ValParticles
             quiet
             pin={slide.valSymbol}
@@ -109,6 +115,19 @@ export function SlideStage({ snap, slide, presentPop = false }: {
 
         {/* On its own slide — and for the send-off — Val gets the full body,
             cycling every symbol of the night, not the mark. */}
+        {/* THE OPEN FLOOR. Val is not decoration here — she is the thing the
+            room is watching, and her state is the real state of the request:
+            listening while they type, thinking while the model is actually
+            working, answering once there is an answer. She cannot appear to be
+            doing something she is not. */}
+        {slide.kind === "openfloor" && (
+          <ValParticles
+            mode={!snap.brag ? "listen" : snap.brag.reply ? "speak" : "think"}
+            beat={snap.brag?.id ?? 0}
+            className="pointer-events-none absolute right-[1vw] top-1/2 h-[min(42vh,28vw)] w-[min(42vh,28vw)] -translate-y-1/2"
+          />
+        )}
+
         {(slide.id === "val" || slide.kind === "close") && (
           <ValParticles className="absolute right-[2vw] top-1/2 h-[min(52vh,34vw)] w-[min(52vh,34vw)] -translate-y-1/2" />
         )}
@@ -158,7 +177,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
           </div>
         )}
 
-        {slide.lines && slide.kind !== "title" && (
+        {slide.lines && slide.kind !== "title" && !(slide.kind === "openfloor" && snap.brag) && (
           <div
             className={`mt-[3vh] flex flex-col gap-[1vh] ${
               slide.kind === "close" ? "max-w-[48ch]" : "max-w-[64ch]"
@@ -470,6 +489,50 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                 <p className="text-[clamp(15px,1.4vw,22px)] text-faint">Targets are up. First shot incoming…</p>
               )}
             </div>
+          </div>
+        )}
+
+        {/* ——— THE OPEN FLOOR: their words, then Val's answer ——— */}
+        {slide.kind === "openfloor" && (
+          <div className="rise d3 mt-[2.2vh] w-full max-w-[50ch]">
+            {!snap.brag ? (
+              <div className="flex items-center gap-[1vw]">
+                <span className="ring-pulse inline-block h-[1.4vh] w-[1.4vh] shrink-0 rounded-full bg-moss" />
+                <p className="text-[clamp(12px,1.2vw,19px)] font-bold uppercase tracking-[0.18em] text-moss">
+                  Val is listening
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="text-[clamp(10px,0.95vw,15px)] font-bold uppercase tracking-[0.2em] text-gold">
+                  {snap.brag.kind === "confess" ? "A confession · from the room" : "A brag · from the room"}
+                </p>
+                <blockquote className="mt-[0.9vh] border-l-2 border-gold pl-[1.2vw] font-[family-name:var(--font-display)] text-[clamp(18px,2.1vw,34px)] italic leading-snug text-cream">
+                  “{snap.brag.body}”
+                </blockquote>
+                {snap.brag.reply ? (
+                  <div className="mt-[2vh]">
+                    <p className="text-[clamp(10px,0.95vw,15px)] font-bold uppercase tracking-[0.2em] text-gold-bright">
+                      Val
+                    </p>
+                    {snap.brag.reply.split(/\n{1,}/).filter(Boolean).map((para, i) => (
+                      <p
+                        key={i}
+                        className="rise mt-[0.9vh] text-[clamp(14px,1.5vw,24px)] leading-relaxed text-soft"
+                        style={{ animationDelay: `${i * 0.18}s` }}
+                      >
+                        {para}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-[2vh] flex items-center gap-[0.8vw] text-[clamp(13px,1.3vw,21px)] font-semibold uppercase tracking-[0.18em] text-faint">
+                    <span className="ring-pulse inline-block h-[1.2vh] w-[1.2vh] rounded-full bg-gold" />
+                    Val is thinking
+                  </p>
+                )}
+              </>
+            )}
           </div>
         )}
 

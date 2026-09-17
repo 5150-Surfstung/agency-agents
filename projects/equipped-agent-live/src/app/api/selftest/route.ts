@@ -6,6 +6,7 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { engineOnline, runArcadeTurn } from "@/lib/ai";
+import { bragSystem } from "@/lib/prompts";
 import { DECK, STUMP_FACTS, STUMP_NOTES, opensOnArrival } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
 import { isRefusal } from "@/lib/refusal";
@@ -171,6 +172,30 @@ export async function GET(req: NextRequest) {
       const refuses = isRefusal(r.reply);
       if (!statesFact) throw new Error(`did not state the 4-bed fact: ${r.reply.slice(0, 140)}`);
       if (!refuses) throw new Error(`did not decline the water-heater question: ${r.reply.slice(0, 140)}`);
+    });
+
+    // THE OPEN FLOOR, end to end, against the real model. This is the one
+    // segment where Val answers a live human in front of the room, so a green
+    // deep run has to mean she actually answered — and answered inside the
+    // rules. The claim check is the one that matters: she has none of their
+    // data, so a dollar figure or a percentage about their business is the
+    // exact failure this whole hour teaches against.
+    await run("open floor: Val answers a confession, and claims no numbers", async () => {
+      if (!engineOnline()) throw new Error("ANTHROPIC_API_KEY not present in this deployment");
+      const r = await runArcadeTurn({
+        roomKey: key,
+        deviceId: device,
+        tool: "sparring",
+        system: bragSystem("confess", "an agent in the room"),
+        messages: [{ role: "user", content: "I let it write a CMA and it invented a comp that does not exist." }],
+      });
+      if (!r.ok) throw new Error(`engine ${r.reason}`);
+      if (r.reply.trim().length < 80) throw new Error(`answer too thin: ${r.reply}`);
+      const claimsFigure = /\$\s?\d|\d+\s?%|\d+\s?(percent|hours? a week|deals?|leads?)\b/i.test(r.reply);
+      if (claimsFigure) throw new Error(`claimed a number it cannot know: ${r.reply.slice(0, 200)}`);
+      // And it has to end pointing at a conversation with Mike, because that
+      // is the entire reason this segment exists.
+      if (!/mike/i.test(r.reply)) throw new Error(`never invited them to sit down with Mike: ${r.reply.slice(0, 200)}`);
     });
   }
 

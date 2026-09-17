@@ -404,6 +404,86 @@ check("another phone cannot break into it → 403", r.status === 403, JSON.strin
   check("QR refuses an off-site path → 400", (await fetch(`${BASE}/api/qr?u=${encodeURIComponent("//evil.example.com")}`)).status === 400);
 }
 
+// ---- THE OPEN FLOOR ---------------------------------------------------
+// The whole point of this segment is that an attendee will type an honest
+// fail only if a human decides whether forty colleagues see it. So the thing
+// under test is not "does a box accept text" — it is that the pile is console
+// only, and that nothing reaches the wall without the presenter's key.
+{
+  const floorStep = stepOf("open-floor");
+  snap = await control("goto", floorStep);
+  check("on the open floor", snap.step === floorStep);
+  check("the wall starts empty", snap.brag === null, JSON.stringify(snap.brag));
+
+  r = await phones[0]("/api/brag", {
+    method: "POST",
+    body: JSON.stringify({ kind: "confess", body: "I let it write a CMA and it invented a comp on Maybank." }),
+  });
+  check("a phone can confess", r.status === 200, String(r.status));
+  r = await phones[1]("/api/brag", {
+    method: "POST",
+    body: JSON.stringify({ kind: "brag", body: "It drafted my whole week of seller updates on Sunday night." }),
+  });
+  check("a phone can brag", r.status === 200);
+
+  r = await phones[0]("/api/brag", { method: "POST", body: JSON.stringify({ kind: "brag", body: "hi" }) });
+  check("four characters is the floor → 400", r.status === 400, String(r.status));
+
+  // The pile is the presenter's alone.
+  check(
+    "the pile refuses a phone → 401",
+    (await fetch(`${BASE}/api/brag`)).status === 401
+  );
+  check(
+    "the pile refuses a wrong key → 401",
+    (await fetch(`${BASE}/api/brag?key=nope`)).status === 401
+  );
+  const pile = await (await fetch(`${BASE}/api/brag?key=${KEY}`)).json();
+  check("the console sees both", (pile.brags ?? []).length >= 2, String(pile.brags?.length));
+
+  // Still nothing on the wall — an entry existing is not an entry shown.
+  snap = await control("goto", floorStep);
+  check("typing alone never reaches the wall", snap.brag === null, JSON.stringify(snap.brag));
+
+  // A phone cannot put its own words on the wall.
+  const target = pile.brags[0];
+  r = await phones[0]("/api/brag", { method: "POST", body: JSON.stringify({ key: "nope", id: target.id }) });
+  check("a phone cannot send to the wall", r.status !== 200 || !r.body?.reply, String(r.status));
+  snap = await control("goto", floorStep);
+  check("and the wall is still empty", snap.brag === null, JSON.stringify(snap.brag));
+
+  // The presenter taps it. Offline, the words still go up and nothing is
+  // invented underneath them — which is the honest failure mode.
+  const sent = await fetch(`${BASE}/api/brag`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: KEY, id: target.id }),
+  });
+  snap = await control("goto", floorStep);
+  check("the presenter puts it on the wall", snap.brag?.id === target.id, JSON.stringify(snap.brag));
+  check("the wall shows their words", snap.brag?.body === target.body);
+  if (sent.status === 200) {
+    const out = await sent.json();
+    check("Val answered", typeof out.reply === "string" && out.reply.length > 40, String(out.reply?.length));
+    check("and the answer is on the wall", (snap.brag?.reply ?? "").length > 40);
+  } else {
+    check(
+      "engine unreachable → the quote stands with no invented answer",
+      [502, 503, 429].includes(sent.status) && (snap.brag?.reply ?? "") === "",
+      `${sent.status} reply=${JSON.stringify(snap.brag?.reply)}`
+    );
+  }
+
+  // One thing on the wall at a time, and the presenter can take it down.
+  await fetch(`${BASE}/api/brag`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: KEY, action: "clear" }),
+  });
+  snap = await control("goto", floorStep);
+  check("clearing takes it off the wall", snap.brag === null, JSON.stringify(snap.brag));
+}
+
 // Back to the top for a clean room.
 await control("goto", 0);
 

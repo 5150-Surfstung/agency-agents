@@ -11,6 +11,7 @@
 //   F       fullscreen
 
 import { useCallback, useEffect, useState } from "react";
+import { OpenFloor } from "@/app/open-floor";
 import { Switchboard } from "@/app/switchboard";
 import { toggleFullscreen } from "@/lib/fullscreen";
 import { DECK } from "@/lib/deck";
@@ -21,6 +22,7 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
   const [showLeads, setShowLeads] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [showBoard, setShowBoard] = useState(false);
+  const [showFloor, setShowFloor] = useState(false);
   const [startedAt] = useState(() => Date.now());
   const [elapsed, setElapsed] = useState(0);
 
@@ -81,6 +83,7 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
       } else if (e.key.toLowerCase() === "l") setShowLeads((v) => !v);
       else if (e.key.toLowerCase() === "q") setShowQr((v) => !v);
       else if (e.key.toLowerCase() === "w") setShowBoard((v) => !v);
+      else if (e.key.toLowerCase() === "o") setShowFloor((v) => !v);
       else if (e.key.toLowerCase() === "f") toggleFullscreen();
       else if (e.key.toLowerCase() === "s") openScreen();
     }
@@ -264,7 +267,32 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
         >
           Switchboard
         </button>
+        <button
+          onClick={() => setShowFloor((v) => !v)}
+          className="rounded-2xl border border-rule bg-sheet-2 px-5 py-4 text-sm font-bold text-soft"
+        >
+          Open floor (O)
+        </button>
       </div>
+
+      {/* ——— the open floor (O) — the pile, and the one tap that puts a
+           quote on the wall. Nothing an attendee types reaches the room
+           without it. ——— */}
+      {showFloor && (
+        <aside className="fixed bottom-0 right-0 top-0 z-30 flex w-[28rem] flex-col border-l border-rule bg-sheet-2/97 p-6 backdrop-blur">
+          <div className="flex items-baseline justify-between pb-2">
+            <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-cream">
+              Open floor
+            </h2>
+            <button onClick={() => setShowFloor(false)} className="text-xs font-bold text-faint">
+              close (O)
+            </button>
+          </div>
+          <div className="min-h-0 flex-1">
+            <OpenFloor presenterKey={presenterKey} />
+          </div>
+        </aside>
+      )}
 
       {/* ——— the switchboard (W) — live conversations, and breaking into one.
            Full-width because reading a transcript from a lectern is the whole

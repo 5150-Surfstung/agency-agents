@@ -61,6 +61,7 @@ interface StatePayload {
   } | null;
   duelStats: { fired: number; held: number; flagged: number; built: number } | null;
   board: { top: BoardRow[]; myPoints: number; myRank: number | null } | null;
+  brag: { id: number; kind: "brag" | "confess"; body: string; reply: string } | null;
   engineOnline: boolean;
 }
 
@@ -178,7 +179,8 @@ export function RoomClient() {
     (slide.price && pollState !== "closed") ||
     slide.kind === "build" ||
     slide.kind === "duel" ||
-    slide.kind === "leaderboard";
+    slide.kind === "leaderboard" ||
+    slide.kind === "openfloor";
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-10 pt-5">
@@ -223,6 +225,11 @@ export function RoomClient() {
             buzz(25);
             showToast(refused ? "It held \u2014 +15 to the builder" : "+10 fired");
           }}
+        />
+      ) : slide.kind === "openfloor" ? (
+        <OpenFloorScreen
+          state={state}
+          onSent={() => { showToast("Sent to Mike \u2014 anonymous"); void tick(); }}
         />
       ) : slide.kind === "leaderboard" ? (
         <BoardScreen state={state} onPosted={() => { showToast("Ring score on THE BOARD"); void tick(); }} />
@@ -1005,5 +1012,128 @@ function Compass({ state }: { state: StatePayload }) {
         <p className="mt-0.5 text-[12px] text-faint">That&apos;s everything hands-on — you&apos;re at the close.</p>
       )}
     </div>
+  );
+}
+
+/** THE OPEN FLOOR, on a phone.
+ *
+ *  One box, two buttons, and a line telling them the truth about where it
+ *  goes: to Mike, not to the wall. That sentence is doing real work — people
+ *  will type a genuine fail if, and only if, they know a human decides whether
+ *  forty colleagues see it. Once something IS on the wall, this screen mirrors
+ *  it, so the room can read along while Mike reads it out. */
+function OpenFloorScreen({
+  state,
+  onSent,
+}: {
+  state: StatePayload;
+  onSent: () => void;
+}) {
+  const [text, setText] = useState("");
+  const [kind, setKind] = useState<"brag" | "confess">("brag");
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [err, setErr] = useState("");
+
+  const send = useCallback(async () => {
+    const body = text.trim();
+    if (body.length < 4 || busy) return;
+    setBusy(true);
+    setErr("");
+    try {
+      const res = await fetch("/api/brag", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, body }),
+      });
+      if (!res.ok) {
+        setErr("That didn't send. Try once more.");
+        return;
+      }
+      setText("");
+      setSent(true);
+      onSent();
+    } catch {
+      setErr("That didn't send. Try once more.");
+    } finally {
+      setBusy(false);
+    }
+  }, [text, kind, busy, onSent]);
+
+  return (
+    <section className="mt-6">
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
+        Open floor · Val is listening
+      </p>
+      <h2 className="mt-1 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-cream">
+        Brag or confess.
+      </h2>
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        {(["brag", "confess"] as const).map((k) => (
+          <button
+            key={k}
+            onClick={() => setKind(k)}
+            className={`rounded-xl border px-3 py-3 text-sm font-bold ${
+              kind === k ? "border-gold bg-gold text-sheet" : "border-rule bg-sheet-2 text-soft"
+            }`}
+          >
+            {k === "brag" ? "🏆 A win" : "😬 A fail"}
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value.slice(0, 400))}
+        rows={4}
+        placeholder={
+          kind === "brag"
+            ? "The best thing AI has done for your business this month…"
+            : "The made-up comp. The email you're glad you read twice…"
+        }
+        className="mt-3 w-full rounded-2xl border border-rule bg-sheet-2 px-4 py-3 text-base text-cream placeholder:text-faint"
+      />
+      <div className="mt-1 flex items-center justify-between text-[11px] text-faint">
+        <span>Anonymous — your name is never attached.</span>
+        <span>{text.trim().length}/400</span>
+      </div>
+
+      <button
+        onClick={() => void send()}
+        disabled={busy || text.trim().length < 4}
+        className="mt-3 w-full rounded-2xl bg-gold px-5 py-4 text-lg font-bold text-sheet disabled:opacity-40"
+      >
+        {busy ? "Sending…" : "Send it to Mike"}
+      </button>
+      {err && <p className="mt-2 text-sm font-semibold text-clay">{err}</p>}
+      <p className="mt-2 text-[11px] leading-snug text-faint">
+        It goes to Mike&apos;s console, not the big screen. He reads it out and decides what the room sees.
+      </p>
+      {sent && !err && (
+        <p className="mt-2 text-sm font-semibold text-moss">In. Send another if you think of one.</p>
+      )}
+
+      {state.brag && (
+        <div className="mt-6 rounded-2xl border border-gold/50 bg-sheet-2 p-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-gold">
+            {state.brag.kind === "confess" ? "On the screen · a confession" : "On the screen · a brag"}
+          </p>
+          <p className="mt-2 font-[family-name:var(--font-display)] text-base italic leading-snug text-cream">
+            &ldquo;{state.brag.body}&rdquo;
+          </p>
+          {state.brag.reply ? (
+            <>
+              <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.22em] text-gold-bright">Val</p>
+              {state.brag.reply.split(/\n{1,}/).filter(Boolean).map((para, i) => (
+                <p key={i} className="mt-1.5 text-sm leading-relaxed text-soft">{para}</p>
+              ))}
+            </>
+          ) : (
+            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-faint">Val is thinking…</p>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
