@@ -132,7 +132,7 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
         {/* ——— left: what the room is seeing, and what's live on it ——— */}
         <section className="flex flex-col">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-faint">On the screen now</p>
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-cream">
+          <h1 className="mt-2 display text-3xl font-extrabold leading-tight text-cream">
             {slide.heading}
           </h1>
 
@@ -281,7 +281,7 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
       {showFloor && (
         <aside className="fixed bottom-0 right-0 top-0 z-30 flex w-[28rem] flex-col border-l border-rule bg-sheet-2/97 p-6 backdrop-blur">
           <div className="flex items-baseline justify-between pb-2">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-cream">
+            <h2 className="display text-2xl font-extrabold text-cream">
               Open floor
             </h2>
             <button onClick={() => setShowFloor(false)} className="text-xs font-bold text-faint">
@@ -300,7 +300,7 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
       {showBoard && (
         <div className="fixed inset-0 z-30 flex flex-col bg-sheet/97 p-5 backdrop-blur">
           <div className="flex items-baseline gap-4 pb-3">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-cream">
+            <h2 className="display text-2xl font-extrabold text-cream">
               The switchboard
             </h2>
             <p className="text-sm text-faint">
@@ -320,7 +320,7 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
       {showLeads && (
         <aside className="fixed bottom-0 right-0 top-0 z-20 w-[26rem] overflow-y-auto border-l border-rule bg-sheet-2/97 p-6 backdrop-blur">
           <div className="flex items-baseline justify-between">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-cream">Leads</h2>
+            <h2 className="display text-2xl font-extrabold text-cream">Leads</h2>
             <a
               href={`/api/leads.csv?key=${encodeURIComponent(presenterKey)}`}
               className="text-xs font-bold text-gold underline-offset-2 hover:underline"

@@ -18,7 +18,7 @@ export default function Kit() {
         <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gold">
           The AGENT Connection™ · Charleston, SC
         </p>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl font-semibold text-cream sm:text-6xl">
+        <h1 className="mt-2 display text-4xl font-extrabold text-cream sm:text-6xl">
           The Equipped Agent kit
         </h1>
         <p className="mt-3 max-w-2xl text-[17px] leading-relaxed text-soft">
@@ -29,7 +29,7 @@ export default function Kit() {
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gold">
             If you only do one thing
           </p>
-          <p className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold leading-snug text-cream">
+          <p className="mt-2 display text-2xl font-extrabold leading-snug text-cream">
             Open Claude and paste the first card. Five minutes, tonight, in the parking lot.
           </p>
           <p className="mt-2 text-[15px] leading-relaxed text-soft">
@@ -126,7 +126,7 @@ export default function Kit() {
         </ol>
         <div className="mt-4 rounded-2xl border border-gold/50 bg-sheet-2 p-5">
           <p className="text-xs font-bold uppercase tracking-wider text-gold">Then add this sentence</p>
-          <p className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold leading-snug text-cream">
+          <p className="mt-2 display text-2xl font-extrabold leading-snug text-cream">
             “Ask me anything you&apos;re missing before you start.”
           </p>
           <p className="mt-2 text-[15px] leading-relaxed text-soft">
@@ -256,7 +256,7 @@ export default function Kit() {
             ],
           ].map(([name, blurb, asks]) => (
             <article key={name as string} className="rounded-3xl border border-rule bg-sheet-2 p-5">
-              <h3 className="font-[family-name:var(--font-display)] text-xl font-semibold text-cream">
+              <h3 className="display text-xl font-extrabold text-cream">
                 {name as string}
               </h3>
               <p className="mt-1 text-[14px] leading-relaxed text-soft">{blurb as string}</p>
@@ -353,7 +353,7 @@ export default function Kit() {
       </Section>
 
       <footer className="mt-14 border-t border-rule pt-6">
-        <p className="font-[family-name:var(--font-display)] text-2xl font-semibold text-cream">
+        <p className="display text-2xl font-extrabold text-cream">
           Mike Olson
         </p>
         <p className="mt-1 text-[15px] text-soft">
@@ -378,8 +378,8 @@ function Section({ id, n, title, children }: { id: string; n: string; title: str
   return (
     <section id={id} className="mt-14 scroll-mt-6">
       <div className="flex items-baseline gap-3">
-        <span className="font-[family-name:var(--font-display)] text-3xl font-bold text-gold">{n}</span>
-        <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold text-cream sm:text-4xl">
+        <span className="display text-3xl font-extrabold text-gold">{n}</span>
+        <h2 className="display text-3xl font-extrabold text-cream sm:text-4xl">
           {title}
         </h2>
       </div>
@@ -419,7 +419,7 @@ function Note({ children }: { children: React.ReactNode }) {
 function Tool({ href, title, body }: { href: string; title: string; body: string }) {
   return (
     <a href={href} className="block rounded-3xl border border-gold/40 bg-sheet-2 p-5 hover:border-gold">
-      <p className="font-[family-name:var(--font-display)] text-2xl font-semibold text-cream">{title} →</p>
+      <p className="display text-2xl font-extrabold text-cream">{title} →</p>
       <p className="mt-2 text-[15px] leading-relaxed text-soft">{body}</p>
     </a>
   );

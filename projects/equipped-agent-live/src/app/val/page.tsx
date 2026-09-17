@@ -88,7 +88,7 @@ export default function ValPage() {
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gold">
             Surfstung Systems · The AGENT Connection™
           </p>
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-5xl font-semibold text-cream sm:text-7xl">
+          <h1 className="mt-2 display text-5xl font-extrabold text-cream sm:text-7xl">
             Val
           </h1>
           <p className="mt-3 text-[17px] leading-relaxed text-soft">
@@ -153,7 +153,7 @@ export default function ValPage() {
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           {SHELVES.map((sh) => (
             <article key={sh.name} className="rounded-3xl border border-rule bg-sheet-2 p-5">
-              <h3 className="font-[family-name:var(--font-display)] text-xl font-semibold text-cream">
+              <h3 className="display text-xl font-extrabold text-cream">
                 {sh.name}
               </h3>
               <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-gold">
@@ -174,7 +174,7 @@ export default function ValPage() {
             ["The rules, not just the tools", "You learn why each system is shaped the way it is, so you can extend it after we leave the table."],
           ].map(([t, d]) => (
             <li key={t} className="rounded-2xl border border-rule bg-sheet-2 p-4">
-              <p className="font-[family-name:var(--font-display)] text-lg font-semibold text-cream">{t}</p>
+              <p className="display text-lg font-extrabold text-cream">{t}</p>
               <p className="mt-1 text-[15px] leading-relaxed text-soft">{d}</p>
             </li>
           ))}
@@ -188,7 +188,7 @@ export default function ValPage() {
       </Section>
 
       <footer className="mt-14 border-t border-rule pt-6">
-        <p className="font-[family-name:var(--font-display)] text-2xl font-semibold text-cream">{HOST.full}</p>
+        <p className="display text-2xl font-extrabold text-cream">{HOST.full}</p>
         <p className="mt-1 text-[15px] text-soft">
           {HOST.title} · {HOST.org}
           <br />
@@ -216,7 +216,7 @@ export default function ValPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-14">
-      <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold text-cream sm:text-4xl">
+      <h2 className="display text-3xl font-extrabold text-cream sm:text-4xl">
         {title}
       </h2>
       <span className="mt-2 block h-[3px] w-24 rounded-full bg-gold" />

@@ -19,7 +19,7 @@ export default function SeedPage() {
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
         The Equipped Agent · courtesy of The AGENT Connection™
       </p>
-      <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold leading-tight text-cream">
+      <h1 className="mt-3 display text-4xl font-extrabold leading-tight text-cream">
         The Assistant Seed
       </h1>
       <p className="mt-3 max-w-xl text-soft">
@@ -51,7 +51,7 @@ export default function SeedPage() {
       </pre>
 
       <div className="mt-8 rounded-2xl border border-gold/50 bg-sheet-2 p-5">
-        <p className="font-[family-name:var(--font-display)] text-xl font-semibold text-cream">
+        <p className="display text-xl font-extrabold text-cream">
           Want the room where this is already running?
         </p>
         <p className="mt-1 text-sm text-soft">

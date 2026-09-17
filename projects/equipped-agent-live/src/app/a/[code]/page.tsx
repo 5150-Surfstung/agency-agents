@@ -39,7 +39,7 @@ export default async function AssistantPage({ params }: { params: Promise<{ code
         <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-gold">
           {assistant.brokerage || "Listing assistant"}
         </p>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-cream">
+        <h1 className="mt-2 display text-3xl font-extrabold leading-tight text-cream">
           {assistant.headline || "Ask about this home"}
         </h1>
         <p className="mt-2 text-sm text-soft">

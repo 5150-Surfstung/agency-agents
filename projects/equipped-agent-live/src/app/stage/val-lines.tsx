@@ -66,7 +66,7 @@ export function ValLines({ lines, every = 7200 }: { lines: string[]; every?: num
       {/* Keyed so each line remounts and replays the fly-through. */}
       <span
         key={`${key}:${i}`}
-        className="val-line max-w-[54ch] font-[family-name:var(--font-display)] text-[clamp(15px,1.75vw,31px)] italic leading-snug text-cream"
+        className="val-line max-w-[54ch] pull text-[clamp(15px,1.75vw,31px)] leading-snug text-cream"
       >
         {line}
       </span>

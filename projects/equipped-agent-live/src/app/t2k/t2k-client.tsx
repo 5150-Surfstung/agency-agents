@@ -81,7 +81,7 @@ export function T2kClient({ initial }: { initial: DealInput }) {
         <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gold">
           The Equipped Agent · a working tool, not a slide
         </p>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl font-semibold text-cream sm:text-5xl">
+        <h1 className="mt-2 display text-4xl font-extrabold text-cream sm:text-5xl">
           Track to Keys
         </h1>
         <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-soft">
@@ -161,7 +161,7 @@ export function T2kClient({ initial }: { initial: DealInput }) {
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold">Next up</p>
               {next ? (
                 <>
-                  <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-semibold text-cream">
+                  <p className="mt-1 display text-3xl font-extrabold text-cream">
                     {next.label}
                   </p>
                   <p className={`mt-1 text-sm font-bold ${TONE[next.urgency].text}`}>
@@ -176,7 +176,7 @@ export function T2kClient({ initial }: { initial: DealInput }) {
             </div>
             <div className="rounded-3xl border border-rule bg-sheet-2 p-5">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold">Under contract</p>
-              <p className="mt-1 font-[family-name:var(--font-display)] text-5xl font-semibold text-cream">
+              <p className="mt-1 display text-5xl font-extrabold text-cream">
                 {chain.span}
               </p>
               <p className="text-sm text-soft">days, binding to keys</p>
@@ -285,7 +285,7 @@ function AgentRow({ m, i }: { m: Milestone; i: number }) {
       style={{ animationDelay: `${Math.min(i, 8) * 0.045}s` }}
     >
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="font-[family-name:var(--font-display)] text-xl font-semibold text-cream">{m.label}</span>
+        <span className="display text-xl font-extrabold text-cream">{m.label}</span>
         <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${tone.chip}`}>
           {tone.word}
         </span>
@@ -312,7 +312,7 @@ function ClientView({ deal, milestones }: { deal: DealInput; milestones: Milesto
     <section className="mt-4 rounded-3xl border border-rule bg-sheet-2 p-6">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold">Your home, step by step</p>
       {deal.address && (
-        <h2 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-semibold text-cream">
+        <h2 className="mt-1 display text-2xl font-extrabold text-cream">
           {deal.address}
         </h2>
       )}
@@ -330,7 +330,7 @@ function ClientView({ deal, milestones }: { deal: DealInput; milestones: Milesto
             />
             <div className="pop-in min-w-0" style={{ animationDelay: `${Math.min(i, 9) * 0.05}s` }}>
               <p className="text-sm font-bold text-gold-bright">{prettyDate(m.date)}</p>
-              <p className="font-[family-name:var(--font-display)] text-lg font-semibold text-cream">{m.label}</p>
+              <p className="display text-lg font-extrabold text-cream">{m.label}</p>
               <p className="mt-0.5 text-[15px] leading-relaxed text-soft">{m.client}</p>
             </div>
           </li>

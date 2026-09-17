@@ -111,7 +111,7 @@ export function DuelScreen({
   return (
     <section className="mt-6 flex flex-1 flex-col">
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">Game two · the room vs. the room</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight">
+      <h1 className="mt-2 display text-3xl font-extrabold leading-tight">
         Break somebody&apos;s assistant.
       </h1>
 

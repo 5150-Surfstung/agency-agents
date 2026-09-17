@@ -72,11 +72,11 @@ export function ValStandby() {
         </div>
       </div>
 
-      <p className="val-standby-name mt-[1.5vh] font-[family-name:var(--font-display)] text-[clamp(28px,3.8vw,64px)] font-semibold leading-none text-cream">
-        <span className="val-glitch">VAL</span>
+      <p className="val-standby-name mt-[1.5vh] display text-[clamp(28px,3.8vw,64px)] font-extrabold leading-none text-cream">
+        <span className="val-glitch [font-variation-settings:'wdth'_122]">VAL</span>
       </p>
       {/* Reserved height, so naming the shape never nudges the layout. */}
-      <p className="mt-[0.9vh] text-[clamp(9px,0.85vw,14px)] font-semibold uppercase tracking-[0.3em] text-faint">
+      <p className="label mt-[0.9vh] text-[clamp(9px,0.8vw,13px)] tracking-[0.34em] text-faint">
         {TAGLINE}
       </p>
 

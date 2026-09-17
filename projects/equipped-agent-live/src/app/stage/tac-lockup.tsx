@@ -8,7 +8,7 @@
 export function TacLockup() {
   return (
     <div className="flex flex-col items-center text-center">
-      <p className="font-[family-name:var(--font-display)] text-[clamp(18px,2.3vw,40px)] font-semibold leading-none tracking-[0.12em] text-cream">
+      <p className="display text-[clamp(18px,2.3vw,40px)] font-extrabold leading-none tracking-[0.12em] text-cream">
         The <span className="text-gold">AGENT</span> Connection
         <span className="align-super text-[0.42em] tracking-normal">™</span>
       </p>

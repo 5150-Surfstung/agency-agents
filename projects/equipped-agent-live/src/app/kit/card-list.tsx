@@ -22,7 +22,7 @@ function One({ c }: { c: Card }) {
     <article id={`card-${c.id}`} className="flex flex-col rounded-3xl border border-rule bg-sheet-2 p-5">
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="font-[family-name:var(--font-display)] text-xl font-semibold text-cream">{c.title}</h3>
+          <h3 className="display text-xl font-extrabold text-cream">{c.title}</h3>
           <p className="mt-1 text-sm leading-relaxed text-soft">{c.payoff}</p>
         </div>
         <button

@@ -13,7 +13,7 @@ export default function JoinPage() {
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
         The AGENT Connection™ × Surfstung Systems
       </p>
-      <h1 className="mt-3 text-center font-[family-name:var(--font-display)] text-4xl font-semibold leading-tight text-cream">
+      <h1 className="mt-3 text-center display text-4xl font-extrabold leading-tight text-cream">
         The Equipped Agent
       </h1>
       <p className="mt-1 text-center text-sm font-semibold text-gold-bright">The Claude Course</p>

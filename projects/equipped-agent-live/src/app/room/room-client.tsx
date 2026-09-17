@@ -287,7 +287,7 @@ function JerseyScreen({ onDone }: { onDone: () => void }) {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-10 pt-6">
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">You&apos;re in</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-cream">
+      <h1 className="mt-2 display text-3xl font-extrabold leading-tight text-cream">
         First things first — name me.
       </h1>
       <p className="mt-2 text-sm leading-relaxed text-soft">
@@ -303,12 +303,12 @@ function JerseyScreen({ onDone }: { onDone: () => void }) {
         maxLength={14}
         autoFocus
         autoComplete="off"
-        className="mt-6 w-full rounded-2xl border border-rule bg-sheet-2 px-4 py-4 text-center font-[family-name:var(--font-display)] text-4xl font-semibold text-cream placeholder:text-faint focus:border-gold focus:outline-none"
+        className="mt-6 w-full rounded-2xl border border-rule bg-sheet-2 px-4 py-4 text-center display text-4xl font-extrabold text-cream placeholder:text-faint focus:border-gold focus:outline-none"
       />
 
       {/* Val answers while they type. This is the whole point of the screen:
           they stop thinking of it as "an AI" before the hour has started. */}
-      <p className="mt-3 min-h-[3rem] text-center font-[family-name:var(--font-display)] text-lg italic leading-snug text-gold-bright">
+      <p className="mt-3 min-h-[3rem] text-center pull text-lg leading-snug text-gold-bright">
         {clean.length >= 2 ? valOnName(clean) : "\u201cGo on. Name me.\u201d"}
       </p>
 
@@ -379,7 +379,7 @@ function MirrorScreen({ state }: { state: StatePayload }) {
           a hold screen. The room's own lockup says more and says it honestly. */}
       {slide.kind === "standby" ? (
         <div className="pop-in mt-5 rounded-2xl border border-rule bg-sheet-2 p-5 text-center">
-          <p className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-[0.08em] text-cream">
+          <p className="display text-xl font-extrabold tracking-[0.08em] text-cream">
             The <span className="text-gold">AGENT</span> Connection
             <span className="align-super text-[0.5em]">\u2122</span>
           </p>
@@ -394,7 +394,7 @@ function MirrorScreen({ state }: { state: StatePayload }) {
           {slide.eyebrow && (
             <p className="pop-in text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">{slide.eyebrow}</p>
           )}
-          <h1 className="pop-in pop-d1 mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-cream">
+          <h1 className="pop-in pop-d1 mt-2 display text-3xl font-extrabold leading-tight text-cream">
             {slide.heading}
           </h1>
         </>
@@ -404,7 +404,7 @@ function MirrorScreen({ state }: { state: StatePayload }) {
         <div className="pop-in pop-d2 mt-6 grid grid-cols-2 gap-3">
           {slide.stats.map((s) => (
             <div key={s.label} className="rounded-2xl border border-rule bg-sheet-2 p-4">
-              <p className="font-[family-name:var(--font-display)] text-2xl font-bold text-gold-bright">{s.value}</p>
+              <p className="display text-2xl font-extrabold text-gold-bright">{s.value}</p>
               <p className="mt-1 text-[11px] leading-snug text-soft">{s.label}</p>
             </div>
           ))}
@@ -427,7 +427,7 @@ function MirrorScreen({ state }: { state: StatePayload }) {
           {slide.lanes.map((lane) => (
             <div key={lane.tag} className="rounded-2xl border border-rule bg-sheet-2 p-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold">{lane.tag}</p>
-              <p className="mt-1 font-[family-name:var(--font-display)] text-lg font-semibold leading-tight text-cream">
+              <p className="mt-1 display text-lg font-extrabold leading-tight text-cream">
                 {lane.heading}
               </p>
               <ul className="mt-2 flex flex-col gap-1.5">
@@ -450,7 +450,7 @@ function MirrorScreen({ state }: { state: StatePayload }) {
           className="pop-in pop-d3 mt-5 block rounded-2xl border border-gold/60 bg-sheet-2 p-4"
         >
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold">Open it on this phone</p>
-          <p className="mt-1 font-[family-name:var(--font-display)] text-xl font-semibold text-cream">
+          <p className="mt-1 display text-xl font-extrabold text-cream">
             {slide.link.label} →
           </p>
           {slide.link.note && <p className="mt-1 text-[13px] leading-snug text-soft">{slide.link.note}</p>}
@@ -458,7 +458,7 @@ function MirrorScreen({ state }: { state: StatePayload }) {
       )}
 
       {slide.quote && (
-        <blockquote className="pop-in pop-d3 mt-6 border-l-2 border-gold pl-4 font-[family-name:var(--font-display)] text-lg italic leading-snug text-cream">
+        <blockquote className="pop-in pop-d3 mt-6 border-l-2 border-gold pl-4 pull text-lg leading-snug text-cream">
           “{slide.quote}”
         </blockquote>
       )}
@@ -474,7 +474,7 @@ function MirrorScreen({ state }: { state: StatePayload }) {
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold">
                 📸 Screenshot this · paste the picture into Claude
               </p>
-              <p className="mt-1 font-[family-name:var(--font-display)] text-xl font-semibold leading-tight text-cream">
+              <p className="mt-1 display text-xl font-extrabold leading-tight text-cream">
                 {c.title}
               </p>
               <p className="mt-0.5 text-[13px] leading-snug text-soft">{c.payoff}</p>
@@ -572,7 +572,7 @@ function PollScreen({
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">
         {pollState === "open" ? "Vote now — it counts on THE BOARD" : "The room has spoken"}
       </p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight">
+      <h1 className="mt-2 display text-3xl font-extrabold leading-tight">
         {poll.question}
       </h1>
 
@@ -735,11 +735,11 @@ function PriceScreen({
     return (
       <section className="mt-6 flex flex-1 flex-col">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">The reveal</p>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold leading-tight">
+        <h1 className="mt-2 display text-2xl font-extrabold leading-tight">
           {sold !== null ? reveal!.soldLabel : "The room vs. the arithmetic"}
         </h1>
         {sold !== null && (
-          <p className="pop-in mt-2 font-[family-name:var(--font-display)] text-6xl font-bold text-gold-bright">
+          <p className="pop-in mt-2 display text-6xl font-extrabold text-gold-bright">
             {fmtK(sold)}
           </p>
         )}
@@ -754,7 +754,7 @@ function PriceScreen({
               <span className="text-sm font-semibold text-soft">
                 {state.me?.emoji} {state.me?.initials} called it
               </span>
-              <span className="font-[family-name:var(--font-display)] text-3xl font-bold text-cream">{fmtK(mine)}</span>
+              <span className="display text-3xl font-extrabold text-cream">{fmtK(mine)}</span>
             </div>
             <div className="mt-2 flex items-baseline justify-between">
               <span className="text-sm text-soft">{Math.abs(mine - target) <= price.stepK ? "Dead on" : "Off by"}</span>
@@ -764,7 +764,7 @@ function PriceScreen({
             </div>
             {reveal?.myRank !== null && (
               <div className="mt-3 rounded-2xl border border-gold/40 bg-sheet px-4 py-3 text-center">
-                <p className="font-[family-name:var(--font-display)] text-2xl font-bold text-gold-bright">
+                <p className="display text-2xl font-extrabold text-gold-bright">
                   {medal ? `${medal} ` : ""}#{reveal!.myRank} of {reveal!.guessers}
                 </p>
                 <p className="mt-0.5 text-[11px] text-faint">
@@ -778,7 +778,7 @@ function PriceScreen({
         {reveal?.aiGuess && (
           <div className="pop-in pop-d2 mt-4 rounded-2xl border border-rule bg-sheet-2 p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay">🤖 The machine called</p>
-            <p className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-cream">
+            <p className="mt-1 display text-2xl font-extrabold text-cream">
               {fmtK(reveal.aiGuess.guessK)}
               {target !== null && (
                 <span className="ml-2 text-sm font-semibold text-soft">
@@ -786,7 +786,7 @@ function PriceScreen({
                 </span>
               )}
             </p>
-            <p className="mt-1 text-xs italic text-soft">“{reveal.aiGuess.reasoning}”</p>
+            <p className="mt-1 text-xs text-soft">“{reveal.aiGuess.reasoning}”</p>
           </div>
         )}
 
@@ -807,7 +807,7 @@ function PriceScreen({
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">
         Game one — the machine already locked its call
       </p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight">
+      <h1 className="mt-2 display text-3xl font-extrabold leading-tight">
         What does it actually close at?
       </h1>
       <ul className="mt-4 flex flex-col gap-1 text-sm text-soft">
@@ -815,7 +815,7 @@ function PriceScreen({
           <li key={f}>· {f}</li>
         ))}
       </ul>
-      <p className="mt-8 text-center font-[family-name:var(--font-display)] text-6xl font-bold text-gold-bright">
+      <p className="mt-8 text-center display text-6xl font-extrabold text-gold-bright">
         {fmtK(guess)}
       </p>
       <input
@@ -881,14 +881,14 @@ function BoardScreen({ state, onPosted }: { state: StatePayload; onPosted: () =>
   return (
     <section className="mt-6 flex flex-1 flex-col">
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">THE BOARD · whole-night standings</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight">
+      <h1 className="mt-2 display text-3xl font-extrabold leading-tight">
         Somebody&apos;s leaving with the crown.
       </h1>
 
       {board && board.myRank !== null && (
         <div className="result-card pop-in mt-4 rounded-3xl bg-sheet-2 p-4 text-center">
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-gold">Your night so far</p>
-          <p className="mt-1 font-[family-name:var(--font-display)] text-4xl font-bold text-gold-bright">
+          <p className="mt-1 display text-4xl font-extrabold text-gold-bright">
             #{board.myRank} <span className="text-2xl text-cream">· {board.myPoints} pts</span>
           </p>
           <p className="mt-1 text-[11px] text-faint">
@@ -999,7 +999,7 @@ function Compass({ state }: { state: StatePayload }) {
       <p className={`mt-1 text-[15px] font-bold ${tone}`}>{doing}</p>
       {/* Val, in your pocket. Same voice as the big screen, one line at a time. */}
       {quip && (
-        <p className="mt-1.5 border-l-2 border-gold/50 pl-2.5 font-[family-name:var(--font-display)] text-[13px] italic leading-snug text-gold-bright">
+        <p className="mt-1.5 border-l-2 border-gold/50 pl-2.5 pull text-[13px] leading-snug text-gold-bright">
           {quip}
         </p>
       )}
@@ -1065,7 +1065,7 @@ function OpenFloorScreen({
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
         Open floor · Val is listening
       </p>
-      <h2 className="mt-1 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-cream">
+      <h2 className="mt-1 display text-3xl font-extrabold leading-tight text-cream">
         Brag or confess.
       </h2>
 
@@ -1119,7 +1119,7 @@ function OpenFloorScreen({
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-gold">
             {state.brag.kind === "confess" ? "On the screen · a confession" : "On the screen · a brag"}
           </p>
-          <p className="mt-2 font-[family-name:var(--font-display)] text-base italic leading-snug text-cream">
+          <p className="mt-2 pull text-base leading-snug text-cream">
             &ldquo;{state.brag.body}&rdquo;
           </p>
           {state.brag.reply ? (

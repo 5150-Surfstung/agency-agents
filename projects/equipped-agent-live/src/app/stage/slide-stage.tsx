@@ -132,13 +132,13 @@ export function SlideStage({ snap, slide, presentPop = false }: {
           <ValParticles className="absolute right-[2vw] top-1/2 h-[min(52vh,34vw)] w-[min(52vh,34vw)] -translate-y-1/2" />
         )}
         {slide.eyebrow && slide.kind !== "title" && (
-          <p className="rise text-[clamp(12px,1.2vw,18px)] font-semibold uppercase tracking-[0.22em] text-gold">
+          <p className="label rise text-[clamp(11px,1.05vw,16px)] tracking-[0.24em] text-gold">
             {slide.eyebrow}
           </p>
         )}
         {slide.kind !== "title" && (
           <h1
-            className={`rise d1 mt-[1.5vh] font-[family-name:var(--font-display)] font-semibold leading-[1.06] text-cream [text-wrap:balance] ${
+            className={`rise d1 mt-[1.5vh] display font-extrabold leading-[1.06] text-cream [text-wrap:balance] ${
               dense
                 ? "max-w-[30ch] text-[clamp(28px,3.7vw,58px)]"
                 : "max-w-[24ch] text-[clamp(34px,5.2vw,84px)]"
@@ -158,11 +158,11 @@ export function SlideStage({ snap, slide, presentPop = false }: {
         )}
 
         {slide.stats && slide.id !== "demo-farming" && (
-          <div className="rise d2 mt-[3vh] flex flex-wrap gap-[3vw]">
+          <div className={`rise d2 flex flex-wrap gap-[3vw] ${dense ? "mt-[2.2vh]" : "mt-[3vh]"}`}>
             {slide.stats.map((s, i) => (
               <div key={s.label} className="min-w-[16vw]">
                 <p
-                  className="stat-num font-[family-name:var(--font-display)] text-[clamp(36px,4.6vw,72px)] font-bold tabular-nums text-gold-bright"
+                  className="stat-num display text-[clamp(34px,4.3vw,66px)] font-extrabold tabular-nums text-gold-bright [font-variation-settings:'wdth'_114]"
                   style={{ animationDelay: `${1.05 + i * 0.12}s` }}
                 >
                   <CountUp text={s.value} />
@@ -171,7 +171,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                   className="wipe mb-[0.8vh] block h-[0.4vh] w-[5vw] rounded-full bg-gold"
                   style={{ animationDelay: `${0.5 + i * 0.12}s` }}
                 />
-                <p className="max-w-[24ch] text-[clamp(13px,1.15vw,18px)] leading-snug text-soft">{s.label}</p>
+                <p className="max-w-[26ch] text-[clamp(12px,1.05vw,17px)] leading-snug text-soft">{s.label}</p>
               </div>
             ))}
           </div>
@@ -179,7 +179,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
 
         {slide.lines && slide.kind !== "title" && !(slide.kind === "openfloor" && snap.brag) && (
           <div
-            className={`mt-[3vh] flex flex-col gap-[1vh] ${
+            className={`flex flex-col ${dense ? "mt-[2.2vh] gap-[0.7vh]" : "mt-[3vh] gap-[1vh]"} ${
               slide.kind === "close" ? "max-w-[48ch]" : "max-w-[64ch]"
             }`}
           >
@@ -220,13 +220,13 @@ export function SlideStage({ snap, slide, presentPop = false }: {
             {slide.lanes.map((lane, i) => (
               <div
                 key={lane.tag}
-                className="rise lane-card relative overflow-hidden rounded-2xl border border-rule bg-sheet-2/70 p-[1.3vw]"
+                className="rise lane-card relative overflow-hidden rounded-2xl border border-rule bg-sheet-2/70 p-[1.1vw]"
                 style={{ animationDelay: `${0.45 + i * 0.18}s` }}
               >
-                <p className="text-[clamp(10px,0.9vw,14px)] font-bold uppercase tracking-[0.2em] text-gold">
+                <p className="label text-[clamp(9px,0.82vw,13px)] tracking-[0.22em] text-gold">
                   {lane.tag}
                 </p>
-                <p className="mt-[0.6vh] font-[family-name:var(--font-display)] text-[clamp(16px,1.7vw,27px)] font-semibold leading-tight text-cream">
+                <p className="mt-[0.6vh] display text-[clamp(16px,1.7vw,27px)] font-extrabold leading-tight text-cream">
                   {lane.heading}
                 </p>
                 <ul className="mt-[1vh] flex flex-col gap-[0.7vh]">
@@ -245,21 +245,21 @@ export function SlideStage({ snap, slide, presentPop = false }: {
         {slide.link && (
           <div
             className={`rise d3 flex w-fit items-center rounded-2xl border border-gold/50 bg-sheet-2/70 ${
-              dense ? "mt-[1.8vh] gap-[1.1vw] p-[0.9vw]" : "mt-[3vh] gap-[1.6vw] p-[1.4vw]"
+              dense ? "mt-[1.4vh] gap-[1vw] p-[0.7vw]" : "mt-[3vh] gap-[1.6vw] p-[1.4vw]"
             }`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/qr?u=${encodeURIComponent(slide.link.href)}`}
               alt=""
-              className={`shrink-0 rounded-xl ${dense ? "h-[8.5vh] w-[8.5vh]" : "h-[13vh] w-[13vh]"}`}
+              className={`shrink-0 rounded-xl ${dense ? "h-[7.4vh] w-[7.4vh]" : "h-[13vh] w-[13vh]"}`}
             />
             <div>
-              <p className="text-[clamp(10px,0.9vw,14px)] font-bold uppercase tracking-[0.2em] text-gold">
+              <p className="label text-[clamp(9px,0.82vw,13px)] tracking-[0.22em] text-gold">
                 Scan it — open it yourself
               </p>
               <p
-                className={`mt-[0.4vh] font-[family-name:var(--font-display)] font-semibold text-cream ${
+                className={`mt-[0.4vh] display font-extrabold text-cream ${
                   dense ? "text-[clamp(16px,1.7vw,27px)]" : "text-[clamp(20px,2.2vw,36px)]"
                 }`}
               >
@@ -282,7 +282,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
 
         {slide.quote && (
           <blockquote
-            className={`rise d3 border-l-2 border-gold pl-[1.4vw] font-[family-name:var(--font-display)] italic leading-snug text-cream ${
+            className={`rise d3 border-l-2 border-gold pl-[1.4vw] pull leading-snug text-cream ${
               dense
                 ? "mt-[1.6vh] max-w-[76ch] text-[clamp(13px,1.2vw,20px)]"
                 : "mt-[2.5vh] max-w-[46ch] text-[clamp(18px,2vw,32px)]"
@@ -343,7 +343,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                   <span className="ring-pulse inline-block h-[1.6vh] w-[1.6vh] rounded-full bg-moss" />
                 )}
                 <p className="text-[clamp(15px,1.5vw,24px)] font-semibold text-cream">
-                  <span className="font-[family-name:var(--font-display)] text-[clamp(22px,2.6vw,42px)] font-bold text-gold-bright">
+                  <span className="display text-[clamp(22px,2.6vw,42px)] font-extrabold text-gold-bright">
                     {total}
                   </span>{" "}
                   {snap.pollState === "revealed" ? "votes in" : "voting live"} ·{" "}
@@ -374,7 +374,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
               <div className="mt-[2.5vh] flex items-center gap-[1.5vw]">
                 <span className="ring-pulse inline-block h-[2vh] w-[2vh] rounded-full bg-moss" />
                 <p className="text-[clamp(20px,2.4vw,40px)] font-semibold text-cream">
-                  <span className="font-[family-name:var(--font-display)] text-[clamp(28px,3.4vw,56px)] font-bold tabular-nums text-gold-bright">
+                  <span className="display text-[clamp(28px,3.4vw,56px)] font-extrabold tabular-nums text-gold-bright">
                     {priceTotal}
                   </span>{" "}
                   guesses locked · <span className="text-faint">space reveals</span>
@@ -405,7 +405,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                         style={{ animationDelay: `${1 + i * 0.25}s` }}
                       >
                         <span className="text-[clamp(18px,1.8vw,30px)]">{["🥇", "🥈", "🥉"][i]}</span>
-                        <span className="font-[family-name:var(--font-display)] text-[clamp(16px,1.7vw,28px)] font-bold text-cream">
+                        <span className="display text-[clamp(16px,1.7vw,28px)] font-extrabold text-cream">
                           {p.emoji} <span className="tracking-wide">{p.initials}</span>
                         </span>
                         <span className="text-[clamp(13px,1.2vw,19px)] font-semibold text-soft">
@@ -425,7 +425,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
         {slide.kind === "build" && (
           <div className="rise d2 mt-[3vh] w-full max-w-[90ch]">
             <div className="flex items-baseline gap-[1.5vw]">
-              <span className="font-[family-name:var(--font-display)] text-[clamp(48px,7vw,120px)] font-bold text-gold-bright">
+              <span className="display text-[clamp(48px,7vw,120px)] font-extrabold text-gold-bright">
                 {snap.duelStats?.built ?? 0}
               </span>
               <span className="text-[clamp(18px,2vw,34px)] font-semibold text-cream">
@@ -443,7 +443,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
           <div className="rise d2 mt-[2vh] w-full max-w-[110ch]">
             {snap.duelStats && snap.duelStats.fired > 0 && (
               <div className="mb-[2vh] flex items-baseline gap-[1.5vw]">
-                <span className="font-[family-name:var(--font-display)] text-[clamp(36px,4.5vw,76px)] font-bold text-gold-bright">
+                <span className="display text-[clamp(36px,4.5vw,76px)] font-extrabold text-gold-bright">
                   {snap.duelStats.held}
                 </span>
                 <span className="text-[clamp(16px,1.7vw,28px)] font-semibold text-cream">
@@ -507,7 +507,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                 <p className="text-[clamp(10px,0.95vw,15px)] font-bold uppercase tracking-[0.2em] text-gold">
                   {snap.brag.kind === "confess" ? "A confession · from the room" : "A brag · from the room"}
                 </p>
-                <blockquote className="mt-[0.9vh] border-l-2 border-gold pl-[1.2vw] font-[family-name:var(--font-display)] text-[clamp(18px,2.1vw,34px)] italic leading-snug text-cream">
+                <blockquote className="mt-[0.9vh] border-l-2 border-gold pl-[1.2vw] pull text-[clamp(18px,2.1vw,34px)] leading-snug text-cream">
                   “{snap.brag.body}”
                 </blockquote>
                 {snap.brag.reply ? (
@@ -558,7 +558,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                       style={{ animationDelay: `${i * 0.08}s` }}
                     >
                       <div className="flex items-baseline justify-between gap-[1vw]">
-                        <span className="flex items-baseline gap-[0.6vw] font-[family-name:var(--font-display)] text-[clamp(18px,2vw,32px)] font-bold text-cream">
+                        <span className="flex items-baseline gap-[0.6vw] display text-[clamp(18px,2vw,32px)] font-extrabold text-cream">
                           <Rank i={i} />
                           <span>{r.emoji}</span>
                           <span className="truncate tracking-wide">{r.initials}</span>
@@ -597,7 +597,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
                       style={{ animationDelay: `${0.3 + i * 0.08}s` }}
                     >
                       <div className="flex items-baseline justify-between gap-[1vw]">
-                        <span className="flex items-baseline gap-[0.6vw] font-[family-name:var(--font-display)] text-[clamp(18px,2vw,32px)] font-bold text-cream">
+                        <span className="flex items-baseline gap-[0.6vw] display text-[clamp(18px,2vw,32px)] font-extrabold text-cream">
                           <Rank i={i} />
                           <span className="truncate tracking-wide">{r.initials}</span>
                         </span>
@@ -695,7 +695,7 @@ function PriceHistogram({
           <div className="marker absolute bottom-0 top-0" style={{ left: xOf(soldK) }}>
             <div className="h-full w-[3px] rounded bg-gold-bright shadow-[0_0_18px_rgba(217,174,100,0.9)]" />
             <span className="ring-pulse absolute -bottom-[0.7vh] left-1/2 h-[1.5vh] w-[1.5vh] -translate-x-1/2 rounded-full bg-gold-bright" />
-            <p className="absolute -top-[5.4vh] -translate-x-1/2 whitespace-nowrap font-[family-name:var(--font-display)] text-[clamp(20px,2.4vw,40px)] font-bold text-gold-bright">
+            <p className="absolute -top-[5.4vh] -translate-x-1/2 whitespace-nowrap display text-[clamp(20px,2.4vw,40px)] font-extrabold text-gold-bright">
               {soldLabel} {fmtK(soldK)}
             </p>
           </div>
@@ -770,7 +770,7 @@ function ColdOpen({
       />
       {slide.eyebrow && (
         <p
-          className="chip-in mt-[2vh] text-[clamp(12px,1.25vw,19px)] font-semibold uppercase tracking-[0.24em] text-gold"
+          className="label chip-in mt-[1.6vh] text-[clamp(11px,1.1vw,17px)] tracking-[0.26em] text-gold"
           style={{ animationDelay: "0.55s" }}
         >
           {slide.eyebrow}
@@ -778,14 +778,14 @@ function ColdOpen({
       )}
 
       <h1
-        className="slam gleam mt-[1.4vh] font-[family-name:var(--font-display)] text-[clamp(44px,8.4vw,146px)] font-semibold leading-[0.95] tracking-tight"
+        className="slam gleam mt-[1.2vh] display text-[clamp(44px,8vw,132px)] font-extrabold leading-[0.92]"
         style={{ animationDelay: "0.75s, 1.2s" }}
       >
         {slide.heading}
       </h1>
 
       {slide.lines && (
-        <div className="mt-[2.6vh] flex max-w-[62ch] flex-col gap-[1vh]">
+        <div className="mt-[2.2vh] flex max-w-[62ch] flex-col gap-[0.8vh]">
           {slide.lines.map((l, i) => (
             <p
               key={l}
@@ -798,11 +798,11 @@ function ColdOpen({
         </div>
       )}
 
-      <div className="mt-[3vh] flex flex-wrap items-center gap-[0.7vw]">
+      <div className="mt-[2.2vh] flex flex-wrap items-center gap-[0.7vw]">
         {PILLARS.map((p, i) => (
           <span
             key={p}
-            className="chip-in rounded-full border border-gold/50 bg-sheet-2/70 px-[1.1vw] py-[0.7vh] text-[clamp(10px,1vw,16px)] font-bold uppercase tracking-[0.16em] text-gold-bright"
+            className="label chip-in rounded-full border border-gold/50 bg-sheet-2/70 px-[1.1vw] py-[0.6vh] text-[clamp(9px,0.9vw,14px)] tracking-[0.16em] text-gold-bright"
             style={{ animationDelay: `${2.2 + i * 0.14}s` }}
           >
             {p}

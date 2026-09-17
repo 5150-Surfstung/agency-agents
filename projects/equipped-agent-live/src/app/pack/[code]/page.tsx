@@ -31,7 +31,7 @@ export default async function PackPage({ params }: { params: Promise<{ code: str
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
         Built at The Equipped Agent · courtesy of The AGENT Connection™
       </p>
-      <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold leading-tight text-cream">
+      <h1 className="mt-3 display text-4xl font-extrabold leading-tight text-cream">
         {pack.name}&rsquo;s Assistant
       </h1>
       <p className="mt-2 text-sm text-soft">
@@ -39,7 +39,7 @@ export default async function PackPage({ params }: { params: Promise<{ code: str
       </p>
 
       <div className="mt-8 rounded-2xl border border-gold/40 bg-sheet-2 p-5">
-        <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-cream">
+        <h2 className="display text-xl font-extrabold text-cream">
           Install it in 60 seconds
         </h2>
         <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-soft">

@@ -73,7 +73,7 @@ export function SocialClient() {
         <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gold">
           The Equipped Agent · live tool
         </p>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl font-semibold text-cream sm:text-5xl">
+        <h1 className="mt-2 display text-4xl font-extrabold text-cream sm:text-5xl">
           The Content Machine
         </h1>
         <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-soft">
@@ -175,7 +175,7 @@ export function SocialClient() {
       )}
 
       <section className="mt-10">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-cream">
+        <h2 className="display text-2xl font-extrabold text-cream">
           The week, if you want the boring truth
         </h2>
         <p className="mt-1 text-sm text-soft">

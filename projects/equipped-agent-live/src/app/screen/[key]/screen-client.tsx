@@ -101,11 +101,11 @@ export function ScreenClient({ presenterKey }: { presenterKey: string }) {
   const bigJoin = slide.kind === "title" || slide.kind === "standby";
 
   return (
-    <main className="stage relative flex h-dvh flex-col overflow-hidden px-[5vw] py-[4vh]">
+    <main className="stage relative flex h-dvh flex-col overflow-hidden px-[4.5vw] py-[2.6vh]">
       {/* Shown only while windowed, and only on the two screens the room is
           walking in on — so a hint about setup never rides over the show. */}
       {!full && bigJoin && (
-        <p className="pointer-events-none fixed bottom-[2vh] left-[3vw] z-30 text-[11px] font-semibold uppercase tracking-[0.2em] text-faint/70">
+        <p className="label pointer-events-none fixed left-1/2 top-[1vh] z-30 -translate-x-1/2 text-[10px] tracking-[0.2em] text-faint/60">
           F fullscreen · ← → advance · space works the poll
         </p>
       )}
@@ -126,7 +126,7 @@ export function ScreenClient({ presenterKey }: { presenterKey: string }) {
       )}
 
       {/* progress rail — the room can see how far in we are */}
-      <div className="relative z-10 mt-[1.4vh] flex items-center gap-[0.5vw]">
+      <div className="relative z-10 mt-[1vh] flex items-center gap-[0.5vw]">
         {DECK.map((s, i) => (
           <span
             key={s.id}
@@ -157,7 +157,7 @@ function JoinPanel({ presenterKey, pin, present }: { presenterKey: string; pin: 
       {pin && (
         <p className="mt-[2.5vh] text-[clamp(16px,1.6vw,26px)] font-semibold text-soft">
           or type PIN{" "}
-          <span className="font-[family-name:var(--font-display)] text-[clamp(30px,3.4vw,58px)] font-bold tracking-[0.2em] text-cream">
+          <span className="display text-[clamp(30px,3.4vw,58px)] font-extrabold tracking-[0.2em] text-cream">
             {pin}
           </span>
         </p>

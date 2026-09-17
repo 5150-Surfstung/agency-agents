@@ -103,7 +103,7 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
     return (
       <section className="mt-6 flex flex-1 flex-col">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">It&apos;s live. That&apos;s yours.</p>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-cream">
+        <h1 className="mt-2 display text-3xl font-extrabold leading-tight text-cream">
           {mine.headline || "Your listing assistant"}
         </h1>
 
@@ -117,7 +117,7 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
             alt="QR code for your assistant"
             className="mx-auto mt-3 w-52 rounded-2xl"
           />
-          <p className="mt-3 font-[family-name:var(--font-display)] text-2xl font-bold tracking-[0.2em] text-gold-bright">
+          <p className="mt-3 display text-2xl font-extrabold tracking-[0.2em] text-gold-bright">
             {mine.code}
           </p>
           <p className="mt-1 break-all text-[11px] text-faint">{url}</p>
@@ -163,7 +163,7 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
                   <p className="text-sm font-semibold text-cream">
                     {l.name} <span className="text-soft">· {l.cell}</span>
                   </p>
-                  {l.question && <p className="mt-0.5 text-xs italic text-soft">“{l.question}”</p>}
+                  {l.question && <p className="mt-0.5 text-xs text-soft">“{l.question}”</p>}
                   {(l.timeline || l.financing || l.hasAgent) && (
                     <p className="mt-1 text-[11px] font-semibold text-gold-bright">
                       {[l.timeline, l.financing, l.hasAgent].filter(Boolean).join(" · ")}
@@ -198,7 +198,7 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
   return (
     <section className="mt-6 flex flex-1 flex-col">
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">Ninety seconds</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-cream">
+      <h1 className="mt-2 display text-3xl font-extrabold leading-tight text-cream">
         Build your listing&apos;s assistant.
       </h1>
       <p className="mt-2 text-sm text-soft">

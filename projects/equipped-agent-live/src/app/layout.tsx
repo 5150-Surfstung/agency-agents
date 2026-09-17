@@ -1,17 +1,33 @@
 import type { Metadata, Viewport } from "next";
-import { Figtree, Fraunces } from "next/font/google";
+import { Archivo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
+// ONE GROTESQUE AND ONE MONO.
+//
+// This used to be a warm editorial serif over a friendly sans, which was a
+// reasonable look for a printed flyer and the wrong one for this: the whole
+// show is a machine drawing wireframes on a projector, and the type was
+// apologising for it. Archivo is a variable grotesque with a WIDTH axis, so
+// the same family carries a 90px headline pushed wide and heavy AND the body
+// copy under it — one voice, enormous contrast, nothing decorative.
+//
+// JetBrains Mono appears only where the content is genuinely data or a
+// readout: slide eyebrows, the standby tagline, small figures. That is the
+// "digital" note, and it is deliberately a note — the canvas HUD already
+// speaks monospace, so the page and the engine finally agree, and anything
+// more than this would read as a hacker poster.
+const archivo = Archivo({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-fraunces",
+  axes: ["wdth"],
+  variable: "--font-archivo",
+  display: "swap",
 });
 
-const figtree = Figtree({
+const mono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "800"],
-  variable: "--font-figtree",
+  weight: ["500", "700"],
+  variable: "--font-jet",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -29,7 +45,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${figtree.variable}`}>
+    <html lang="en" className={`${archivo.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );

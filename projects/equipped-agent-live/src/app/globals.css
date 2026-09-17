@@ -16,8 +16,42 @@
   --color-moss: #6fa87e;
   --color-clay: #e08e72;
 
-  --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
-  --font-ui: var(--font-figtree), -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-ui: var(--font-archivo), -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jet), ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/* ——— THE TYPE SYSTEM ———
+   A grotesque at display size only looks designed if it is tightened and
+   widened. `.display` is every headline, number and wordmark in the show: the
+   width axis pushes it out, the tracking pulls it in, and the two together are
+   the whole difference between "a bold sans" and something that looks set.
+   Bigger elements get more of both, because tracking that flatters 90px
+   destroys 18px. */
+.display {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 104;
+  letter-spacing: -0.018em;
+}
+h1.display, h2.display {
+  font-variation-settings: "wdth" 110;
+  letter-spacing: -0.034em;
+}
+/* Data, not prose: eyebrows, readouts, small figures. The canvas HUD is
+   already monospace, so this is the page agreeing with the engine. */
+.label {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+/* A quote on a projector does not need to be italic to read as a quote — the
+   rule and the size do that. A grotesque italic just looks like a mistake. */
+.pull {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 100;
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: -0.014em;
 }
 
 body {
@@ -500,6 +534,8 @@ body {
 
 /* The wordmark under the orb breathes with it, a half-cycle behind. */
 .val-standby-name {
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
   animation: standby-name 6s ease-in-out infinite;
 }
 @keyframes standby-name {
