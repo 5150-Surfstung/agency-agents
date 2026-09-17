@@ -5,7 +5,23 @@
 //   npm run dev   (in one terminal)
 //   npm run walkthrough
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join as joinPath } from "node:path";
+
 const BASE = process.env.BASE_URL || "http://localhost:3000";
+
+// Slide indices come from the deck, not from a comment that goes stale the
+// first time somebody inserts a slide. Adding a slide re-points every check.
+const DECK_IDS = [
+  ...readFileSync(joinPath(dirname(fileURLToPath(import.meta.url)), "../src/lib/deck.ts"), "utf8")
+    .matchAll(/^\s{4}id: "([a-z0-9-]+)",$/gm),
+].map((m) => m[1]);
+function stepOf(id) {
+  const i = DECK_IDS.indexOf(id);
+  if (i < 0) throw new Error(`walkthrough: no slide "${id}" in the deck`);
+  return i;
+}
 const PIN = process.env.LIVE_ROOM_PIN || "1054";
 const KEY = process.env.LIVE_PRESENTER_KEY || "dev-presenter";
 
@@ -80,10 +96,13 @@ for (let i = 0; i < 3; i++) {
 // State requires a session.
 check("no cookie → 401 state", (await fetch(`${BASE}/api/state`)).status === 401);
 
-// Presenter resets to the top, then walks to the first poll slide (step 1).
+// Presenter resets to the top, then walks to the poll this section votes in.
+// It must be poll-time: the votes below carry that slide's key, and /api/vote
+// refuses a key that isn't the slide the room is actually on.
 await control("goto", 0);
-let snap = await control("goto", 5);
-check("presenter on poll slide", snap.ok && snap.step === 5);
+const pollStep = stepOf("poll-time");
+let snap = await control("goto", pollStep);
+check("presenter on poll slide", snap.ok && snap.step === pollStep);
 check("landing on a poll slide OPENS the floor", snap.pollState === "open", snap.pollState);
 
 // Closing it re-arms; a vote into a closed poll is refused.
@@ -122,8 +141,9 @@ snap = await control("poll");
 check("and closes it back to revealed", snap.pollState === "revealed", snap.pollState);
 
 // Price Is Right: slider guesses ride the vote rail as $thousands.
-snap = await control("goto", 9);
-check("on price slide", snap.step === 9);
+const priceStep = stepOf("price-game");
+snap = await control("goto", priceStep);
+check("on price slide", snap.step === priceStep);
 check("price floor opens on arrival", snap.pollState === "open", snap.pollState);
 r = await phones[0]("/api/vote", { method: "POST", body: JSON.stringify({ pollKey: "price1", choice: 824 }) });
 check("price guess accepted", r.status === 200);
@@ -152,8 +172,9 @@ r = await phones[2]("/api/state");
 check("farthest guess ranks #3", r.body.priceReveal?.myRank === 3, String(r.body.priceReveal?.myRank));
 
 // THE TROPHY: each phone deploys a real assistant with a real QR.
-snap = await control("goto", 12);
-check("on the build slide", snap.step === 12);
+const buildStep = stepOf("build");
+snap = await control("goto", buildStep);
+check("on the build slide", snap.step === buildStep);
 r = await phones[0]("/api/assistant", { method: "POST", body: JSON.stringify({ agentName: "A Agent", facts: "too thin" }) });
 check("thin fact sheet refused → 400", r.status === 400 && r.body.error === "need_facts");
 const FACTS = "Address: 42 Marsh Wren Ln\nAsking: $784,000\nBedrooms: 3 · Baths: 2.5 · 2,180 sqft\nBuilt: 2019 · HOA $88/mo\nShowings: Sat-Sun 12-3";
@@ -169,7 +190,7 @@ for (let i = 0; i < 2; i++) {
   check(`phone ${i + 1} deployed an assistant`, r.status === 200 && typeof r.body.code === "string", JSON.stringify(r.body));
   codes.push(r.body.code);
 }
-snap = await control("goto", 12);
+snap = await control("goto", buildStep);
 check("console counts them live", snap.duelStats?.built === 2, JSON.stringify(snap.duelStats));
 
 // The QR and the public page work with no session at all — that's the point.
@@ -198,8 +219,9 @@ check("owner sees their assistant + lead", r.body.assistant?.code === codes[0] &
 // THE DUEL: you can only shoot at somebody else's, and only when it's open.
 r = await phones[0]("/api/ask", { method: "POST", body: JSON.stringify({ code: codes[1], question: "roof year?", duel: true }) });
 check("duel shot off-slide → 409", r.status === 409);
-snap = await control("goto", 13);
-check("on the duel slide", snap.step === 13);
+const duelStep = stepOf("duel");
+snap = await control("goto", duelStep);
+check("on the duel slide", snap.step === duelStep);
 r = await phones[0]("/api/duel");
 check("roster excludes my own assistant", (r.body.roster ?? []).every((x) => x.code !== codes[0]) && (r.body.roster ?? []).some((x) => x.code === codes[1]), JSON.stringify(r.body.roster));
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -210,12 +232,12 @@ r = await phones[0]("/api/duel", { method: "POST", body: JSON.stringify({ attack
 check("flagging works only on real shots", r.status === 200 || r.status === 502);
 
 // Leaderboard: self-reported ring scores.
-snap = await control("goto", 15);
+snap = await control("goto", stepOf("leaderboard"));
 r = await phones[0]("/api/score", { method: "POST", body: JSON.stringify({ initials: "MO", score: 9 }) });
 check("score posted", r.status === 200);
 r = await phones[1]("/api/score", { method: "POST", body: JSON.stringify({ initials: "X", score: 8 }) });
 check("1-letter initials → 400", r.status === 400);
-snap = await control("goto", 15);
+snap = await control("goto", stepOf("leaderboard"));
 check("ring board shows MO 9/10", (snap.scoreboard ?? []).some((s) => s.initials === "MO" && s.best === 9));
 
 // THE BOARD: AAA = time 10 + price1 10 + podium 100 + built 25 + ring 90 = 235.
@@ -230,7 +252,7 @@ check("phone sees its own rank and points", r.body.board?.myRank === 1 && r.body
   JSON.stringify(r.body.board));
 
 // Jump to the ladder poll, run the capture flow.
-const ladderStep = 18; // comfort 2 · using 3 · floor 4 · time 5 · price 9 · build 12 · duel 13 · board 15 · ladder 18
+const ladderStep = stepOf("poll-ladder");
 snap = await control("goto", ladderStep);
 check("on ladder slide", snap.step === ladderStep);
 check("ladder opens on arrival", snap.pollState === "open", snap.pollState);
@@ -283,7 +305,7 @@ check("pack page renders", packPage.status === 200 && (await packPage.text()).in
 
 // With a live key, Stump proves grounding end-to-end (states facts, refuses unknowns).
 if (process.env.ANTHROPIC_API_KEY) {
-  await control("goto", 12);
+  await control("goto", buildStep);
   r = await phones[0]("/api/stump", {
     method: "POST",
     body: JSON.stringify({ question: "How many bedrooms, and what year was the roof replaced?" }),

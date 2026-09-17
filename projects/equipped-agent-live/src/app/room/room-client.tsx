@@ -36,6 +36,9 @@ interface StatePayload {
     lines: string[] | null;
     stats: { value: string; label: string }[] | null;
     quote: string | null;
+    lanes: { tag: string; heading: string; lines: string[] }[] | null;
+    link: { href: string; label: string; note?: string } | null;
+    cards: { id: string; title: string; payoff: string; body: string }[];
     poll: { key: string; question: string; options: string[]; capture: boolean } | null;
     price: { key: string; facts: string[]; minK: number; maxK: number; stepK: number } | null;
   };
@@ -225,6 +228,20 @@ export function RoomClient() {
         <MirrorScreen state={state} />
       )}
 
+      {/* Always one tap from the host's card. It is a real vCard, so this
+          opens the phone's Add Contact sheet — no form, no email capture,
+          no "text KEYWORD to". They came to a class; they leave with the
+          number of the person who taught it. */}
+      <a
+        href="/api/vcard"
+        className="mt-5 flex items-center justify-center gap-2 rounded-2xl border border-gold/50 bg-sheet-2 px-4 py-3 text-sm font-bold text-gold"
+      >
+        ⬇ Save Mike Olson to your contacts
+      </a>
+      <p className="mt-1.5 text-center text-[11px] text-faint">
+        Director of AI Strategy &amp; Innovation · 843-442-7992 · mike@mikeolsonre.com
+      </p>
+
       {!gameOn && slide.kind !== "title" && (
         <p className="mt-4 text-center text-[10px] uppercase tracking-[0.2em] text-faint">
           live · slide {state.step + 1}/{state.total} · your phone fires when it&apos;s game time
@@ -340,10 +357,72 @@ function MirrorScreen({ state }: { state: StatePayload }) {
         </div>
       )}
 
+      {/* Two lanes, stacked on a phone — yours is whichever one you are. */}
+      {slide.lanes && (
+        <div className="pop-in pop-d2 mt-5 flex flex-col gap-3">
+          {slide.lanes.map((lane) => (
+            <div key={lane.tag} className="rounded-2xl border border-rule bg-sheet-2 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold">{lane.tag}</p>
+              <p className="mt-1 font-[family-name:var(--font-display)] text-lg font-semibold leading-tight text-cream">
+                {lane.heading}
+              </p>
+              <ul className="mt-2 flex flex-col gap-1.5">
+                {lane.lines.map((l) => (
+                  <li key={l} className="text-[13px] leading-snug text-soft">· {l}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* The projector shows a QR; the phone already IS the phone, so it gets
+          the tap instead. Same destination, no camera gymnastics. */}
+      {slide.link && (
+        <a
+          href={slide.link.href}
+          target="_blank"
+          rel="noreferrer"
+          className="pop-in pop-d3 mt-5 block rounded-2xl border border-gold/60 bg-sheet-2 p-4"
+        >
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold">Open it on this phone</p>
+          <p className="mt-1 font-[family-name:var(--font-display)] text-xl font-semibold text-cream">
+            {slide.link.label} →
+          </p>
+          {slide.link.note && <p className="mt-1 text-[13px] leading-snug text-soft">{slide.link.note}</p>}
+        </a>
+      )}
+
       {slide.quote && (
         <blockquote className="pop-in pop-d3 mt-6 border-l-2 border-gold pl-4 font-[family-name:var(--font-display)] text-lg italic leading-snug text-cream">
           “{slide.quote}”
         </blockquote>
+      )}
+
+      {/* ——— SCREENSHOT THIS. A complete prompt, sized for a phone screen, at
+          the exact moment the room is being told to take a picture of it. The
+          screenshot IS the deliverable: paste the picture into Claude and it
+          runs. Notes don't survive the drive home; a camera roll does. ——— */}
+      {slide.cards?.length > 0 && (
+        <div className="mt-6 flex flex-col gap-4">
+          {slide.cards.map((c) => (
+            <div key={c.id} className="pop-in pop-d3 rounded-2xl border border-gold/60 bg-sheet-2 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold">
+                📸 Screenshot this · paste the picture into Claude
+              </p>
+              <p className="mt-1 font-[family-name:var(--font-display)] text-xl font-semibold leading-tight text-cream">
+                {c.title}
+              </p>
+              <p className="mt-0.5 text-[13px] leading-snug text-soft">{c.payoff}</p>
+              <pre className="mt-3 whitespace-pre-wrap rounded-xl border border-rule bg-sheet p-3 text-[12px] leading-relaxed text-cream">
+                {c.body}
+              </pre>
+              <p className="mt-2 text-[10px] text-faint">
+                All of these live on the kit page too — nothing here is one-time-only.
+              </p>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* A game slide that hasn't been opened yet says so — armed, not dead. */}

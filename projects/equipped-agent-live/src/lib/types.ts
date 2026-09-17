@@ -31,6 +31,25 @@ export interface PriceDef {
   source?: string;
 }
 
+/** Two-track teaching. The same slide read two ways, so the person who has
+ *  never opened Claude and the person already using it daily both have
+ *  somewhere to look — and neither one is bored or lost. */
+export interface Lane {
+  /** Who this column is for, in three words. */
+  tag: string;
+  heading: string;
+  lines: string[];
+}
+
+/** A page of this app the room is meant to SCAN AND USE during the slide —
+ *  rendered as a QR beside the content. Same-origin paths only; the QR route
+ *  refuses anything else. */
+export interface SlideLink {
+  href: string;
+  label: string;
+  note?: string;
+}
+
 export interface Slide {
   id: string;
   kind:
@@ -44,6 +63,10 @@ export interface Slide {
   quote?: string;
   poll?: PollDef;
   price?: PriceDef;
+  /** Two audiences, one slide. Rendered side by side. */
+  lanes?: Lane[];
+  /** Scan-and-play-with-it, live, during the slide. */
+  link?: SlideLink;
   /** Presenter-only cue line, never rendered to attendees. */
   cue?: string;
 }

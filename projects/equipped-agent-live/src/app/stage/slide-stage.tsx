@@ -72,26 +72,31 @@ export function SlideStage({ snap, slide, presentPop = false }: {
   const winner =
     snap.pollState === "revealed" && snap.counts ? snap.counts.indexOf(Math.max(...snap.counts)) : -1;
 
+  // Lanes are the densest thing this stage renders: two columns of copy plus,
+  // often, a scannable link and a quote. Everything shrinks when they appear.
+  const dense = Boolean(slide.lanes || (slide.link && slide.stats));
+
   return (
       <section key={snap.step} className="slide-enter flex flex-1 flex-col justify-center">
-        {slide.eyebrow && (
+        {slide.eyebrow && slide.kind !== "title" && (
           <p className="rise text-[clamp(12px,1.2vw,18px)] font-semibold uppercase tracking-[0.22em] text-gold">
             {slide.eyebrow}
           </p>
         )}
-        <h1 className="rise d1 mt-[1.5vh] max-w-[24ch] font-[family-name:var(--font-display)] text-[clamp(34px,5.2vw,84px)] font-semibold leading-[1.06] text-cream [text-wrap:balance]">
-          {slide.heading}
-          <span className="wipe mt-[1.2vh] block h-[0.6vh] w-[16vw] rounded-full bg-gold" />
-        </h1>
-
-        {slide.kind === "title" && (
-          <p className="rise d2 mt-[3vh] text-[clamp(18px,2vw,32px)] font-semibold text-soft">
-            <span className={`inline-block text-gold-bright transition-transform ${presentPop ? "scale-125" : ""}`}>
-              📱 {snap.present}
-            </span>{" "}
-            in the room and counting
-          </p>
+        {slide.kind !== "title" && (
+          <h1
+            className={`rise d1 mt-[1.5vh] font-[family-name:var(--font-display)] font-semibold leading-[1.06] text-cream [text-wrap:balance] ${
+              dense
+                ? "max-w-[30ch] text-[clamp(28px,3.7vw,58px)]"
+                : "max-w-[24ch] text-[clamp(34px,5.2vw,84px)]"
+            }`}
+          >
+            {slide.heading}
+            <span className="wipe mt-[1.2vh] block h-[0.6vh] w-[16vw] rounded-full bg-gold" />
+          </h1>
         )}
+
+        {slide.kind === "title" && <ColdOpen slide={slide} present={snap.present} presentPop={presentPop} />}
 
         {slide.id === "demo-farming" && (
           <div className="rise d2 mt-[1vh] w-full max-w-[88ch]">
@@ -112,7 +117,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
           </div>
         )}
 
-        {slide.lines && (
+        {slide.lines && slide.kind !== "title" && (
           <div className="rise d3 mt-[3.5vh] flex max-w-[64ch] flex-col gap-[1.2vh]">
             {slide.lines.map((l) => (
               <p key={l} className="text-[clamp(16px,1.6vw,26px)] leading-relaxed text-soft">
@@ -122,8 +127,76 @@ export function SlideStage({ snap, slide, presentPop = false }: {
           </div>
         )}
 
+        {/* ——— two lanes: nobody in this room is bored and nobody is lost ——— */}
+        {slide.lanes && (
+          <div className="rise d3 mt-[2.4vh] grid w-full max-w-[116ch] gap-[1.6vw] sm:grid-cols-2">
+            {slide.lanes.map((lane) => (
+              <div key={lane.tag} className="rounded-2xl border border-rule bg-sheet-2/70 p-[1.3vw]">
+                <p className="text-[clamp(10px,0.9vw,14px)] font-bold uppercase tracking-[0.2em] text-gold">
+                  {lane.tag}
+                </p>
+                <p className="mt-[0.6vh] font-[family-name:var(--font-display)] text-[clamp(16px,1.7vw,27px)] font-semibold leading-tight text-cream">
+                  {lane.heading}
+                </p>
+                <ul className="mt-[1vh] flex flex-col gap-[0.7vh]">
+                  {lane.lines.map((l) => (
+                    <li key={l} className="text-[clamp(12px,1.08vw,17px)] leading-snug text-soft">
+                      {l}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ——— a tool on screen the room can open on their own phone NOW ——— */}
+        {slide.link && (
+          <div
+            className={`rise d3 flex w-fit items-center rounded-2xl border border-gold/50 bg-sheet-2/70 ${
+              dense ? "mt-[1.8vh] gap-[1.1vw] p-[0.9vw]" : "mt-[3vh] gap-[1.6vw] p-[1.4vw]"
+            }`}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/qr?u=${encodeURIComponent(slide.link.href)}`}
+              alt=""
+              className={`shrink-0 rounded-xl ${dense ? "h-[8.5vh] w-[8.5vh]" : "h-[13vh] w-[13vh]"}`}
+            />
+            <div>
+              <p className="text-[clamp(10px,0.9vw,14px)] font-bold uppercase tracking-[0.2em] text-gold">
+                Scan it — open it yourself
+              </p>
+              <p
+                className={`mt-[0.4vh] font-[family-name:var(--font-display)] font-semibold text-cream ${
+                  dense ? "text-[clamp(16px,1.7vw,27px)]" : "text-[clamp(20px,2.2vw,36px)]"
+                }`}
+              >
+                {slide.link.label}
+              </p>
+              {slide.link.note && (
+                <p
+                  className={`mt-[0.4vh] leading-snug text-soft ${
+                    dense
+                      ? "max-w-[50ch] text-[clamp(10px,0.95vw,15px)]"
+                      : "max-w-[40ch] text-[clamp(12px,1.1vw,18px)]"
+                  }`}
+                >
+                  {slide.link.note}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         {slide.quote && (
-          <blockquote className="rise d3 mt-[2.5vh] max-w-[46ch] border-l-2 border-gold pl-[1.4vw] font-[family-name:var(--font-display)] text-[clamp(18px,2vw,32px)] italic leading-snug text-cream">
+          <blockquote
+            className={`rise d3 border-l-2 border-gold pl-[1.4vw] font-[family-name:var(--font-display)] italic leading-snug text-cream ${
+              dense
+                ? "mt-[1.6vh] max-w-[76ch] text-[clamp(13px,1.2vw,20px)]"
+                : "mt-[2.5vh] max-w-[46ch] text-[clamp(18px,2vw,32px)]"
+            }`}
+          >
             “{slide.quote}”
           </blockquote>
         )}
@@ -498,6 +571,78 @@ function PriceHistogram({
       {source && (
         <p className="mt-[1.5vh] text-[clamp(11px,0.95vw,15px)] text-faint">Source: {source}</p>
       )}
+    </div>
+  );
+}
+
+/** THE COLD OPEN. The first six seconds, and for those six seconds this is the
+ *  only thing forty people are looking at. A rule sweeps, the name arrives out
+ *  of focus and lands, the promise fades up, the four pillars march in, and the
+ *  room counter breathes — so the show has already started before anyone
+ *  has said a word. */
+const PILLARS = ["Smarter tools", "Stronger agents", "Bigger opportunities", "Real impact"];
+
+function ColdOpen({
+  slide, present, presentPop,
+}: { slide: Slide; present: number; presentPop: boolean }) {
+  return (
+    <div className="flex flex-col">
+      <span
+        className="sweep-rule block h-[0.5vh] w-[22vw] rounded-full bg-gold"
+        style={{ animationDelay: "0.1s" }}
+        aria-hidden
+      />
+      {slide.eyebrow && (
+        <p
+          className="chip-in mt-[2vh] text-[clamp(12px,1.25vw,19px)] font-semibold uppercase tracking-[0.24em] text-gold"
+          style={{ animationDelay: "0.55s" }}
+        >
+          {slide.eyebrow}
+        </p>
+      )}
+
+      <h1
+        className="slam gleam mt-[1.4vh] font-[family-name:var(--font-display)] text-[clamp(44px,8.4vw,146px)] font-semibold leading-[0.95] tracking-tight"
+        style={{ animationDelay: "0.75s, 1.2s" }}
+      >
+        {slide.heading}
+      </h1>
+
+      {slide.lines && (
+        <div className="mt-[2.6vh] flex max-w-[62ch] flex-col gap-[1vh]">
+          {slide.lines.map((l, i) => (
+            <p
+              key={l}
+              className="chip-in text-[clamp(15px,1.55vw,25px)] leading-relaxed text-soft"
+              style={{ animationDelay: `${1.5 + i * 0.18}s` }}
+            >
+              {l}
+            </p>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-[3vh] flex flex-wrap items-center gap-[0.7vw]">
+        {PILLARS.map((p, i) => (
+          <span
+            key={p}
+            className="chip-in rounded-full border border-gold/50 bg-sheet-2/70 px-[1.1vw] py-[0.7vh] text-[clamp(10px,1vw,16px)] font-bold uppercase tracking-[0.16em] text-gold-bright"
+            style={{ animationDelay: `${2.2 + i * 0.14}s` }}
+          >
+            {p}
+          </span>
+        ))}
+      </div>
+
+      <p
+        className="chip-in mt-[3vh] text-[clamp(17px,1.9vw,30px)] font-semibold text-soft"
+        style={{ animationDelay: "2.9s" }}
+      >
+        <span className={`inline-block text-gold-bright transition-transform ${presentPop ? "scale-125" : ""}`}>
+          📱 {present}
+        </span>{" "}
+        in the room and counting
+      </p>
     </div>
   );
 }

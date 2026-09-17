@@ -5,6 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { engineOnline } from "@/lib/ai";
+import { cardsForSlide } from "@/lib/cards";
 import { ALL_POLL_KEYS, DECK } from "@/lib/deck";
 import { sessionFromCookies } from "@/lib/room";
 import { getStore } from "@/lib/store";
@@ -100,6 +101,12 @@ export async function GET() {
         lines: slide.lines ?? null,
         stats: slide.stats ?? null,
         quote: slide.quote ?? null,
+        lanes: slide.lanes ?? null,
+        link: slide.link ?? null,
+        // The screenshot cards for this slide. They ride the state payload so
+        // a phone that joins mid-slide gets them without a second request —
+        // and so "screenshot this" lands at the moment it is being said.
+        cards: cardsForSlide(slide.id),
         poll: slide.poll
           ? { key: slide.poll.key, question: slide.poll.question, options: slide.poll.options, capture: !!slide.poll.capture }
           : null,
