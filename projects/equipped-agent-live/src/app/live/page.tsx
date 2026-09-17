@@ -134,8 +134,30 @@ export default function LivePage() {
         </h2>
         <p>
           Your MLS, answering a question about your own farm, in plain English,
-          on your own laptop. Almost nobody in this market has turned that on.
-          You will, in this hour, and it keeps working when you leave.
+          on your own laptop. FlexMLS publishes a connector for exactly this
+          and almost nobody in this market has switched it on. You will, in
+          this hour — it is a settings screen and a key, not a project, and it
+          keeps working after you leave.
+        </p>
+
+        {/* The questions are the product. An agent reading this list is
+            already thinking of the one they would ask about their own farm,
+            and every one of these maps to something the connector actually
+            serves — days on market, inventory, absorption, price ratios,
+            listing search, and their own listings. */}
+        <ul className="asks">
+          <li>What are days on market doing in West Ashley this quarter versus last?</li>
+          <li>How much inventory is actually sitting in 29407 right now?</li>
+          <li>What is the absorption rate in my farm — how many months of supply?</li>
+          <li>List-to-sale price ratio in my neighborhood this year, by month.</li>
+          <li>Every three-bedroom under $500k that came on this week in my ZIP.</li>
+          <li>What did my own listings do last month?</li>
+        </ul>
+        <p className="asks-note">
+          You type those. In English. It answers from the record, on the
+          screen, in front of the room — and when it does not have something,
+          it says so instead of guessing. Bring the question you have been
+          meaning to ask about your own farm; that is the one we will run.
         </p>
 
         <ol className="runsheet">

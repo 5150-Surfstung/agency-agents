@@ -1,6 +1,7 @@
 import { ValAir } from "@/app/stage/val-air";
 import { ValParticles } from "@/app/stage/val-particles";
 import { EVENT, eventShort } from "@/lib/event";
+import { HOST } from "@/lib/contact";
 
 // THE SHARE CARD, as a real page so it can be rendered and saved as a PNG.
 //
@@ -25,7 +26,6 @@ import { EVENT, eventShort } from "@/lib/event";
 // the pillars, the corner brackets — is detail for the people who stop.
 export const metadata = { robots: { index: false } };
 
-const PILLARS = ["Smarter tools", "Stronger agents", "Bigger opportunities", "Real impact"];
 
 export default function OgCard() {
   return (
@@ -61,10 +61,10 @@ export default function OgCard() {
         <span key={cls} className={`absolute h-[34px] w-[34px] border-gold/55 ${cls}`} aria-hidden />
       ))}
 
-      <div className="relative z-10 w-[660px] pl-[64px]">
+      <div className="relative z-10 w-[660px] self-start pl-[64px] pt-[58px]">
         <p className="label text-[14px] tracking-[0.26em] text-gold">{EVENT.series}</p>
 
-        <h1 className="mt-4 display text-[116px] font-extrabold leading-[0.82] text-cream [font-variation-settings:'wdth'_114] [letter-spacing:-0.045em]">
+        <h1 className="mt-4 display text-[101px] font-extrabold leading-[0.84] text-cream [font-variation-settings:'wdth'_114] [letter-spacing:-0.045em]">
           The
           <br />
           Equipped
@@ -72,28 +72,39 @@ export default function OgCard() {
           Agent
         </h1>
 
-        <div className="mt-6 flex items-center gap-4">
+        <div className="mt-5 flex items-center gap-4">
           <span className="block h-[5px] w-[64px] rounded-full bg-gold" />
-          <p className="display whitespace-nowrap text-[29px] font-extrabold tracking-tight text-gold-bright">
+          <p className="display whitespace-nowrap text-[27px] font-extrabold tracking-tight text-gold-bright">
             {eventShort()}
           </p>
         </div>
 
-        <div className="mt-7 flex flex-wrap gap-x-2 gap-y-2">
-          {PILLARS.map((p) => (
-            <span
-              key={p}
-              className="label rounded-full border border-gold/45 px-[11px] py-[5px] text-[10px] tracking-[0.16em] text-gold-bright"
-            >
-              {p}
-            </span>
-          ))}
-        </div>
       </div>
 
-      <p className="label absolute bottom-[34px] left-[64px] text-[11px] tracking-[0.28em] text-faint">
-        The AGENT Connection™ · Charleston, SC
-      </p>
+      {/* THE CREDIT BLOCK. This is the part a thumb sees in a feed at the size
+          of a postage stamp, so it carries the face and the name rather than a
+          tracked-out line of small caps nobody reads. */}
+      <div className="absolute bottom-[38px] left-[64px] z-10 flex items-center gap-[16px]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/headshot.jpg"
+          alt=""
+          width={132}
+          height={165}
+          className="h-[92px] w-[74px] rounded-[3px] border border-gold/50 object-cover object-top"
+        />
+        <div>
+          <p className="display text-[30px] font-extrabold leading-none text-cream [font-variation-settings:'wdth'_112] [letter-spacing:-0.035em]">
+            {HOST.full}
+          </p>
+          <p className="mt-[6px] text-[13px] leading-tight text-gold-bright">
+            {HOST.title}
+          </p>
+          <p className="mt-[4px] text-[12px] leading-tight text-faint">
+            {HOST.org}™ with Surfstung Systems · {HOST.city}, {HOST.state}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

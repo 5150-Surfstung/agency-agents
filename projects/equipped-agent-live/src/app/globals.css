@@ -1737,3 +1737,38 @@ body {
 }
 .invite-details .byline { margin-top: 0; }
 .invite .invite-head { margin-top: 1.75rem; border-top: none; padding-top: 0; }
+
+/* ── the questions you get to ask the MLS ───────────────────────────────
+   Set as questions in a ruled stack rather than a feature list: an agent
+   reading this is meant to hear their own farm in one of these lines. */
+.asks {
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-rule-strong);
+}
+.asks li {
+  padding: 0.8rem 0 0.8rem 1.6rem;
+  border-bottom: 1px solid var(--color-rule);
+  position: relative;
+  max-width: var(--measure);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-cream);
+}
+/* A prompt marker, because these are things you type — not bullets. */
+.asks li::before {
+  content: "›";
+  position: absolute;
+  left: 0.2rem;
+  top: 0.78rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-gold);
+}
+.asks-note {
+  margin: 1.35rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-soft);
+}
