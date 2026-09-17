@@ -75,7 +75,7 @@ export function ValStandby() {
       {/* 1em is the ORB's diameter; the stage around it is 2.6em so the
           particle field has room to grow a house bigger than the thing it
           came out of, and so the wordmark below clears the field entirely. */}
-      <div className="text-[min(16vh,12vw)]">
+      <div className="text-[min(15vh,11.5vw)]">
         <div className="relative mx-auto h-[2.8em] w-[2.8em]">
           {/* The core IS the particles and the bodies of light now. The CSS
               gradient ball that used to sit under here was a second system

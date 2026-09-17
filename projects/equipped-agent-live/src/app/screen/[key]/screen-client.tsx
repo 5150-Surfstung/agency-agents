@@ -1,8 +1,11 @@
 "use client";
 
-// Read-only. It polls the same snapshot the console does and renders the
-// slide — but it never sends an action, so a stray click on the projector
-// machine can't move the deck.
+// The big screen. It polls the same snapshot the console does and renders the
+// slide. Nothing here is clickable — a stray click on the projector machine
+// can't move the deck — but the KEYBOARD drives it, because the usual setup is
+// one laptop on the HDMI, fullscreen, and a presenter who is not going to
+// alt-tab to a console mid-sentence. Arrows and PageUp/PageDown (what a
+// clicker sends) step the deck; space works the polls; F is fullscreen.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toggleFullscreen, watchFullscreen } from "@/lib/fullscreen";
@@ -10,19 +13,47 @@ import { DECK } from "@/lib/deck";
 import { SlideStage, type Snapshot } from "@/app/stage/slide-stage";
 
 export function ScreenClient({ presenterKey }: { presenterKey: string }) {
-  // F for fullscreen. This screen is read-only by design — it polls and never
-  // POSTs — so a key handler here can't move the deck by accident.
   const [full, setFull] = useState(false);
   useEffect(() => watchFullscreen(setFull), []);
+
+  const [snap, setSnap] = useState<Snapshot | null>(null);
+
+  // The URL already carries the presenter key, so this screen is as
+  // authorised as the console. The snapshot the action returns lands
+  // immediately — no waiting on the next poll tick to see the slide move.
+  const act = useCallback(
+    async (action: "next" | "prev" | "poll") => {
+      try {
+        const res = await fetch("/api/control", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: presenterKey, action }),
+        });
+        if (res.ok) setSnap((await res.json()) as Snapshot);
+      } catch {
+        // the poll loop catches up
+      }
+    },
+    [presenterKey]
+  );
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "f") toggleFullscreen();
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") {
+        e.preventDefault();
+        void act("next");
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        e.preventDefault();
+        void act("prev");
+      } else if (e.key === " ") {
+        e.preventDefault();
+        void act("poll");
+      } else if (e.key.toLowerCase() === "f") toggleFullscreen();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  const [snap, setSnap] = useState<Snapshot | null>(null);
+  }, [act]);
   const [presentPop, setPresentPop] = useState(false);
   const prevPresent = useRef(0);
 
@@ -70,12 +101,12 @@ export function ScreenClient({ presenterKey }: { presenterKey: string }) {
   const bigJoin = slide.kind === "title" || slide.kind === "standby";
 
   return (
-    <main className="stage relative flex min-h-dvh flex-col overflow-hidden px-[5vw] py-[4vh]">
+    <main className="stage relative flex h-dvh flex-col overflow-hidden px-[5vw] py-[4vh]">
       {/* Shown only while windowed, and only on the two screens the room is
           walking in on — so a hint about setup never rides over the show. */}
       {!full && bigJoin && (
         <p className="pointer-events-none fixed bottom-[2vh] left-[3vw] z-30 text-[11px] font-semibold uppercase tracking-[0.2em] text-faint/70">
-          press F for fullscreen
+          F fullscreen · ← → advance · space works the poll
         </p>
       )}
       {bigJoin ? (

@@ -68,9 +68,14 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "ArrowRight") void act("next");
-      else if (e.key === "ArrowLeft") void act("prev");
-      else if (e.key === " ") {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") {
+        e.preventDefault();
+        void act("next");
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        e.preventDefault();
+        void act("prev");
+      } else if (e.key === " ") {
         e.preventDefault();
         void act("poll");
       } else if (e.key.toLowerCase() === "l") setShowLeads((v) => !v);

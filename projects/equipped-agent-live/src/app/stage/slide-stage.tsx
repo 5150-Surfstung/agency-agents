@@ -76,7 +76,10 @@ export function SlideStage({ snap, slide, presentPop = false }: {
 
   // Lanes are the densest thing this stage renders: two columns of copy plus,
   // often, a scannable link and a quote. Everything shrinks when they appear.
-  const dense = Boolean(slide.lanes || (slide.link && slide.stats) || slide.price || slide.kind === "close");
+  // Three blocks under a headline is the line: past it, the headline drops a
+  // size so the last block (usually the quote) never runs under the rail.
+  const blocks = [slide.stats, slide.lines, slide.link, slide.quote, slide.poll, slide.price].filter(Boolean).length;
+  const dense = Boolean(slide.lanes || blocks >= 3 || slide.price || slide.kind === "close");
 
   // The pre-show is its own screen, not a slide with the furniture hidden.
   if (slide.kind === "standby") {
@@ -136,7 +139,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
         )}
 
         {slide.stats && slide.id !== "demo-farming" && (
-          <div className="rise d2 mt-[4vh] flex flex-wrap gap-[3vw]">
+          <div className="rise d2 mt-[3vh] flex flex-wrap gap-[3vw]">
             {slide.stats.map((s, i) => (
               <div key={s.label} className="min-w-[16vw]">
                 <p
@@ -157,7 +160,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
 
         {slide.lines && slide.kind !== "title" && (
           <div
-            className={`mt-[3.5vh] flex flex-col gap-[1.2vh] ${
+            className={`mt-[3vh] flex flex-col gap-[1vh] ${
               slide.kind === "close" ? "max-w-[48ch]" : "max-w-[64ch]"
             }`}
           >
