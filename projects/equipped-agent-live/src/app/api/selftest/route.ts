@@ -152,6 +152,39 @@ export async function GET(req: NextRequest) {
     if (rows.some((r) => r.deviceId === device)) throw new Error("selftest player still on the board");
   });
 
+  // THE PUBLIC METERING PATH, which is the one a stranger from a Facebook
+  // post actually travels. The original metering RPCs use their key as an
+  // auth token and raise on anything that is not the presenter key or the
+  // PIN, so every public surface — the invite's desk, a listing assistant
+  // reached by QR — failed in the cap check before a model was ever called.
+  // This asserts the keyless functions count, sum and write, and that they
+  // partition away from the room's own budget. It runs on every selftest,
+  // not just deep ones, because it costs nothing and it is the check whose
+  // absence let a broken desk ship.
+  await run("public metering works without a room key", async () => {
+    const probe = randomUUID();
+    const before = await store.meterSpendUsd("selftest-public");
+    const roomBefore = await store.meterSpendUsd("big-reveal");
+    const n0 = await store.meterCount("selftest-public", probe, 60 * 1000);
+    if (n0 !== 0) throw new Error(`fresh device already has ${n0} events`);
+    await store.meterLog("selftest-public", {
+      deviceId: probe, tool: "sparring", inTokens: 1, outTokens: 1, costUsd: 0.000001, at: Date.now(),
+    });
+    const n1 = await store.meterCount("selftest-public", probe, 60 * 1000);
+    if (n1 !== 1) throw new Error(`logged one turn, counted ${n1}`);
+    const after = await store.meterSpendUsd("selftest-public");
+    if (!(after > before)) throw new Error("spend did not move after a logged turn");
+    // And the partition has to be real: the desk must never be able to spend
+    // the room's allowance, or a busy Friday and a busy Facebook post would
+    // starve each other.
+    if (await store.meterCount("selftest-public-other", probe, 60 * 1000) !== 0) {
+      throw new Error("a turn logged to one budget was counted against another");
+    }
+    if ((await store.meterSpendUsd("big-reveal")) !== roomBefore) {
+      throw new Error("a public turn moved the room's own spend");
+    }
+  });
+
   // ?deep=1 — one real grounded model round-trip: must state a sheet fact and
   // refuse an off-sheet one. Costs a fraction of a cent; the pre-room proof.
   // If the engine is dark, this FAILS rather than quietly skipping — a green
@@ -210,6 +243,7 @@ export async function GET(req: NextRequest) {
       const r = await runArcadeTurn({
         roomKey: key,
         deviceId: device,
+        meterRoom: "invite-desk",
         tool: "sparring",
         system: afterHoursSystem(),
         messages: [{
@@ -241,6 +275,7 @@ export async function GET(req: NextRequest) {
       const r = await runArcadeTurn({
         roomKey: key,
         deviceId: device,
+        meterRoom: "invite-desk",
         tool: "sparring",
         system: afterHoursSystem(),
         messages: [{ role: "user", content: "is that a safe area? we have two little kids" }],

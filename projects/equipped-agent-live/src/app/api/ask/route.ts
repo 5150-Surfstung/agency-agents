@@ -6,6 +6,7 @@
 // Two writes come out of it: the lead (name + cell) the agent actually wanted,
 // and, when the asker is a phone in the room during the duel, an attack row.
 
+import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { runArcadeTurn } from "@/lib/ai";
 import { isRefusal } from "@/lib/refusal";
@@ -16,6 +17,22 @@ import { sessionFromCookies } from "@/lib/room";
 import { isThreadId, toChat } from "@/lib/thread";
 import { getStore } from "@/lib/store";
 
+
+/** A stable-per-browser id for somebody with no room session. Derived, not
+ *  stored: the same visitor keeps the same bucket for the day without this
+ *  page setting a cookie or learning anything about them. */
+function visitorId(req: NextRequest): string {
+  const seed = [
+    req.headers.get("user-agent") ?? "",
+    req.headers.get("accept-language") ?? "",
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "",
+    new Date().toISOString().slice(0, 10),
+  ].join("|");
+  const h = createHash("sha256").update(seed).digest("hex");
+  // Shape it as a v4-looking uuid; the column is a uuid and only equality
+  // ever matters.
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-8${h.slice(17, 20)}-${h.slice(20, 32)}`;
+}
 
 export async function POST(req: NextRequest) {
   let code = "";
@@ -51,7 +68,16 @@ export async function POST(req: NextRequest) {
       }
     }
     const roomKey = sess?.roomKey ?? code;
-    const deviceId = sess?.deviceId ?? "00000000-0000-4000-8000-0000000000ff";
+    // Anyone who scanned the QR on a rider sign has no session, so they hold
+    // no room key — and the room-key metering RPCs raise on anything that is
+    // not one. Public traffic therefore meters against its own labelled
+    // budget. Without this, every stranger who ever asked this page a
+    // question got a 502 in the cap check.
+    const meterRoom = sess ? undefined : "public-assistant";
+    // And it gets a per-visitor id rather than one shared constant, so the
+    // first forty questions from one phone cannot spend the whole public
+    // allowance for everybody else.
+    const deviceId = sess?.deviceId ?? visitorId(req);
 
     // With a thread, the conversation is real: it remembers, it is watchable
     // from the switchboard, and a human can be holding the wheel right now.
@@ -70,6 +96,7 @@ export async function POST(req: NextRequest) {
 
     const result = await runArcadeTurn({
       roomKey,
+      meterRoom,
       deviceId,
       tool: "listing",
       system: listingAssistantSystem(a.facts, a.agentName, a.voice, a.brokerage, a.notes),

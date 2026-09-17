@@ -20,7 +20,7 @@ import { afterHoursSystem } from "@/lib/prompts";
 
 /** Everything the public invite spends rides one key, so LIVE_SPEND_CAP_USD is
  *  a ceiling on the campaign rather than on each visitor. */
-const DESK_KEY = "INVITE-DESK";
+const DESK_KEY = "invite-desk";
 const COOKIE = "ea_desk";
 
 /** Uuid because the metering table's device column is one. */
@@ -54,8 +54,13 @@ export async function POST(req: NextRequest) {
   const existing = req.cookies.get(COOKIE)?.value;
   const visitor = /^[0-9a-f-]{36}$/i.test(existing ?? "") ? (existing as string) : newVisitor();
 
+  // meterRoom, not roomKey, is what makes this work: the room-key metering
+  // RPCs treat their key as an auth token and raise on anything that is not
+  // the presenter key or the PIN, so a stranger's turn died in the cap check
+  // before a model was ever called. This budget is the desk's own.
   const result = await runArcadeTurn({
     roomKey: DESK_KEY,
+    meterRoom: DESK_KEY,
     deviceId: visitor,
     // The metering table constrains this column to three values; a drafting
     // turn is the sparring tool's shape, so it rides there rather than needing

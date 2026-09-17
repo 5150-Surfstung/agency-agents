@@ -39,15 +39,33 @@ export async function runArcadeTurn(opts: {
   tool: "listing" | "sparring" | "mine";
   system: string;
   messages: ChatMsg[];
+  /** Set by a surface that has no room key — the public invite's desk, or a
+   *  listing assistant somebody reached by QR. The room-key metering RPCs use
+   *  the key as an auth token and raise on anything that is not one, so a
+   *  stranger's turn used to die in the cap check before a model was ever
+   *  called. With this set, the turn is metered against its own labelled
+   *  budget instead, and `roomKey` is only used for logging context. */
+  meterRoom?: string;
 }): Promise<ArcadeResult> {
   if (!engineOnline()) return { ok: false, reason: "offline" };
 
   const store = getStore();
-  // Caps first — a call that shouldn't happen is cheaper never made.
-  const [deviceCount, spend] = await Promise.all([
-    store.deviceToolCount(opts.roomKey, opts.deviceId, 24 * 60 * 60 * 1000),
-    store.totalSpendUsd(opts.roomKey),
-  ]);
+  const pub = opts.meterRoom;
+  // Caps first — a call that shouldn't happen is cheaper never made. A store
+  // that cannot answer is a "cap" we refuse rather than a crash: this runs on
+  // a public page, so a broken read must not become a 500.
+  let deviceCount = 0;
+  let spend = 0;
+  try {
+    [deviceCount, spend] = await Promise.all([
+      pub
+        ? store.meterCount(pub, opts.deviceId, 24 * 60 * 60 * 1000)
+        : store.deviceToolCount(opts.roomKey, opts.deviceId, 24 * 60 * 60 * 1000),
+      pub ? store.meterSpendUsd(pub) : store.totalSpendUsd(opts.roomKey),
+    ]);
+  } catch {
+    return { ok: false, reason: "error" };
+  }
   if (deviceCount >= deviceMsgCap()) return { ok: false, reason: "device_cap" };
   if (spend >= spendCapUsd()) return { ok: false, reason: "room_cap" };
 
@@ -71,14 +89,20 @@ export async function runArcadeTurn(opts: {
     const rate = PRICING[ARCADE_MODEL];
     const inTokens = resp.usage.input_tokens ?? 0;
     const outTokens = resp.usage.output_tokens ?? 0;
-    await store.addToolEvent(opts.roomKey, {
+    const event = {
       deviceId: opts.deviceId,
       tool: opts.tool,
       inTokens,
       outTokens,
       costUsd: (inTokens * rate.input + outTokens * rate.output) / 1_000_000,
       at: Date.now(),
-    });
+    };
+    // The reply is already in hand, so a failed write must not throw the turn
+    // away — it costs us the accounting for one message, not the answer.
+    try {
+      if (pub) await store.meterLog(pub, event);
+      else await store.addToolEvent(opts.roomKey, event);
+    } catch {}
 
     if (!text) return { ok: false, reason: "error" };
     return { ok: true, reply: text };

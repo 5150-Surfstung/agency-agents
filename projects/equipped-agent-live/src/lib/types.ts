@@ -130,6 +130,8 @@ export interface ToolEvent {
   outTokens: number;
   costUsd: number;
   at: number;
+  /** Which budget this turn was charged to. Absent means the room's own. */
+  room?: string;
 }
 
 export interface RoomState {

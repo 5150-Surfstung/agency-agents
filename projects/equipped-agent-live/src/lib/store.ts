@@ -37,6 +37,14 @@ export interface Store {
   deviceToolCount(key: string, deviceId: string, sinceMs: number): Promise<number>;
   totalSpendUsd(key: string): Promise<number>;
 
+  /** Metering for surfaces that hold no room key — the public invite's desk
+   *  and a listing assistant reached by QR from a rider sign. The room-key
+   *  versions above use the key as an auth token, so they fail closed for a
+   *  stranger; these partition by an explicit room label instead. */
+  meterLog(room: string, e: ToolEvent): Promise<void>;
+  meterCount(room: string, deviceId: string, sinceMs: number): Promise<number>;
+  meterSpendUsd(room: string): Promise<number>;
+
   /** Presence: called on every state poll; counted for the HUD. */
   touchDevice(key: string, deviceId: string): Promise<void>;
   activeDevices(key: string, withinMs: number): Promise<number>;
@@ -177,6 +185,20 @@ class MemoryStore implements Store {
   }
   async totalSpendUsd() {
     return this.events.reduce((s, e) => s + e.costUsd, 0);
+  }
+  async meterLog(room: string, e: ToolEvent) {
+    this.events.push({ ...e, room });
+  }
+  async meterCount(room: string, deviceId: string, sinceMs: number) {
+    const cutoff = Date.now() - sinceMs;
+    return this.events.filter(
+      (e) => (e.room ?? "big-reveal") === room && e.deviceId === deviceId && e.at >= cutoff
+    ).length;
+  }
+  async meterSpendUsd(room: string) {
+    return this.events
+      .filter((e) => (e.room ?? "big-reveal") === room)
+      .reduce((s, e) => s + e.costUsd, 0);
   }
   async touchDevice(_key: string, deviceId: string) {
     this.seen.set(deviceId, Date.now());
@@ -619,6 +641,28 @@ class RpcStore implements Store {
       p_seconds: Math.max(1, Math.round(sinceMs / 1000)),
     });
     return Number(n) || 0;
+  }
+  async meterLog(room: string, e: ToolEvent) {
+    await this.call("live_meter_log", {
+      p_room: room,
+      p_device: e.deviceId,
+      p_tool: e.tool,
+      p_in: e.inTokens,
+      p_out: e.outTokens,
+      p_cost: e.costUsd,
+    });
+  }
+  async meterCount(room: string, deviceId: string, sinceMs: number) {
+    const n = await this.call<number>("live_meter_count", {
+      p_room: room,
+      p_device: deviceId,
+      p_seconds: Math.round(sinceMs / 1000),
+    });
+    return Number(n ?? 0);
+  }
+  async meterSpendUsd(room: string) {
+    const s = await this.call<number>("live_meter_spend", { p_room: room });
+    return Number(s ?? 0);
   }
   async totalSpendUsd(key: string) {
     const s = await this.call<number>("live_spend", { p_key: key });
