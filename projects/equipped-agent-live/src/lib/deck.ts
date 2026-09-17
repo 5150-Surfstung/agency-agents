@@ -280,6 +280,41 @@ export const DECK: Slide[] = [
       "These are REAL and they are current — but re-pull them the morning of, out loud if you can, because a stale number on this slide undoes the entire hour. The beat that lands: the $45,000 gap between what's closing and what's listed. Say it slowly. 'Every seller in this room's farm is pricing against that second number. You now have the first one, in ten seconds, before every appointment.' If you're behind on time, this is the slide to cut — the previous one already taught the skill.",
   },
   {
+    id: "connect",
+    kind: "content",
+    eyebrow: "Now wire in the rest of your week",
+    heading: "Your inbox, your calendar, your files — same pipe.",
+    lanes: [
+      {
+        tag: "What you connect",
+        heading: "Settings → Connectors, same four steps",
+        lines: [
+          "Gmail — so it can read the thread you're actually in, not a thread you describe to it.",
+          "Calendar — so 'find me three showing windows Thursday' means YOUR Thursday.",
+          "Drive — the fact sheets, disclosures and CMAs you already have sitting in folders.",
+          "What's available depends on your plan, so open Connectors and see what's on your account.",
+        ],
+      },
+      {
+        tag: "What it unlocks Monday",
+        heading: "Things you actually do every week",
+        lines: [
+          "'Draft the reply to the Hendersons — match how I've been writing to them.'",
+          "'Three 45-minute showing blocks this week that don't collide with anything.'",
+          "'Read the disclosure in Drive and list what a buyer is going to ask about.'",
+          "'Summarize every email from this lender since we went under contract.'",
+        ],
+      },
+    ],
+    link: {
+      href: "/kit#connect",
+      label: "Connect everything",
+      note: "the steps, what to ask once you're in, and the client-data rules that come with it",
+    },
+    quote: "The rule gets STRICTER once it can see real client data, not looser: it drafts, you read, you send. Every time.",
+    cue: "Do the Gmail one live if you have the nerve — open a real thread and have it draft the reply in your voice, then DON'T send it, and say why out loud. That's the whole lesson: the leverage is in the draft, the liability is in the send, and the send stays yours. Then the client-data line, plainly: 'this is now reading your clients' actual information. Treat it like your CRM, not like a search box.' If you're short on time this slide can be one sentence and a QR — the kit page carries it.",
+  },
+  {
     id: "price-game",
     kind: "price",
     eyebrow: "Game one · The room vs. the arithmetic vs. the record",

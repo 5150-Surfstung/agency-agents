@@ -30,9 +30,10 @@ export default function Kit() {
             ["#install", "1 · Get Claude"],
             ["#talk", "2 · How to talk to it"],
             ["#mls", "3 · Connect your MLS"],
-            ["#cards", "4 · The cards"],
-            ["#tools", "5 · The tools"],
-            ["#week", "6 · The week"],
+            ["#connect", "4 · Connect everything"],
+            ["#cards", "5 · The cards"],
+            ["#tools", "6 · The tools"],
+            ["#week", "7 · The week"],
           ].map(([href, label]) => (
             <a
               key={href}
@@ -189,8 +190,72 @@ export default function Kit() {
         </Note>
       </Section>
 
+      {/* ---------------------------------------------------------- connect */}
+      <Section id="connect" n="4" title="Connect everything">
+        <p className="text-[17px] leading-relaxed text-soft">
+          The MLS is the big one, but it isn&apos;t the only one. In Claude, open{" "}
+          <span className="text-cream">Settings → Connectors</span> — the same place you added the
+          MLS. What&apos;s available there depends on your plan, so go look at what&apos;s on your
+          account rather than taking my word for it.
+        </p>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {[
+            [
+              "Gmail",
+              "It reads the thread you're actually in — not a summary you typed out for it.",
+              [
+                "“Draft the reply to the Hendersons, matching how I've written to them.”",
+                "“Summarize every email from this lender since we went under contract.”",
+                "“Which of my threads from last week never got a response from me?”",
+              ],
+            ],
+            [
+              "Calendar",
+              "“Thursday” stops being hypothetical and starts meaning your actual Thursday.",
+              [
+                "“Three 45-minute showing blocks this week that don't collide with anything.”",
+                "“Block prep time the day before every listing appointment on my calendar.”",
+                "“What does my week look like if the inspection lands Tuesday?”",
+              ],
+            ],
+            [
+              "Drive",
+              "The fact sheets, disclosures and CMAs already sitting in your folders.",
+              [
+                "“Read the disclosure in this folder and list what a buyer will ask about.”",
+                "“Turn this MLS sheet into the fact sheet format from card 3.”",
+                "“Find every listing packet I made last year and tell me what they had in common.”",
+              ],
+            ],
+          ].map(([name, blurb, asks]) => (
+            <article key={name as string} className="rounded-3xl border border-rule bg-sheet-2 p-5">
+              <h3 className="font-[family-name:var(--font-display)] text-xl font-semibold text-cream">
+                {name as string}
+              </h3>
+              <p className="mt-1 text-[14px] leading-relaxed text-soft">{blurb as string}</p>
+              <ul className="mt-3 space-y-1.5">
+                {(asks as string[]).map((a) => (
+                  <li key={a} className="text-[13px] leading-snug text-faint">
+                    {a}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+        <Note>
+          <span className="font-bold text-soft">Now it can see your clients&apos; actual
+          information — so the rules get stricter, not looser.</span> Treat it like your CRM, not
+          like a search box. It <em>drafts</em>; you read it and you send it — every time, with no
+          exceptions for the ones you&apos;re sure about. Don&apos;t paste social security numbers,
+          bank details, or full account numbers into a chat, connected or not. And anything it
+          summarizes from a document still gets checked against the document before it reaches a
+          client — a confident summary of a disclosure is still a summary.
+        </Note>
+      </Section>
+
       {/* ------------------------------------------------------------ cards */}
-      <Section id="cards" n="4" title="The cards">
+      <Section id="cards" n="5" title="The cards">
         <p className="text-[17px] leading-relaxed text-soft">
           Nine complete prompts. Screenshot one and paste the picture straight into Claude — it
           reads the image and runs. Anything in <span className="text-cream">[BRACKETS]</span> is
@@ -200,7 +265,7 @@ export default function Kit() {
       </Section>
 
       {/* ------------------------------------------------------------ tools */}
-      <Section id="tools" n="5" title="The tools">
+      <Section id="tools" n="6" title="The tools">
         <div className="grid gap-4 md:grid-cols-2">
           <Tool
             href="/t2k"
@@ -226,7 +291,7 @@ export default function Kit() {
       </Section>
 
       {/* ------------------------------------------------------------- week */}
-      <Section id="week" n="6" title="The week">
+      <Section id="week" n="7" title="The week">
         <ol className="space-y-2">
           {[
             ["Monday", "Pick the farm. One neighborhood. Not a city, not a zip — a neighborhood you could drive blindfolded."],
