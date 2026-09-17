@@ -6,6 +6,16 @@ import type { Slide } from "./types";
 
 export const DECK: Slide[] = [
   {
+    id: "standby",
+    kind: "standby",
+    // Nothing renders from these on the projector — the standby screen is the
+    // orb and the wordmark, full stop. They exist so the phone mirror and the
+    // console have something honest to say about where the room is.
+    heading: "VAL",
+    eyebrow: "Standing by",
+    cue: "THE HOLDING SCREEN. Leave this up while the room fills \u2014 doors open, people scanning, nobody rushed. Do not explain it. Somebody will ask 'what is that' before you have said a word, and that question is a better opening than any sentence you could put on a slide; the honest answer is 'that's Val, and you'll meet her in about forty minutes.' Advance when you're ready to start and the room's phones are in.",
+  },
+  {
     id: "title",
     kind: "title",
     eyebrow: "The AGENT Connection™ · Charleston, SC",
@@ -16,6 +26,40 @@ export const DECK: Slide[] = [
       "One hour. Working systems, live games, and things you actually keep.",
     ],
     cue: "Doors open. PIN on screen. Phones welcome — they're not a distraction tonight, they're the equipment.",
+  },
+  {
+    id: "poll-comfort",
+    kind: "poll",
+    eyebrow: "First — a totally anonymous confession",
+    heading: "Real talk: where are you and AI right now?",
+    poll: {
+      key: "comfort",
+      question: "Real talk: where are you and AI right now?",
+      options: [
+        "Never touched it — be gentle",
+        "We've talked a few times",
+        "I use it every week for real work",
+        "My assistant has an assistant",
+      ],
+    },
+    cue: "THE FIRST THING THAT HAPPENS, before you have even said your own name: 'phones out — first question, and it's anonymous.' That is deliberate. Forty phones doing something inside ninety seconds proves the room's tech works before you need it to, and it tells you who you're talking to before you introduce yourself. Let the bars climb while you tease each answer out loud ('be gentle — I love it'). This poll is also your instrument panel: whatever the split is, you'll teach both lanes on the next two slides, and now you know which lane is bigger. Say that out loud too — 'nobody's getting left behind and nobody's getting bored.'",
+  },
+  {
+    id: "poll-using",
+    kind: "poll",
+    eyebrow: "Data before opinions",
+    heading: "What are you actually using AI for today?",
+    poll: {
+      key: "using",
+      question: "What are you actually using AI for today?",
+      options: [
+        "Listing descriptions & emails",
+        "Research, CMAs, summaries",
+        "Social content",
+        "Nothing yet — that's literally why I'm here",
+      ],
+    },
+    cue: "Second poll, faster energy. On the reveal, narrate the split: 'listing copy is where everyone starts — and it is the SHALLOWEST end of the pool. By minute forty you'll be somewhere no listing-copy prompt can follow.' The 'nothing yet' number is your permission slip to keep every single thing hands-on.",
   },
   {
     id: "host",
@@ -38,7 +82,7 @@ export const DECK: Slide[] = [
       label: "Save my contact",
       note: "843-442-7992 \u00b7 mike@mikeolsonre.com \u2014 scanning it opens Add Contact",
     },
-    cue: "Thirty seconds, first person, let the numbers count up behind you: 1,800 crawlspaces taught me what agents miss, 346 doors taught me scale, twenty years of closings taught me what's actually worth automating. Then straight into the promise — do not let this slide breathe.",
+    cue: "Thirty seconds, first person, let the numbers count up behind you: 1,800 crawlspaces taught me what agents miss, 346 doors taught me scale, twenty years of closings taught me what's actually worth automating. You have already seen the room's comfort split, so CALIBRATE: if they skewed 'be gentle', lean on the crawlspaces and the 346 doors — you are one of them, not a tech guy. If they skewed advanced, lean on 'I built these.' Then straight into the promise; do not let this slide breathe.",
   },
   {
     id: "promise",
@@ -53,40 +97,6 @@ export const DECK: Slide[] = [
     ],
     quote: "If you walk out of here with nothing running, I wasted your lunch.",
     cue: "This is the contract with the room. Say all four out loud and point at the fourth one twice — 'no email required' is what buys you their attention for the next fifty-five minutes. Do NOT hedge any of the four; every one of them is built and you will deliver it.",
-  },
-  {
-    id: "poll-comfort",
-    kind: "poll",
-    eyebrow: "First — a totally anonymous confession",
-    heading: "Real talk: where are you and AI right now?",
-    poll: {
-      key: "comfort",
-      question: "Real talk: where are you and AI right now?",
-      options: [
-        "Never touched it — be gentle",
-        "We've talked a few times",
-        "I use it every week for real work",
-        "My assistant has an assistant",
-      ],
-    },
-    cue: "The icebreaker — votes are anonymous, SAY SO, and let the bars climb while you tease each answer out loud ('be gentle — I love it'). This poll is also your instrument panel: whatever the split is, you'll teach both lanes on the next two slides, and now you know which lane is bigger. Say that out loud too — 'nobody's getting left behind and nobody's getting bored.'",
-  },
-  {
-    id: "poll-using",
-    kind: "poll",
-    eyebrow: "Data before opinions",
-    heading: "What are you actually using AI for today?",
-    poll: {
-      key: "using",
-      question: "What are you actually using AI for today?",
-      options: [
-        "Listing descriptions & emails",
-        "Research, CMAs, summaries",
-        "Social content",
-        "Nothing yet — that's literally why I'm here",
-      ],
-    },
-    cue: "Second poll, faster energy. On the reveal, narrate the split: 'listing copy is where everyone starts — and it is the SHALLOWEST end of the pool. By minute forty you'll be somewhere no listing-copy prompt can follow.' The 'nothing yet' number is your permission slip to keep every single thing hands-on.",
   },
   {
     id: "open-floor",
@@ -722,6 +732,30 @@ The sellers priced it to move and have already had traffic. Don't speculate abou
 
 WHO THE AGENT IS
 Licensed in South Carolina, works Johns Island and the surrounding area, and answers texts fast. Happy to send comparable sales or the seller's disclosure on request.`;
+
+/** The next moment an ATTENDEE actually does something with their hands.
+ *
+ *  This exists because of a real failure: joining the room mid-deck on a slide
+ *  with no interaction gave a phone a silent mirror and no way to tell whether
+ *  it was working, whether the show had started, or what to wait for. "I don't
+ *  know what the f*** is happening" is a UX bug, not a user error. The phone
+ *  now always answers: where are we, what do I do now, what's next and how far. */
+export interface NextBeat {
+  step: number;
+  label: string;
+}
+
+export function nextInteraction(step: number): NextBeat | null {
+  for (let i = step + 1; i < DECK.length; i++) {
+    const s = DECK[i];
+    if (s.poll) return { step: i, label: "a vote" };
+    if (s.price) return { step: i, label: "The Price Is Right" };
+    if (s.kind === "build") return { step: i, label: "you build your own assistant" };
+    if (s.kind === "duel") return { step: i, label: "the duel" };
+    if (s.kind === "leaderboard") return { step: i, label: "THE BOARD" };
+  }
+  return null;
+}
 
 export function pollForStep(step: number) {
   return DECK[step]?.poll ?? null;

@@ -53,7 +53,7 @@ export interface SlideLink {
 export interface Slide {
   id: string;
   kind:
-    | "title" | "content" | "demo" | "poll" | "price"
+    | "standby" | "title" | "content" | "demo" | "poll" | "price"
     | "build" | "duel"
     | "stump" | "arcade" | "seed" | "leaderboard" | "close";
   eyebrow?: string;

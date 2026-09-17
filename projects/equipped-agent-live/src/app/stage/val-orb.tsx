@@ -10,7 +10,7 @@
 // It respects prefers-reduced-motion, because a slow strobe in a dark room is
 // a real problem for real people.
 
-export function ValOrb({ className = "" }: { className?: string }) {
+export function ValOrb({ className = "", label = true }: { className?: string; label?: boolean }) {
   // The caller's className owns POSITION and SIZE; `.val-orb` owns the drawing
   // and must stay `position: relative` for its layers. Putting both on one
   // element let the stylesheet's `relative` beat Tailwind's `absolute`, which
@@ -28,7 +28,7 @@ export function ValOrb({ className = "" }: { className?: string }) {
       {[0, 1, 2, 3, 4, 5].map((i) => (
         <span key={i} className={`val-orb__mote val-orb__mote--${i}`} />
       ))}
-        <span className="val-orb__label">VAL</span>
+        {label && <span className="val-orb__label">VAL</span>}
       </div>
     </div>
   );

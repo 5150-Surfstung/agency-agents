@@ -6,7 +6,7 @@
 import { NextResponse } from "next/server";
 import { engineOnline } from "@/lib/ai";
 import { cardsForSlide } from "@/lib/cards";
-import { ALL_POLL_KEYS, DECK } from "@/lib/deck";
+import { ALL_POLL_KEYS, DECK, nextInteraction } from "@/lib/deck";
 import { sessionFromCookies } from "@/lib/room";
 import { getStore } from "@/lib/store";
 
@@ -92,6 +92,8 @@ export async function GET() {
       ok: true,
       step: state.step,
       total: DECK.length,
+      // So a phone can always say what it is waiting for.
+      next: nextInteraction(state.step),
       slide: {
         id: slide.id,
         kind: slide.kind,

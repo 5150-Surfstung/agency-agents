@@ -52,7 +52,9 @@ export function ScreenClient({ presenterKey }: { presenterKey: string }) {
   const slide = DECK[snap.step] ?? DECK[0];
   // The title slide earns a full-bleed join panel — that is the moment the
   // whole room is supposed to get their phones out.
-  const bigJoin = slide.kind === "title";
+  // Standby and the title both get the full-height join card: those are the
+  // two moments the room is actually walking in and scanning.
+  const bigJoin = slide.kind === "title" || slide.kind === "standby";
 
   return (
     <main className="stage relative flex min-h-dvh flex-col overflow-hidden px-[5vw] py-[4vh]">

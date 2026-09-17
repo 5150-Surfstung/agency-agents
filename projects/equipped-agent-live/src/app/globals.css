@@ -337,7 +337,6 @@ body {
   height: 1em;
   display: grid;
   place-items: center;
-  isolation: isolate;
 }
 .val-orb > * {
   position: absolute;
@@ -349,9 +348,8 @@ body {
     circle at 50% 50%,
     color-mix(in srgb, var(--color-gold) 34%, transparent) 0%,
     color-mix(in srgb, var(--color-gold) 10%, transparent) 42%,
-    transparent 70%
+    transparent 72%
   );
-  filter: blur(6px);
   animation: orb-breathe 6s ease-in-out infinite;
 }
 .val-orb__core {
@@ -377,10 +375,9 @@ body {
   inset: 14%;
   background: radial-gradient(
     circle at 36% 26%,
-    color-mix(in srgb, #ffffff 40%, transparent) 0%,
+    color-mix(in srgb, #ffffff 34%, transparent) 0%,
     transparent 44%
   );
-  mix-blend-mode: screen;
 }
 .val-orb__ring {
   border: 1px solid color-mix(in srgb, var(--color-gold) 46%, transparent);
@@ -450,4 +447,57 @@ body {
   .val-orb__glow, .val-orb__core, .val-orb__ring, .val-orb__mote {
     animation: none;
   }
+}
+
+/* The pre-show vocabulary: each term fades up, drifts, and leaves. Long
+   durations and staggered delays so it reads as breathing, not blinking. */
+.val-term {
+  opacity: 0;
+  animation-name: term-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes term-drift {
+  0%   { opacity: 0; }
+  12%  { opacity: 0.62; }
+  30%  { opacity: 0.62; }
+  46%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* The wordmark under the orb breathes with it, a half-cycle behind. */
+.val-standby-name {
+  animation: standby-name 6s ease-in-out infinite;
+}
+@keyframes standby-name {
+  0%, 100% { opacity: 0.85; letter-spacing: 0.3em; }
+  50%      { opacity: 1; letter-spacing: 0.34em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .val-term { animation: none; opacity: 0.45; }
+  .val-standby-name { animation: none; }
+}
+
+/* Val naming what it just built. */
+.form-name { animation: form-name 0.7s ease-out both; }
+@keyframes form-name {
+  from { opacity: 0; letter-spacing: 0.5em; }
+  to { opacity: 1; letter-spacing: 0.3em; }
+}
+@media (prefers-reduced-motion: reduce) { .form-name { animation: none; } }
+
+/* Val's pre-show lines: in from below out of focus, hold, away upward. One
+   animation spanning the whole dwell, so a remount per line is all it takes. */
+.val-line {
+  animation: val-line 6.6s ease-out both;
+}
+@keyframes val-line {
+  0%   { opacity: 0; transform: translateY(0.9em); filter: blur(10px); }
+  9%   { opacity: 1; transform: translateY(0); filter: blur(0); }
+  84%  { opacity: 1; transform: translateY(0); filter: blur(0); }
+  100% { opacity: 0; transform: translateY(-0.7em); filter: blur(8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .val-line { animation: none; }
 }

@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import { IndexChart } from "./index-chart";
 import { ValOrb } from "./val-orb";
+import { ValStandby } from "./val-standby";
 import type { Attack, Lead, Player, ScoreRow, Slide } from "@/lib/types";
 
 export interface Snapshot {
@@ -76,6 +77,15 @@ export function SlideStage({ snap, slide, presentPop = false }: {
   // Lanes are the densest thing this stage renders: two columns of copy plus,
   // often, a scannable link and a quote. Everything shrinks when they appear.
   const dense = Boolean(slide.lanes || (slide.link && slide.stats));
+
+  // The pre-show is its own screen, not a slide with the furniture hidden.
+  if (slide.kind === "standby") {
+    return (
+      <section key={snap.step} className="slide-enter flex flex-1 flex-col">
+        <ValStandby />
+      </section>
+    );
+  }
 
   return (
       <section key={snap.step} className="slide-enter relative flex flex-1 flex-col justify-center">

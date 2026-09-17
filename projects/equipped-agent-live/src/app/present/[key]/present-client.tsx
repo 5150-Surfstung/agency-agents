@@ -228,6 +228,22 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
         >
           QR
         </button>
+        {/* A room left parked mid-deck is how an attendee ends up staring at
+            slide 12 wondering whether anything is on. One tap back to the top,
+            confirmed so a sleeve can't do it during the show. */}
+        <button
+          onClick={() => {
+            if (snap.step === 0) return;
+            if (confirm(`Back to slide 1? (You're on ${snap.step + 1}.)`)) void act("goto", 0);
+          }}
+          className={`rounded-2xl border px-5 py-4 text-sm font-bold ${
+            snap.step === 0
+              ? "border-rule bg-sheet-2 text-faint"
+              : "border-gold/60 bg-sheet-2 text-gold"
+          }`}
+        >
+          ⤺ Top
+        </button>
         <button
           onClick={() => setShowLeads((v) => !v)}
           className="rounded-2xl border border-rule bg-sheet-2 px-5 py-4 text-sm font-bold text-soft"

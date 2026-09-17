@@ -28,6 +28,7 @@ interface StatePayload {
   ok: boolean;
   step: number;
   total: number;
+  next: { step: number; label: string } | null;
   slide: {
     id: string;
     kind: string;
@@ -242,11 +243,6 @@ export function RoomClient() {
         Director of AI Strategy &amp; Innovation · 843-442-7992 · mike@mikeolsonre.com
       </p>
 
-      {!gameOn && slide.kind !== "title" && (
-        <p className="mt-4 text-center text-[10px] uppercase tracking-[0.2em] text-faint">
-          live · slide {state.step + 1}/{state.total} · your phone fires when it&apos;s game time
-        </p>
-      )}
     </main>
   );
 }
@@ -328,13 +324,42 @@ function JerseyScreen({ onDone }: { onDone: () => void }) {
 function MirrorScreen({ state }: { state: StatePayload }) {
   const { slide } = state;
   return (
-    <section key={slide.id} className="mt-8 flex flex-1 flex-col">
-      {slide.eyebrow && (
-        <p className="pop-in text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">{slide.eyebrow}</p>
+    <section key={slide.id} className="mt-5 flex flex-1 flex-col">
+      <Compass state={state} />
+      {(slide.kind === "title" || slide.kind === "standby") && (
+        <div className="pop-in mt-4 rounded-2xl border border-moss/50 bg-sheet-2 p-4 text-center">
+          <p className="text-lg font-bold text-moss">You&apos;re in ✅</p>
+          <p className="mt-1 text-sm leading-relaxed text-soft">
+            {slide.kind === "standby"
+              ? "Nothing to do yet — we haven't started. Keep this open; your phone lights up on its own the moment it's your turn, and the first one is a vote."
+              : "Keep this open. Your phone lights up on its own the second there's something to do — and the first one is a vote, a minute or two from now."}
+          </p>
+        </div>
       )}
-      <h1 className="pop-in pop-d1 mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-cream">
-        {slide.heading}
-      </h1>
+      {/* Standby's heading is just "VAL" — on a phone that reads as a bug, not
+          a hold screen. The room's own lockup says more and says it honestly. */}
+      {slide.kind === "standby" ? (
+        <div className="pop-in mt-5 rounded-2xl border border-rule bg-sheet-2 p-5 text-center">
+          <p className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-[0.08em] text-cream">
+            The <span className="text-gold">AGENT</span> Connection
+            <span className="align-super text-[0.5em]">\u2122</span>
+          </p>
+          <span className="mx-auto mt-2 block h-px w-32 bg-gold/60" />
+          <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.28em] text-gold">AI Strategy Course</p>
+          <p className="mt-3 text-sm leading-relaxed text-soft">
+            Look up \u2014 that&apos;s Val on the big screen. She&apos;ll introduce herself later.
+          </p>
+        </div>
+      ) : (
+        <>
+          {slide.eyebrow && (
+            <p className="pop-in text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">{slide.eyebrow}</p>
+          )}
+          <h1 className="pop-in pop-d1 mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-cream">
+            {slide.heading}
+          </h1>
+        </>
+      )}
 
       {slide.stats && (
         <div className="pop-in pop-d2 mt-6 grid grid-cols-2 gap-3">
@@ -890,5 +915,48 @@ function BoardScreen({ state, onPosted }: { state: StatePayload; onPosted: () =>
         )}
       </div>
     </section>
+  );
+}
+
+/** THE COMPASS. Always on the attendee's screen, always answering the same
+ *  three questions: where are we, what do I do RIGHT NOW, and what is the next
+ *  thing I do. Built after somebody joined mid-deck, landed on a slide with no
+ *  interaction, and had no way to tell whether the thing was even working. */
+function Compass({ state }: { state: StatePayload }) {
+  const { slide } = state;
+  const armed = Boolean(slide.poll || slide.price);
+
+  let doing = "Watch the big screen";
+  let tone = "text-soft";
+  if (armed) {
+    doing = slide.price ? "Get ready — the sliders drop any second" : "Get ready — voting opens any second";
+    tone = "text-gold-bright";
+  } else if (slide.cards?.length) {
+    doing = "📸 Screenshot the card below";
+    tone = "text-gold-bright";
+  } else if (slide.link) {
+    doing = "Tap the link below to open it here";
+    tone = "text-gold-bright";
+  }
+
+  const away = state.next ? state.next.step - state.step : 0;
+  return (
+    <div className="rounded-2xl border border-rule bg-sheet-2 px-4 py-3">
+      <div className="flex items-center gap-2">
+        <span className="live-dot" aria-hidden />
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-faint">
+          Live · slide {state.step + 1} of {state.total}
+        </span>
+      </div>
+      <p className={`mt-1 text-[15px] font-bold ${tone}`}>{doing}</p>
+      {state.next && away > 0 && (
+        <p className="mt-0.5 text-[12px] text-faint">
+          Next on your phone: {state.next.label} · {away === 1 ? "next slide" : `${away} slides away`}
+        </p>
+      )}
+      {!state.next && (
+        <p className="mt-0.5 text-[12px] text-faint">That&apos;s everything hands-on — you&apos;re at the close.</p>
+      )}
+    </div>
   );
 }
