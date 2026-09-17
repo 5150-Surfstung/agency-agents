@@ -780,6 +780,7 @@ export function ValParticles({
   quiet = false,
   beat,
   mode = null,
+  spin: spinIn = 1,
 }: {
   className?: string;
   /** Any number that changes when the room does something — votes landing,
@@ -798,6 +799,11 @@ export function ValParticles({
    *  `think`, a reply on screen is `speak` — so the animation cannot claim a
    *  state the system is not in. */
   mode?: "listen" | "think" | "speak" | null;
+  /** A multiplier on how fast she turns, read live every frame. 1 is her own
+   *  pace; the invite drives it up to a blur and lets it fall back so that the
+   *  slowing-down is what delivers the line underneath. Read through a ref, so
+   *  changing it never restarts the engine. */
+  spin?: number;
   /** Fires with the held shape while it is assembled, null while drifting, so
    *  the copy underneath can SELL what Val just made rather than label it. */
   onForm?: (shape: { id: string; says: string[]; closing: boolean } | null) => void;
@@ -808,6 +814,8 @@ export function ValParticles({
   formCb.current = onForm;
   const modeRef = useRef(mode);
   modeRef.current = mode;
+  const spinRef = useRef(spinIn);
+  spinRef.current = spinIn;
   const beatAt = useRef(-1e9);
   const beatSeen = useRef(beat);
   if (beat !== beatSeen.current) {
@@ -1121,7 +1129,8 @@ export function ValParticles({
       // object is, and it now dips through a morph instead of falling to zero.
       const pull = calm ? 1 : 1 - flux * 0.55;
       const shooting = morphing;
-      const spin = (1 + flux * 2.2) * (modeAmt > 0.01 ? 1 + (modeSpin - 1) * modeAmt : 1);
+      const spin = (1 + flux * 2.2) * (modeAmt > 0.01 ? 1 + (modeSpin - 1) * modeAmt : 1)
+        * Math.max(0.15, spinRef.current);
       const burst = 0;
       const vis = 1;
       // Edges belong to whichever shape the particles are nearer to, and they
