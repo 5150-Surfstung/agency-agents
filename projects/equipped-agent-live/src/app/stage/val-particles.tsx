@@ -27,6 +27,23 @@ type Line3 = P3[];
 const at = (pts: [number, number][], z: number): Line3 => pts.map(([x, y]) => [x, y, z] as P3);
 const joins = (pts: [number, number][], z1: number, z2: number): Line3[] =>
   pts.map(([x, y]) => [[x, y, z1], [x, y, z2]] as Line3);
+/** A rounded rectangle, centred, y down. Corners are what separate a phone
+ *  from a box, so they get real arcs rather than a chamfer. */
+const rrect = (w: number, h: number, r: number, seg = 5): [number, number][] => {
+  const p: [number, number][] = [];
+  const arc = (cx: number, cy: number, a0: number, a1: number) => {
+    for (let i = 0; i <= seg; i++) {
+      const a = a0 + (a1 - a0) * (i / seg);
+      p.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    }
+  };
+  arc(w - r, -(h - r), -Math.PI / 2, 0);
+  arc(w - r, h - r, 0, Math.PI / 2);
+  arc(-(w - r), h - r, Math.PI / 2, Math.PI);
+  arc(-(w - r), -(h - r), Math.PI, Math.PI * 1.5);
+  p.push(p[0]);
+  return p;
+};
 const ring = (cx: number, cy: number, r: number, n: number): [number, number][] =>
   Array.from({ length: n + 1 }, (_, i) => {
     const t = (i / n) * Math.PI * 2;
@@ -99,6 +116,57 @@ const keyPlate: [number, number][] = [
 const keyTeeth: [number, number][] = [[0.34, 0.06], [0.34, 0.3], [0.44, 0.3], [0.44, 0.06]];
 const keyTeeth2: [number, number][] = [[0.52, 0.06], [0.52, 0.24], [0.62, 0.24], [0.62, 0.06]];
 
+// THE DOOR THE KEY OPENS. Track to Keys ends at a door, so the shape should
+// too. The frame and jamb stay put; the panel swings off its hinge; the key
+// turns in the lock and then withdraws. Three parts, one mechanism, and it
+// only reads because the whole object is turning while it happens.
+const DOOR_D = 0.06;
+const DOOR_W = 0.42;      // half-width of the opening
+const DOOR_H = 0.72;      // half-height
+const HINGE_X = -DOOR_W;  // the panel swings about this vertical line
+const LOCK: P3 = [DOOR_W - 0.13, -0.02, DOOR_D];
+const doorFrame: [number, number][] = [
+  [-DOOR_W - 0.07, DOOR_H], [-DOOR_W - 0.07, -DOOR_H - 0.07],
+  [DOOR_W + 0.07, -DOOR_H - 0.07], [DOOR_W + 0.07, DOOR_H],
+];
+const doorSill: [number, number][] = [[-DOOR_W - 0.07, DOOR_H], [DOOR_W + 0.07, DOOR_H]];
+const doorPanel: [number, number][] = [
+  [-DOOR_W, DOOR_H], [-DOOR_W, -DOOR_H], [DOOR_W, -DOOR_H], [DOOR_W, DOOR_H], [-DOOR_W, DOOR_H],
+];
+/** Two sunk panels, because a plain rectangle is a plank. */
+const doorInset = (y0: number, y1: number): [number, number][] => [
+  [-DOOR_W + 0.1, y0], [DOOR_W - 0.1, y0], [DOOR_W - 0.1, y1], [-DOOR_W + 0.1, y1], [-DOOR_W + 0.1, y0],
+];
+const doorRose: [number, number][] = ring(LOCK[0], LOCK[1], 0.075, 14);
+const doorKnob: [number, number][] = ring(LOCK[0], LOCK[1] + 0.17, 0.06, 12);
+const doorHinges: [number, number][][] = [-0.42, 0.42].map((y) => [
+  [HINGE_X, y - 0.07], [HINGE_X - 0.05, y - 0.07], [HINGE_X - 0.05, y + 0.07], [HINGE_X, y + 0.07],
+]);
+/** The three parts, kept separate so the split indices are derived and not
+ *  counted by hand — miscounting them by one silently swings the wrong half
+ *  of the object. */
+const doorFixed: Line3[] = [
+  at(doorFrame, DOOR_D), at(doorFrame, -DOOR_D),
+  at(doorSill, DOOR_D),
+  ...joins([[-DOOR_W - 0.07, DOOR_H], [DOOR_W + 0.07, DOOR_H], [-DOOR_W - 0.07, -DOOR_H - 0.07], [DOOR_W + 0.07, -DOOR_H - 0.07]], DOOR_D, -DOOR_D),
+  ...doorHinges.map((h) => at(h, DOOR_D)),
+];
+const doorSwings: Line3[] = [
+  at(doorPanel, DOOR_D), at(doorPanel, -DOOR_D),
+  at(doorInset(-0.56, -0.1), DOOR_D),
+  at(doorInset(0.06, 0.56), DOOR_D),
+  at(doorRose, DOOR_D),
+  at(doorKnob, DOOR_D), at(doorKnob, -DOOR_D),
+  ...joins([[-DOOR_W, DOOR_H], [DOOR_W, DOOR_H], [DOOR_W, -DOOR_H], [-DOOR_W, -DOOR_H]], DOOR_D, -DOOR_D),
+];
+const doorKey: Line3[] = [
+  at(keyPlate, KEY_D), at(keyPlate, -KEY_D),
+  at(keyTeeth, KEY_D), at(keyTeeth, -KEY_D),
+  at(keyTeeth2, KEY_D), at(keyTeeth2, -KEY_D),
+  at(ring(-0.44, 0, 0.11, 14), KEY_D),
+  ...joins([[-0.71, 0], [-0.17, 0], [0.66, -0.06], [0.66, 0.06], [-0.44, -0.27], [-0.44, 0.27]], KEY_D, -KEY_D),
+];
+
 /** Four letters of a stroke font. A sign with no word on it is a rectangle on
  *  a stick, which is exactly what the first version looked like. Coordinates
  *  are a 0..1 box; `letter` maps them onto the board. */
@@ -145,23 +213,57 @@ const signRig: Line3[] = [
   [[0.5, -0.6, 0], [0.5, -0.46, 0]],
 ];
 
-const DOOR_D = 0.09;
-const doorLeaf: [number, number][] = [[-0.32, -0.66], [0.32, -0.66], [0.32, 0.72], [-0.32, 0.72], [-0.32, -0.66]];
-const doorFrame: [number, number][] = [[-0.46, -0.8], [0.46, -0.8], [0.46, 0.8], [-0.46, 0.8], [-0.46, -0.8]];
-const doorPanel: [number, number][] = [[-0.19, -0.5], [0.19, -0.5], [0.19, 0.02], [-0.19, 0.02], [-0.19, -0.5]];
-
-const CITY_D = 0.16;
-const skyline: [number, number][] = [
-  [-0.86, 0.6], [-0.86, 0.06], [-0.62, 0.06], [-0.62, -0.3], [-0.4, -0.3],
-  [-0.4, 0.2], [-0.16, 0.2], [-0.16, -0.56], [0.06, -0.56], [0.06, -0.12],
-  [0.3, -0.12], [0.3, -0.42], [0.54, -0.42], [0.54, 0.16], [0.86, 0.16],
-  [0.86, 0.6], [-0.86, 0.6],
-];
-
 const CHART_D = 0.06;
 const chartLine: [number, number][] = [[-0.68, 0.42], [-0.34, 0.1], [-0.02, 0.22], [0.3, -0.24], [0.62, -0.5]];
 const chartHead: [number, number][] = [[0.3, -0.5], [0.62, -0.5], [0.62, -0.18]];
 const chartAxes: [number, number][] = [[-0.74, -0.6], [-0.74, 0.62], [0.74, 0.62]];
+
+// A FLOOR PLAN. Drawn the way a floor plan is drawn — double-line walls, a
+// door shown as a leaf and its swing arc, a stair run — because every agent in
+// the room has looked at a thousand of these and will name it instantly.
+const FP_D = 0.025;
+const fpOuter: [number, number][] = [[-0.82, -0.56], [0.82, -0.56], [0.82, 0.56], [-0.82, 0.56], [-0.82, -0.56]];
+const fpInner: [number, number][] = [[-0.76, -0.5], [0.76, -0.5], [0.76, 0.5], [-0.76, 0.5], [-0.76, -0.5]];
+const fpWalls: [number, number][][] = [
+  [[-0.1, -0.5], [-0.1, 0.08]],
+  [[-0.06, -0.5], [-0.06, 0.08]],
+  [[-0.1, 0.08], [0.76, 0.08]],
+  [[-0.1, 0.12], [0.76, 0.12]],
+  [[0.34, 0.12], [0.34, 0.5]],
+  [[0.38, 0.12], [0.38, 0.5]],
+];
+/** A door: the leaf, then the quarter-circle it sweeps. */
+const fpDoor = (cx: number, cy: number, r: number, a0: number): [number, number][][] => [
+  [[cx, cy], [cx + Math.cos(a0) * r, cy + Math.sin(a0) * r]],
+  Array.from({ length: 9 }, (_, i) => {
+    const a = a0 + (i / 8) * (Math.PI / 2);
+    return [cx + Math.cos(a) * r, cy + Math.sin(a) * r] as [number, number];
+  }),
+];
+const fpStair: [number, number][][] = Array.from({ length: 6 }, (_, i) => [
+  [-0.72, -0.44 + i * 0.09], [-0.24, -0.44 + i * 0.09],
+]);
+const fpCounter: [number, number][] = [[0.42, -0.5], [0.42, -0.2], [0.76, -0.2]];
+
+// A LOCKBOX. The single most agent-specific object there is: nobody outside
+// the business owns one, and everybody inside has spun the dials on a hundred.
+const LB_D = 0.16;
+const lbBody = rrect(0.4, 0.42, 0.1, 5);
+const lbFace = rrect(0.32, 0.34, 0.07, 4);
+/** Ten buttons, the way the real ones are laid out. */
+const lbKeys: [number, number][][] = Array.from({ length: 10 }, (_, i) =>
+  ring(-0.2 + (i % 5) * 0.1, -0.06 + Math.floor(i / 5) * 0.14, 0.035, 9)
+);
+/** The shackle, over the top and down the back. */
+const lbShackle: [number, number][] = [
+  [-0.2, -0.42],
+  ...Array.from({ length: 13 }, (_, i) => {
+    const a = Math.PI + (i / 12) * Math.PI;
+    return [Math.cos(a) * 0.2, -0.42 + Math.sin(a) * 0.26] as [number, number];
+  }),
+  [0.2, -0.42],
+];
+const lbLatch: [number, number][] = [[-0.16, 0.24], [0.16, 0.24], [0.16, 0.36], [-0.16, 0.36], [-0.16, 0.24]];
 
 const SCAN_D = 0.04;
 const finder = (cx: number, cy: number): [number, number][][] => [
@@ -207,40 +309,72 @@ const scanBracket: [number, number][][] = [
 // one, and a generic skyline was cut because "city" is not a problem anybody
 // in that room has.
 
-const PHONE_D = 0.07;
-const phoneBody: [number, number][] = [
-  [-0.27, -0.56], [0.27, -0.56], [0.27, 0.56], [-0.27, 0.56], [-0.27, -0.56],
+// A SMARTPHONE, not a rectangle with a rectangle in it. The things that make
+// one read as itself are all small and all mandatory: a big corner radius, a
+// thin body, a bezel that follows the corners, the island at the top, the home
+// bar at the bottom, buttons on the edges you only see as it turns — and, on
+// the back, the camera array, which is the single most recognisable thing on a
+// modern phone and is free to draw because this object rotates anyway.
+const PHONE_D = 0.045;
+const phoneBody = rrect(0.3, 0.6, 0.11, 6);
+const phoneScreen = rrect(0.265, 0.555, 0.085, 5);
+/** The island. Nothing else on a phone looks like this. */
+const phoneIsland = rrect(0.055, 0.02, 0.02, 4).map(([x, y]) => [x, y - 0.5] as [number, number]);
+const phoneHome: [number, number][] = [[-0.1, 0.525], [0.1, 0.525]];
+/** Two bubbles: one arriving on the left, the answer going back on the right. */
+const phoneIn = rrect(0.1, 0.05, 0.035, 4).map(([x, y]) => [x - 0.13, y - 0.28] as [number, number]);
+const phoneOut = rrect(0.12, 0.05, 0.035, 4).map(([x, y]) => [x + 0.11, y - 0.14] as [number, number]);
+const phoneOut2 = rrect(0.08, 0.045, 0.032, 4).map(([x, y]) => [x + 0.15, y - 0.03] as [number, number]);
+/** Edge hardware, only legible as the body turns — which is the point. */
+const phoneSide: Line3[] = [
+  [[-0.3, -0.26, PHONE_D], [-0.3, -0.26, -PHONE_D]],
+  [[-0.3, -0.12, PHONE_D], [-0.3, -0.12, -PHONE_D]],
+  [[0.3, -0.18, PHONE_D], [0.3, -0.18, -PHONE_D]],
+  [[-0.3, -0.3], [-0.3, -0.08]].map(([x, y]) => [x, y, PHONE_D] as P3),
+  [[-0.3, -0.3], [-0.3, -0.08]].map(([x, y]) => [x, y, -PHONE_D] as P3),
+  [[0.3, -0.22], [0.3, -0.05]].map(([x, y]) => [x, y, PHONE_D] as P3),
+  [[0.3, -0.22], [0.3, -0.05]].map(([x, y]) => [x, y, -PHONE_D] as P3),
 ];
-const phoneScreen: [number, number][] = [
-  [-0.2, -0.45], [0.2, -0.45], [0.2, 0.4], [-0.2, 0.4], [-0.2, -0.45],
+/** The camera array on the back: a rounded square of lenses. */
+const phoneCam: Line3[] = [
+  at(rrect(0.1, 0.1, 0.035, 4).map(([x, y]) => [x - 0.14, y - 0.4] as [number, number]), -PHONE_D),
+  at(ring(-0.18, -0.44, 0.035, 12), -PHONE_D),
+  at(ring(-0.1, -0.44, 0.035, 12), -PHONE_D),
+  at(ring(-0.18, -0.36, 0.035, 12), -PHONE_D),
+  at(ring(-0.1, -0.36, 0.018, 8), -PHONE_D),
 ];
-/** A message already answered, sitting on the screen. */
-const phoneBubble: [number, number][] = [
-  [-0.14, -0.3], [0.14, -0.3], [0.14, -0.1], [-0.02, -0.1], [-0.07, -0.02], [-0.08, -0.1], [-0.14, -0.1], [-0.14, -0.3],
-];
-const phoneHome: [number, number][] = [[-0.09, 0.48], [0.09, 0.48]];
-/** Signal arcs: the thing is reachable, which is the entire point. */
-const signal = (r: number): [number, number][] =>
-  Array.from({ length: 13 }, (_, i) => {
-    const a = -Math.PI * 0.78 + (i / 12) * Math.PI * 0.56;
-    return [0.34 + Math.cos(a) * r, -0.36 + Math.sin(a) * r] as [number, number];
-  });
 
-const CAL_D = 0.05;
-const calPage: [number, number][] = [[-0.6, -0.44], [0.6, -0.44], [0.6, 0.56], [-0.6, 0.56], [-0.6, -0.44]];
-const calBand: [number, number][] = [[-0.6, -0.44], [0.6, -0.44], [0.6, -0.2], [-0.6, -0.2], [-0.6, -0.44]];
-const calRings: Line3[] = [
-  [[-0.3, -0.44, CAL_D], [-0.3, -0.62, CAL_D]],
-  [[0.3, -0.44, CAL_D], [0.3, -0.62, CAL_D]],
-  [[-0.3, -0.44, -CAL_D], [-0.3, -0.62, -CAL_D]],
-  [[0.3, -0.44, -CAL_D], [0.3, -0.62, -CAL_D]],
-];
-const calGrid: [number, number][][] = [
-  ...[-0.05, 0.19, 0.43].map((y) => [[-0.6, y], [0.6, y]] as [number, number][]),
-  ...[-0.36, -0.12, 0.12, 0.36].map((x) => [[x, -0.2], [x, 0.56]] as [number, number][]),
-];
-/** The date that matters, ringed the way anyone rings one. */
-const calMarked: [number, number][] = ring(0.24, 0.07, 0.11, 16);
+// A MONTH, drawn as a month: a page with a torn-off binding, a header band,
+// and thirty-one days as circles on a grid. The days are what make it read at
+// a glance, and at render time they fill and clear — a week booking itself and
+// then releasing — which is the one thing a calendar does that a grid doesn't.
+const CAL_D = 0.04;
+const calPage = rrect(0.62, 0.5, 0.06, 4).map(([x, y]) => [x, y + 0.06] as [number, number]);
+const calBand: [number, number][] = [[-0.62, -0.2], [0.62, -0.2]];
+const calRings: Line3[] = [-0.34, -0.11, 0.11, 0.34].flatMap((x) => [
+  [[x, -0.44, CAL_D], [x, -0.58, CAL_D]] as Line3,
+  [[x, -0.44, -CAL_D], [x, -0.58, -CAL_D]] as Line3,
+  at(ring(x, -0.58, 0.04, 10), CAL_D),
+]);
+/** Seven columns, five rows: the shape of every wall calendar ever printed. */
+const CAL_COLS = 7;
+const CAL_ROWS = 5;
+const CAL_X = (c: number) => -0.5 + c * (1.0 / (CAL_COLS - 1));
+const CAL_Y = (r: number) => -0.08 + r * 0.14;
+const calDays: [number, number][][] = [];
+for (let r = 0; r < CAL_ROWS; r++) {
+  for (let c = 0; c < CAL_COLS; c++) {
+    const i = r * CAL_COLS + c;
+    if (i >= 31) break;
+    calDays.push(ring(CAL_X(c), CAL_Y(r), 0.045, 9));
+  }
+}
+/** Where those day circles live in 3D, for the fill-and-clear pass. */
+const CAL_CELLS: P3[] = calDays.map((_, i) => [
+  CAL_X(i % CAL_COLS),
+  CAL_Y(Math.floor(i / CAL_COLS)),
+  CAL_D,
+]);
 
 const PIN_D = 0.09;
 /** A teardrop: the head, then two shoulders drawn down to the point. */
@@ -274,25 +408,76 @@ const docSign: [number, number][] = [
   [-0.3, 0.52], [-0.18, 0.4], [-0.1, 0.56], [0.0, 0.38], [0.1, 0.54], [0.22, 0.42], [0.3, 0.5],
 ];
 
-const RAIL_D = 0.05;
-/** Nine milestones on a rail, four behind you, one ringed as today. This is
- *  Track to Keys drawn the way it actually behaves — the whole product is that
- *  the chain is visible before any link in it snaps. */
-const RAIL_X = (i: number) => -0.78 + i * 0.195;
-const railAxis: [number, number][] = [[-0.82, 0], [0.82, 0]];
-const railDone: [number, number][] = [[-0.78, -0.09], [RAIL_X(4), -0.09]];
-const railNodes: [number, number][][] = Array.from({ length: 9 }, (_, i) =>
-  ring(RAIL_X(i), 0, i === 4 ? 0.1 : 0.055, i === 4 ? 16 : 10)
-);
-const railNow: [number, number][] = ring(RAIL_X(4), 0, 0.17, 20);
-const railTicks: [number, number][][] = Array.from({ length: 9 }, (_, i) => [
-  [RAIL_X(i), 0.07], [RAIL_X(i), i % 2 === 0 ? 0.3 : 0.22],
-] as [number, number][]);
-/** The far end: a door you get the keys to. */
-const railDoor: [number, number][] = [[0.66, -0.2], [0.9, -0.2], [0.9, -0.62], [0.66, -0.62], [0.66, -0.2]];
-const railFlag: [number, number][] = [[-0.78, -0.09], [-0.78, -0.5], [-0.5, -0.4], [-0.78, -0.3]];
+// THE TABLE. Four parties and Val in the middle of them.
+//
+// This replaces a nine-node deal timeline that was, correctly, unreadable: at
+// particle resolution a rail of small rings is a row of dots and nothing else.
+// A hub with four speech bubbles around it is legible in half a second from
+// the back of a room, and it says the more valuable thing anyway — that the
+// job is not a chart of dates, it is four people who all need answers.
+//
+// Each seat is drawn on the tangent plane at its own angle so the bubbles face
+// the hub and the whole thing reads as a round table when it turns.
+const SEAT_R = 0.72;
+const SEATS: { a: number; label: string }[] = [
+  { a: Math.PI * 0.25, label: "YOUR CLIENT" },
+  { a: Math.PI * 0.75, label: "THE OTHER AGENT" },
+  { a: Math.PI * 1.25, label: "CLOSING ATTORNEY" },
+  { a: Math.PI * 1.75, label: "THE LENDER" },
+];
+/** Places a flat outline on the tangent plane at angle `a`: u runs along the
+ *  tangent, v is world y, and the result faces the centre. */
+const seatAt = (a: number, r: number) => (pts: [number, number][]): Line3 => {
+  const cx = Math.cos(a) * r, cz = Math.sin(a) * r;
+  const tx = -Math.sin(a), tz = Math.cos(a);
+  return pts.map(([u, v]) => [cx + tx * u, v, cz + tz * u] as P3);
+};
+/** A speech bubble with its tail pointing down at the table. */
+const bubble: [number, number][] = [
+  [-0.2, -0.22], [0.2, -0.22], [0.2, 0.0], [0.05, 0.0], [0.0, 0.14], [-0.03, 0.0], [-0.2, 0.0], [-0.2, -0.22],
+];
+const bubbleText: [number, number][][] = [
+  [[-0.14, -0.16], [0.14, -0.16]],
+  [[-0.14, -0.11], [0.08, -0.11]],
+  [[-0.14, -0.06], [0.12, -0.06]],
+];
+const tableLines = (): Line3[] => {
+  const out: Line3[] = [];
+  // Val's core: three great circles, so the hub is a body and not a dot.
+  out.push(at(ring(0, 0, 0.2, 22), 0));
+  out.push(ring(0, 0, 0.2, 22).map(([x, z]) => [x, 0, z] as P3));
+  out.push(ring(0, 0, 0.2, 22).map(([y, z]) => [0, y, z] as P3));
+  for (const { a } of SEATS) {
+    const place = seatAt(a, SEAT_R);
+    out.push(place(bubble));
+    for (const l of bubbleText) out.push(place(l));
+    // the spoke from the hub out to the bubble's tail
+    out.push([
+      [Math.cos(a) * 0.22, 0, Math.sin(a) * 0.22],
+      [Math.cos(a) * SEAT_R, 0.14, Math.sin(a) * SEAT_R],
+    ]);
+  }
+  // the table itself, tying the four seats together
+  out.push(ring(0, 0, SEAT_R, 40).map(([x, z]) => [x, 0.16, z] as P3));
+  return out;
+};
 
-const SHAPES: { id: string; says: string[]; accent: [number, number, number]; lines: Line3[] }[] = [
+const SHAPES: {
+  id: string;
+  says: string[];
+  accent: [number, number, number];
+  lines: Line3[];
+  /** Points that get a label drawn beside them while the shape is held. Only
+   *  the table uses these: a hub of four anonymous bubbles is a diagram, and
+   *  naming the four people is the entire point of it. */
+  tags?: { at: P3; text: string }[];
+  /** A mechanism. Lines from index `from` onward belong to a part that MOVES
+   *  while the shape is held: `turn` rotates it in its own face (a key in a
+   *  lock), `swing` rotates it about a vertical hinge (a door opening). Only
+   *  the key uses this, and it is the difference between a key beside a door
+   *  and a key that opens one. */
+  moves?: { from: number; kind: "turn" | "swing"; pivot: P3 }[];
+}[] = [
   {
     id: "house",
     says: [
@@ -313,12 +498,12 @@ const SHAPES: { id: string; says: string[]; accent: [number, number, number]; li
       "Track to Keys. Every date, every promise, kept.",
     ],
     accent: [242, 239, 231],
-    lines: [
-      at(keyPlate, KEY_D), at(keyPlate, -KEY_D),
-      at(keyTeeth, KEY_D), at(keyTeeth, -KEY_D),
-      at(keyTeeth2, KEY_D), at(keyTeeth2, -KEY_D),
-      at(ring(-0.44, 0, 0.11, 14), KEY_D),
-      ...joins([[-0.71, 0], [-0.17, 0], [0.66, -0.06], [0.66, 0.06], [-0.44, -0.27], [-0.44, 0.27]], KEY_D, -KEY_D),
+    // Line order IS the mechanism: fixed frame, then the panel that swings,
+    // then the key that turns. The split indices come from the arrays.
+    lines: [...doorFixed, ...doorSwings, ...doorKey],
+    moves: [
+      { from: doorFixed.length, kind: "swing", pivot: [HINGE_X, 0, 0] },
+      { from: doorFixed.length + doorSwings.length, kind: "turn", pivot: LOCK },
     ],
   },
   {
@@ -352,10 +537,13 @@ const SHAPES: { id: string; says: string[]; accent: [number, number, number]; li
     lines: [
       at(phoneBody, PHONE_D), at(phoneBody, -PHONE_D),
       at(phoneScreen, PHONE_D),
-      at(phoneBubble, PHONE_D),
+      at(phoneIsland, PHONE_D),
+      at(phoneIn, PHONE_D), at(phoneOut, PHONE_D), at(phoneOut2, PHONE_D),
       at(phoneHome, PHONE_D),
-      at(signal(0.2), PHONE_D), at(signal(0.32), PHONE_D), at(signal(0.44), PHONE_D),
-      ...joins([[-0.27, -0.56], [0.27, -0.56], [0.27, 0.56], [-0.27, 0.56]], PHONE_D, -PHONE_D),
+      ...phoneCam,
+      ...phoneSide,
+      // the rim, joined at the corners so the body has real thickness
+      ...joins(phoneBody.filter((_, i) => i % 3 === 0), PHONE_D, -PHONE_D),
     ],
   },
   {
@@ -369,33 +557,26 @@ const SHAPES: { id: string; says: string[]; accent: [number, number, number]; li
     accent: [201, 124, 92],
     lines: [
       at(calPage, CAL_D), at(calPage, -CAL_D),
-      at(calBand, CAL_D),
+      at(calBand, CAL_D), at(calBand, -CAL_D),
       ...calRings,
-      ...calGrid.map((l) => at(l, CAL_D)),
-      at(calMarked, CAL_D),
-      ...joins([[-0.6, -0.44], [0.6, -0.44], [0.6, 0.56], [-0.6, 0.56]], CAL_D, -CAL_D),
+      ...calDays.map((d) => at(d, CAL_D)),
+      ...joins(calPage.filter((_, i) => i % 3 === 0), CAL_D, -CAL_D),
     ],
   },
   {
-    id: "timeline",
+    id: "table",
     says: [
-      "Binding. Earnest money. Loan application. Due diligence. Appraisal.",
-      "Four behind you, one today, four still coming \u2014 and you can see all nine.",
-      "Your client gets the same chain, in plain English, as a link you text.",
-      "Track to Keys. The contract always had these dates. Nobody ever showed them.",
+      "Your client at 9pm: where are we? Answered from the file, in your voice.",
+      "The other agent needs the disclosure. It goes \u2014 and you're told it went.",
+      "The closing attorney moves the date. Everyone's calendar moves with it.",
+      "Four parties. One thread. Nothing sitting in a voicemail nobody returns.",
     ],
-    accent: [201, 124, 92],
-    lines: [
-      at(railAxis, RAIL_D), at(railAxis, -RAIL_D),
-      at(railDone, RAIL_D), at(railDone, -RAIL_D),
-      ...railNodes.map((n) => at(n, RAIL_D)),
-      ...railNodes.map((n) => at(n, -RAIL_D)),
-      at(railNow, RAIL_D), at(railNow, -RAIL_D),
-      ...railTicks.map((tk) => at(tk, RAIL_D)),
-      at(railDoor, RAIL_D), at(railDoor, -RAIL_D),
-      at(railFlag, RAIL_D),
-      ...joins([[-0.82, 0], [0.82, 0], [RAIL_X(4), -0.17], [RAIL_X(4), 0.17], [0.66, -0.2], [0.9, -0.2], [0.9, -0.62], [0.66, -0.62]], RAIL_D, -RAIL_D),
-    ],
+    accent: [217, 174, 100],
+    tags: SEATS.map(({ a, label }) => ({
+      at: [Math.cos(a) * SEAT_R, -0.3, Math.sin(a) * SEAT_R] as P3,
+      text: label,
+    })),
+    lines: tableLines(),
   },
   {
     id: "pin",
@@ -446,6 +627,46 @@ const SHAPES: { id: string; says: string[]; accent: [number, number, number]; li
       ...docRules.map((l) => at(l, DOC_D)),
       at(docSign, DOC_D),
       ...joins([[-0.42, -0.66], [0.26, -0.66], [0.44, -0.46], [0.44, 0.68], [-0.42, 0.68]], DOC_D, -DOC_D),
+    ],
+  },
+  {
+    id: "floorplan",
+    says: [
+      "Square footage, beds, baths, the lot \u2014 already in the file, already right.",
+      "Ask it what a buyer will object to in this layout. It has read the disclosure.",
+      "Every listing you own gets its own page, its own QR, its own front desk.",
+      "The Agent Connection. Smarter tools, and somebody on site who builds them.",
+    ],
+    accent: [124, 186, 214],
+    lines: [
+      at(fpOuter, FP_D), at(fpOuter, -FP_D),
+      at(fpInner, FP_D), at(fpInner, -FP_D),
+      ...fpWalls.map((w) => at(w, FP_D)),
+      ...fpWalls.map((w) => at(w, -FP_D)),
+      ...fpDoor(-0.06, -0.2, 0.26, -Math.PI / 2).map((d) => at(d, FP_D)),
+      ...fpDoor(0.38, 0.2, 0.24, Math.PI).map((d) => at(d, FP_D)),
+      ...fpStair.map((st2) => at(st2, FP_D)),
+      at(fpCounter, FP_D),
+      ...joins([[-0.82, -0.56], [0.82, -0.56], [0.82, 0.56], [-0.82, 0.56]], FP_D, -FP_D),
+    ],
+  },
+  {
+    id: "lockbox",
+    says: [
+      "The showing books itself, and the code goes out when the appointment is confirmed.",
+      "Feedback comes back the same evening \u2014 asked for, not chased.",
+      "Your seller gets the update Friday whether or not you remembered.",
+      "Every promise you made at the listing table, kept by something that never forgets.",
+    ],
+    accent: [111, 168, 126],
+    lines: [
+      at(lbBody, LB_D), at(lbBody, -LB_D),
+      at(lbFace, LB_D),
+      ...lbKeys.map((k2) => at(k2, LB_D)),
+      at(lbLatch, LB_D),
+      at(lbShackle, LB_D * 0.5), at(lbShackle, -LB_D * 0.5),
+      ...joins(lbBody.filter((_, i) => i % 3 === 0), LB_D, -LB_D),
+      ...joins(lbShackle.filter((_, i) => i % 3 === 0), LB_D * 0.5, -LB_D * 0.5),
     ],
   },
   {
@@ -508,16 +729,17 @@ const BUILDERS = TOTAL - CORE;
  *  the object as a wireframe instead of a dot cloud — joining consecutive
  *  samples only when they actually lie on the same segment, so the pen never
  *  jumps across a gap between two polylines. */
-function sample(lines: Line3[], n: number): { pts: P3[]; link: boolean[]; corner: boolean[] } {
-  const segs: { a: P3; b: P3; len: number }[] = [];
+function sample(lines: Line3[], n: number): { pts: P3[]; link: boolean[]; corner: boolean[]; grp: Uint8Array } {
+  const segs: { a: P3; b: P3; len: number; line: number }[] = [];
   let total = 0;
-  for (const line of lines) {
+  for (let li = 0; li < lines.length; li++) {
+    const line = lines[li];
     for (let i = 0; i < line.length - 1; i++) {
       const a = line[i];
       const b = line[i + 1];
       const len = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
       if (len > 1e-6) {
-        segs.push({ a, b, len });
+        segs.push({ a, b, len, line: li });
         total += len;
       }
     }
@@ -525,6 +747,9 @@ function sample(lines: Line3[], n: number): { pts: P3[]; link: boolean[]; corner
   const out: P3[] = [];
   const link: boolean[] = [];
   const corner: boolean[] = [];
+  // Which source line each particle came from, so a shape can declare that
+  // part of itself MOVES — a key turning in a lock, a door swinging off it.
+  const grp = new Uint8Array(n);
   let prevSeg = -1;
   for (let i = 0; i < n; i++) {
     let d = ((i + 0.5) / n) * total;
@@ -540,6 +765,7 @@ function sample(lines: Line3[], n: number): { pts: P3[]; link: boolean[]; corner
         // Adjacent samples join when they share a segment, or when they are
         // one segment apart AND that segment's own end meets the next — which
         // is every corner of a closed outline.
+        grp[i] = segs[si].line;
         link.push(i > 0 && (si === prevSeg || si === prevSeg + 1));
         // The first sample to land on a new segment is sitting on a corner.
         corner.push(si !== prevSeg);
@@ -554,7 +780,7 @@ function sample(lines: Line3[], n: number): { pts: P3[]; link: boolean[]; corner
     link.push(false);
     corner.push(false);
   }
-  return { pts: out, link, corner };
+  return { pts: out, link, corner, grp };
 }
 
 /** How many builders a small instance uses. The mark that sits on every deck
@@ -569,6 +795,10 @@ const FORMS = SHAPES.map((s) => {
     id: s.id,
     says: s.says,
     accent: s.accent,
+    tags: s.tags,
+    moves: s.moves,
+    grp: big.grp,
+    grpS: small.grp,
     pts: big.pts,
     link: big.link,
     corner: big.corner,
@@ -585,16 +815,16 @@ export const VAL_SYMBOLS = SHAPES.map((s) => s.id);
 // dissolving slowly is the thing people can't look away from — and the room is
 // filling up, so there is nowhere to hurry to. A symbol that takes four
 // seconds to arrive and turns for twelve gets looked at twice.
-const DRIFT = 3000;
-const GATHER = 2600;
-const HOLD = 8200;
-// The wind-up: still whole, but turning harder every frame. This is the beat
-// that makes somebody look up from their phone.
-const SPINUP = 1700;
-// And the release: Val throws it outward and it goes, while the closing line
-// lands underneath. Slow, slow, fast, gone — then round again.
-const BURST = 1600;
-const PHASE = DRIFT + GATHER + HOLD + SPINUP + BURST;
+// ONE THING TURNS INTO THE NEXT. It used to blow apart, drift as a loose
+// shell, and reassemble as something else — which meant that twice per shape
+// there was nothing on screen to look at, and the arrival read as a jerk
+// because the particles came from nowhere in particular. Now every particle
+// travels from where it was in THIS shape to where it belongs in the NEXT
+// one: the house becomes the key, the key becomes the sold sign, forever. The
+// object is never not there, and the transition is the best part.
+const MORPH = 2500;
+const HOLD = 7400;
+const PHASE = MORPH + HOLD;
 
 /** Slow at both ends, unhurried through the middle. Cubic rather than
  *  quadratic so the approach settles instead of arriving. */
@@ -871,6 +1101,7 @@ export function ValParticles({
     let raf = 0;
     let lite = false;
     let avgDt = 16.7;
+    let fadeA = 0.5;
     let announced: string | null | undefined;
     let yaw = 0;
     let last = 0;
@@ -892,70 +1123,50 @@ export function ValParticles({
       // The room's pulse: 1 at the instant something lands, gone in half a second.
       const heart = Math.exp(-Math.max(0, now - beatAt.current) / 260);
 
-      const form = pinned >= 0
-        ? FORMS[pinned]
-        : (FORMS[Math.floor(t / PHASE) % FORMS.length] ?? FORMS[0]);
+      // Which shape we are on, and the one we are coming out of.
+      const slot = Math.floor(t / PHASE);
+      const form = pinned >= 0 ? FORMS[pinned] : (FORMS[slot % FORMS.length] ?? FORMS[0]);
+      const prevForm = pinned >= 0
+        ? form
+        : (FORMS[(slot + FORMS.length - 1) % FORMS.length] ?? form);
       const pts = quiet ? form.ptsS : form.pts;
-      const link = quiet ? form.linkS : form.link;
-      const corner = quiet ? form.cornerS : form.corner;
       const p = t % PHASE;
 
-      let pull = 0;
-      let shooting = false;
-      let spin = 1;     // yaw multiplier — the wind-up
-      let burst = 0;    // radial throw, in units of the shape's own radius
-      let vis = 1;      // fades the builders out on the way out, in on return
-      let closing = false;
-      const t2 = DRIFT + GATHER;
-      const t3 = t2 + HOLD;
-      const t4 = t3 + SPINUP;
-      if (p < DRIFT) {
-        pull = 0;
-        vis = Math.min(1, p / 700); // come back gently after the throw
-      } else if (p < t2) {
-        // ANTICIPATION. The particles breathe OUT for a beat before they rush
-        // in — the wind-up before the pitch. Everything that moves well moves
-        // the wrong way first.
-        const u = (p - DRIFT) / GATHER;
-        pull = u < 0.14
-          ? -0.09 * Math.sin((u / 0.14) * Math.PI)
-          : easeInOut((u - 0.14) / 0.86);
-        shooting = true;
-      } else if (p < t3) {
-        pull = 1;
-      } else if (p < t4) {
-        const u = (p - t3) / SPINUP;
-        pull = 1;
-        spin = 1 + 9 * u * u; // accelerate, don't ramp
-        closing = u > 0.35;
-      } else {
-        const u = (p - t4) / BURST;
-        pull = 1;
-        spin = 1 + 9 * (1 - u);
-        burst = u * u * 2.8;
-        vis = Math.max(0, 1 - u * 1.2);
-        shooting = true;
-        closing = true;
+      // `mix` is how far this shape has arrived: 0 as the last one starts to
+      // let go, 1 once this one has landed. A gentle back-ease gives it the
+      // pull-away and the settle without a splice.
+      let mix = 1;
+      if (pinned < 0 && !calm && p < MORPH) {
+        const u = p / MORPH;
+        const C = 0.6;
+        mix = u < 0.5
+          ? (Math.pow(2 * u, 2) * ((C + 1) * 2 * u - C)) / 2
+          : (Math.pow(2 * u - 2, 2) * ((C + 1) * (2 * u - 2) + C) + 2) / 2;
       }
-      if (pinned >= 0) {
-        // Held, always — with a slow swell so it is alive without being a show.
-        pull = calm ? 1 : 0.988 + Math.sin(t / 1000 * 0.42) * 0.012;
-        spin = 1;
-        burst = 0;
-        vis = 1;
-        closing = false;
-        shooting = false;
-      } else if (calm) {
-        pull = 0;
-        spin = 1;
-        burst = 0;
-        vis = 1;
-        closing = false;
-      }
+      const morphing = mix < 1;
+      // Energy of the change: nothing at either end, everything in the middle.
+      const flux = morphing ? Math.sin(Math.PI * Math.min(1, Math.max(0, p / MORPH))) : 0;
+
+      // Downstream still speaks the old language: `pull` is how settled the
+      // object is, and it now dips through a morph instead of falling to zero.
+      const pull = calm ? 1 : 1 - flux * 0.55;
+      const shooting = morphing;
+      const spin = 1 + flux * 2.2;
+      const burst = 0;
+      const vis = 1;
+      // Edges belong to whichever shape the particles are nearer to, and they
+      // fade out through the middle of the flight — so a solid object
+      // dissolves into travelling light and resolves as a different object.
+      const nearer = mix >= 0.5 ? form : prevForm;
+      const link = quiet ? nearer.linkS : nearer.link;
+      const corner = quiet ? nearer.cornerS : nearer.corner;
+      const srcPts = quiet ? prevForm.ptsS : prevForm.pts;
+      // The fourth line lands late in the hold, as the shape starts to go.
+      const closing = !quiet && !morphing && p > MORPH + HOLD * 0.62;
 
       // The copy follows the motion: it cycles through the hold, then locks
       // onto the closing line as Val winds up to throw the shape.
-      const heldId = quiet ? null : pull > 0.9 ? `${form.id}:${closing ? "close" : "hold"}` : null;
+      const heldId = quiet ? null : !morphing ? `${form.id}:${closing ? "close" : "hold"}` : null;
       if (heldId !== announced) {
         announced = heldId;
         if (heldId && !closing) lockAt = t;
@@ -964,7 +1175,16 @@ export function ValParticles({
 
       // Fast while loose, calmer while holding a shape so it can be read —
       // but never stopped: a symbol that keeps turning gets looked at twice.
-      if (!calm) yaw += dt * (1.25 - 0.5 * pull) * spin;
+      // MOST OF THESE OBJECTS ARE FLAT. A key, a calendar, a contract, a phone
+      // — spun at a constant rate they spend a third of every turn edge-on,
+      // which is a third of the time showing the room a vertical line. So the
+      // rotation is non-uniform: slow while a face is toward the house, fast
+      // through the edge. Every angle still gets shown, but the readable ones
+      // are the ones it lingers on.
+      if (!calm) {
+        const edgeOn = Math.abs(Math.sin(yaw));
+        yaw += dt * (1.25 - 0.5 * pull) * spin * (0.34 + 1.66 * edgeOn);
+      }
       const pitch = calm ? -0.1 : Math.sin(t / 1000 * 0.29) * 0.36 - 0.1;
       const cy_ = Math.cos(yaw), sy = Math.sin(yaw);
       const cp = Math.cos(pitch), sp = Math.sin(pitch);
@@ -994,7 +1214,10 @@ export function ValParticles({
 
       // Trails: fade what's there instead of wiping it, keeping transparency.
       ctx.globalCompositeOperation = "destination-out";
-      const fadeA = calm ? 1 : quiet ? 0.85 : burst > 0 ? 0.2 : shooting ? 0.42 : 0.5;
+      const fadeTarget = calm ? 1 : quiet ? 0.85 : burst > 0 ? 0.2 : shooting ? 0.42 : 0.5;
+      // Trail length used to jump at every phase boundary, and a trail that
+      // changes length in one frame is a visible cut. Ease toward it instead.
+      fadeA += (fadeTarget - fadeA) * Math.min(1, dt * 6);
       ctx.fillStyle = `rgba(0,0,0,${fadeA})`;
       ctx.fillRect(0, 0, w, h);
       ctx.globalCompositeOperation = "lighter";
@@ -1171,14 +1394,22 @@ export function ValParticles({
         } else lockAt = -1;
       }
 
-      const [ar, ag, ab] = form.accent;
+      // The shape swaps while the builders are invisible, but the ACCENT was
+      // swapping in the same frame — and the orbs, HUD and beams all carry it,
+      // so the cut showed. Cross-fade from the outgoing shape across the seam.
+      const seam = Math.min(1, mix < 0 ? 0 : mix);
+      const [ar, ag, ab] = [0, 1, 2].map((i) =>
+        Math.round(prevForm.accent[i] + (form.accent[i] - prevForm.accent[i]) * seam)
+      ) as [number, number, number];
       const settleAge = lockAt >= 0 ? (t - lockAt) / 1000 : 9;
       const settle = 1 + (settleAge < 1.6 ? 0.045 * Math.sin(settleAge * 21) * Math.exp(-settleAge * 3.6) : 0);
 
       // ---- the bodies of light: Val herself ----
       // They pull in and dim while a symbol is held, so the silhouette reads
       // instead of fighting a wall of glow behind it.
-      const flare = 1 + burst * 0.55 + (spin - 1) * 0.05 + heart * 0.6;
+      // Val brightens while she has a shape inside her, which is the moment the
+      // whole effect is selling.
+      const flare = 1 + flux * 0.3 + (spin - 1) * 0.05 + heart * 0.6;
       const orbScale = (1 - 0.42 * pull) * flare;
       const orbGain = (1 - 0.62 * pull) * flare;
       const orbDraw = 1 - 0.5 * pull; // pulled in behind the shape, watching
@@ -1278,6 +1509,8 @@ export function ValParticles({
       }
 
       // ---- the core: Val, always there ----
+      const CB = 5, CA = 4;
+      const cb: (Path2D | null)[] = new Array(CB * CA).fill(null);
       for (let i = 0; i < core.length; i++) {
         const d = core[i];
         const q = project(d.x * d.r, d.y * d.r, d.z * d.r);
@@ -1286,14 +1519,24 @@ export function ValParticles({
         const L = lit(q.x1, q.y1, q.z2);
         const a = (0.08 + depth * 0.26 + rim * rim * 0.42) * vis;
         const sz = Math.max(0.35, d.size * q.persp * (0.75 + rim * 0.5));
-        ctx.fillStyle = `rgba(${Math.round(150 + L * 100)},${Math.round(180 + L * 62)},${Math.round(214 + L * 14)},${a})`;
+        const li = Math.min(CB - 1, Math.max(0, (L * CB) | 0));
+        const ai = Math.min(CA - 1, Math.max(0, ((a / 0.76) * CA) | 0));
+        const path = cb[li * CA + ai] ?? (cb[li * CA + ai] = new Path2D());
         // Every seventh node is a pixel, not a dot — the digital grain.
-        if (i % 7 === 0) {
-          ctx.fillRect(q.px - sz, q.py - sz, sz * 2, sz * 2);
-        } else {
-          ctx.beginPath();
-          ctx.arc(q.px, q.py, sz, 0, Math.PI * 2);
-          ctx.fill();
+        if (i % 7 === 0) path.rect(q.px - sz, q.py - sz, sz * 2, sz * 2);
+        else {
+          path.moveTo(q.px + sz, q.py);
+          path.arc(q.px, q.py, sz, 0, Math.PI * 2);
+        }
+      }
+      for (let li = 0; li < CB; li++) {
+        const L = (li + 0.5) / CB;
+        const col = `${Math.round(150 + L * 100)},${Math.round(180 + L * 62)},${Math.round(214 + L * 14)}`;
+        for (let ai = 0; ai < CA; ai++) {
+          const path = cb[li * CA + ai];
+          if (!path) continue;
+          ctx.fillStyle = `rgba(${col},${((ai + 0.5) / CA) * 0.76})`;
+          ctx.fill(path);
         }
       }
 
@@ -1304,12 +1547,9 @@ export function ValParticles({
       // with the object. The solid, lit wireframe then prints over it under
       // the scan head and the drawing fades as the real thing takes — and it
       // flashes back for a moment as the real thing lets go.
-      let bpA = 0;
-      if (!quiet && shooting) {
-        bpA = burst === 0
-          ? Math.min(1, Math.max(0, p - DRIFT) / 180) * Math.min(1, 1.55 - Math.max(0, pull) * 1.55)
-          : Math.min(1, burst / 0.8) * Math.max(0, 1 - burst / 2.8);
-      }
+      // The drawing of what it is BECOMING, up while it travels and gone once
+      // it has landed on it.
+      const bpA = !quiet && morphing ? Math.pow(Math.sin(Math.PI * (p / MORPH)), 0.75) : 0;
       if (bpA > 0.01) {
         const dash = new Path2D();
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -1411,44 +1651,91 @@ export function ValParticles({
       const bs = new Float32Array(builders.length);
       const bl = new Float32Array(builders.length); // key-light factor per particle
 
+      const streakPaths: (Path2D | null)[] = [null, null, null];
+
       // A scan plane travelling through the object while it assembles: dots
       // near it flare as they are "read in".
-      const sweepY = shooting && pull < 1 ? -1.1 + pull * 2.2 : burst > 0 ? 1.1 - (burst / 2.8) * 2.2 : 99;
+      const sweepY = morphing ? -1.1 + Math.min(1, Math.max(0, mix)) * 2.2 : 99;
+
+      // The mechanism, if this shape has one. It runs inside the hold, so the
+      // room gets to watch the key turn and the door open rather than catching
+      // it mid-flight.
+      let mTurn = 0, mWithdraw = 0, mSwing = 0;
+      if (!quiet && form.moves && !morphing && !calm) {
+        const hu = (p - MORPH) / HOLD;
+        const seg = (a0: number, a1: number) => easeInOut(Math.min(1, Math.max(0, (hu - a0) / (a1 - a0))));
+        mTurn = seg(0.1, 0.32);
+        mWithdraw = seg(0.34, 0.48);
+        mSwing = seg(0.44, 0.78);
+      }
+      const grp = quiet ? form.grpS : form.grp;
+      const moves = form.moves;
+      const turnC = Math.cos(mTurn * Math.PI * 0.55), turnS = Math.sin(mTurn * Math.PI * 0.55);
+      const swingC = Math.cos(mSwing * 1.15), swingS = Math.sin(mSwing * 1.15);
 
       for (let i = 0; i < builders.length; i++) {
         const d = builders[i];
+        const from = srcPts[i];
         const tgt = pts[i];
-        // Stagger so they arrive in waves rather than as one blob.
-        const k = Math.min(1, Math.max(0, pull * (1 + d.lag * 0.5) - d.lag * 0.35));
-        const hx = d.x * d.r;
-        const hy = d.y * d.r;
-        const hz = d.z * d.r;
-        let px2 = hx + (tgt[0] * settle - hx) * k;
-        let py2 = hy + (tgt[1] * settle - hy) * k;
-        let pz2 = hz + (tgt[2] * settle - hz) * k;
-        if (burst > 0) {
-          // Outward along its own line from the centre, plus a nudge along the
-          // resting shell so particles sitting near the middle still go.
-          px2 = px2 * (1 + burst) + d.x * burst * 0.5;
-          py2 = py2 * (1 + burst) + d.y * burst * 0.5;
-          pz2 = pz2 * (1 + burst) + d.z * burst * 0.5;
+        // Stagger so they arrive in waves rather than as one block.
+        const k = Math.min(1, Math.max(0, mix * (1 + d.lag * 0.4) - d.lag * 0.3));
+        // THE FLIGHT: VAL TAKES IT IN AND BUILDS THE NEXT ONE.
+        //
+        // The straight-line version was smooth but it was just a cross-fade in
+        // space — the old thing slid into the new one and Val had nothing to do
+        // with it. So the path is routed through her instead: as a shape lets
+        // go, every particle collapses toward the core and turns there in a
+        // tight swirling ball, then streams back out into the shape it is
+        // becoming. Same continuity — the object is never absent — but now the
+        // machine in the middle is visibly the thing doing the work.
+        const kk = Math.min(1, Math.max(0, k));
+        const suck = morphing ? Math.sin(Math.PI * kk) : 0;
+        const inward = suck * 0.86;
+        // Where this particle sits inside Val while she holds it.
+        const swirl = suck * 2.4;
+        const sc = Math.cos(swirl), ss = Math.sin(swirl);
+        const cr = 0.26 + d.lag * 0.1;
+        const coreX = (d.x * sc + d.z * ss) * cr;
+        const coreZ = (d.z * sc - d.x * ss) * cr;
+        const coreY = d.y * cr;
+        const lx2 = (from[0] + (tgt[0] - from[0]) * k) * settle;
+        const ly2 = (from[1] + (tgt[1] - from[1]) * k) * settle;
+        const lz2 = (from[2] + (tgt[2] - from[2]) * k) * settle;
+        let px2 = lx2 + (coreX - lx2) * inward;
+        let py2 = ly2 + (coreY - ly2) * inward;
+        let pz2 = lz2 + (coreZ - lz2) * inward;
+        if (moves && mTurn + mSwing > 0) {
+          const g = grp[i];
+          const mv = moves[1] && g >= moves[1].from ? moves[1] : g >= moves[0].from ? moves[0] : null;
+          if (mv?.kind === "turn") {
+            // in the plane of the door's face, about the lock
+            const dx = px2 - mv.pivot[0], dy = py2 - mv.pivot[1];
+            px2 = mv.pivot[0] + dx * turnC - dy * turnS;
+            py2 = mv.pivot[1] + dx * turnS + dy * turnC;
+            pz2 += mWithdraw * 0.55; // and then it comes back out of the lock
+          } else if (mv?.kind === "swing") {
+            // about the vertical hinge line
+            const dx = px2 - mv.pivot[0];
+            px2 = mv.pivot[0] + dx * swingC - pz2 * swingS;
+            pz2 = dx * swingS + pz2 * swingC;
+          }
         }
         const q = project(px2, py2, pz2);
         const depth = Math.min(1, Math.max(0, (q.persp - 0.66) / 0.9));
         const flash = Math.max(0, 1 - Math.abs(py2 - sweepY) * 7);
 
-        // Streak: only while actually travelling, and only if it moved.
+        // Streak: only while actually travelling, and only if it moved. Sorted
+        // into three brightness bands and stroked as three paths at the end,
+        // rather than a stroke call per particle.
         if (shooting && d.seen) {
           const dx = q.px - d.px;
           const dy = q.py - d.py;
           const sp2 = dx * dx + dy * dy;
           if (sp2 > 0.35) {
-            ctx.beginPath();
-            ctx.moveTo(d.px, d.py);
-            ctx.lineTo(q.px, q.py);
-            ctx.strokeStyle = `rgba(246,244,238,${Math.min(0.32, sp2 / 60) * vis})`;
-            ctx.lineWidth = 1.1;
-            ctx.stroke();
+            const band = sp2 > 24 ? 2 : sp2 > 6 ? 1 : 0;
+            const sp = streakPaths[band] ?? (streakPaths[band] = new Path2D());
+            sp.moveTo(d.px, d.py);
+            sp.lineTo(q.px, q.py);
           }
         }
         d.px = q.px;
@@ -1459,8 +1746,22 @@ export function ValParticles({
         by2[i] = q.py;
         bl[i] = lit(q.x1, q.y1, q.z2);
         const isCorner = corner[i];
-        ba[i] = (((0.1 + k * 0.5) + depth * 0.42) + flash * 0.5 + (isCorner ? k * 0.3 : 0)) * vis;
-        bs[i] = Math.max(0.35, d.size * q.persp * (0.8 + k * 0.4) * (1 + flash * 0.6) * (isCorner ? (quiet ? 1.2 : 1.9) : 1));
+        // Brightest in flight: a particle that is travelling is the thing
+        // worth looking at.
+        const trav = morphing ? Math.sin(Math.PI * Math.min(1, Math.max(0, k))) : 0;
+        const packed = 1 - trav * 0.62;
+        ba[i] = (((0.32 + depth * 0.42) + flash * 0.5 + (isCorner ? 0.3 : 0)) * packed + trav * 0.12) * vis;
+        bs[i] = Math.max(0.35, d.size * q.persp * (1.1 - trav * 0.25) * (1 + flash * 0.6) * (isCorner ? (quiet ? 1.2 : 1.9) : 1));
+      }
+
+      if (shooting) {
+        ctx.lineWidth = 1.1;
+        for (let b = 0; b < 3; b++) {
+          const sp = streakPaths[b];
+          if (!sp) continue;
+          ctx.strokeStyle = `rgba(246,244,238,${[0.09, 0.2, 0.32][b] * vis})`;
+          ctx.stroke(sp);
+        }
       }
 
       // FEED BEAMS. While the shape is forming, every twelfth particle is
@@ -1482,11 +1783,14 @@ export function ValParticles({
       // The wireframe itself, drawn between particles that share an edge. Two
       // passes: a wide soft one for bloom, then a tight bright one for the
       // actual line. One thin stroke read as a sketch; this reads as an object.
-      if (pull > 0.25) {
+      // Edges belong to the shape the particles are nearest; through the middle
+      // of the flight there are no edges at all, only light in transit.
+      const edgeUp = 1 - Math.pow(Math.sin(Math.PI * Math.min(1, Math.max(0, mix))), 0.6);
+      if (edgeUp > 0.02) {
         // Hologram flicker: a few percent of frame-to-frame noise, enough to
         // read as projected light rather than ink.
         const flick = calm ? 1 : 0.93 + 0.07 * ((((Math.floor(t / 33) * 2654435761) >>> 0) % 1000) / 1000);
-        const edge = Math.min(1.25, (pull - 0.25) / 0.75 + heart * 0.5) * flick;
+        const edge = Math.min(1.25, edgeUp + heart * 0.5) * flick;
         // Three passes, split by how much key light each edge catches: a warm
         // bright set, a mid set in the shape's own accent, a cool shadow set.
         const warm = new Path2D();
@@ -1516,7 +1820,7 @@ export function ValParticles({
         // GLITCH SLICES. Every couple of seconds, for a few frames, one
         // horizontal band of the held wireframe splits into cyan and magenta
         // copies thrown a few pixels apart. The signature of a hologram.
-        if (!calm && !lite && pull > 0.9 && burst === 0) {
+        if (!calm && !lite && !morphing) {
           const GP = 2600;
           const gph = t % GP;
           if (gph < 110) {
@@ -1542,29 +1846,56 @@ export function ValParticles({
         }
       }
 
+      // BATCHED FILLS. Fifteen hundred beginPath/arc/fill calls a frame is the
+      // entire bill on a software rasteriser — the per-fill overhead dominates,
+      // not the pixels. Quantising colour and alpha into a small set of buckets
+      // and filling one Path2D per bucket draws the same picture in about two
+      // dozen fills. At this dot size the quantisation is invisible.
+      const TAU = Math.PI * 2;
+      const LB = 5, AB = 5;
+      const buckets: (Path2D | null)[] = new Array(LB * AB).fill(null);
+      const halos: (Path2D | null)[] = new Array(LB).fill(null);
       for (let i = 0; i < builders.length; i++) {
         const L = bl[i];
-        const a = Math.min(0.95, ba[i]) * (0.55 + L * 0.45) * (1 - bpA * 0.3);
-        // Warm where the key hits, cool where it doesn't.
-        const r = Math.round(140 + L * 112), g = Math.round(168 + L * 78), bb = Math.round(206 + L * 24);
+        const a = Math.min(0.95, ba[i]) * (0.55 + L * 0.45);
+        const li = Math.min(LB - 1, Math.max(0, (L * LB) | 0));
+        const ai = Math.min(AB - 1, Math.max(0, ((a / 0.95) * AB) | 0));
         // DEPTH OF FIELD: anything well behind the focal plane gets a soft
         // halo instead of a hard dot, so near reads sharp and far reads far.
         if (bs[i] < 0.9 && !lite) {
-          ctx.beginPath();
-          ctx.arc(bx2[i], by2[i], bs[i] * 2.4, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${r},${g},${bb},${a * 0.22})`;
-          ctx.fill();
+          const h = halos[li] ?? (halos[li] = new Path2D());
+          h.moveTo(bx2[i] + bs[i] * 2.4, by2[i]);
+          h.arc(bx2[i], by2[i], bs[i] * 2.4, 0, TAU);
         }
-        ctx.fillStyle = `rgba(${r},${g},${bb},${a})`;
+        const path = buckets[li * AB + ai] ?? (buckets[li * AB + ai] = new Path2D());
         if (i % 9 === 0 && !corner[i]) {
           // A small cross — a registration mark, not a dot.
           const s2 = bs[i] * 1.6;
-          ctx.fillRect(bx2[i] - s2, by2[i] - 0.5, s2 * 2, 1);
-          ctx.fillRect(bx2[i] - 0.5, by2[i] - s2, 1, s2 * 2);
+          path.rect(bx2[i] - s2, by2[i] - 0.5, s2 * 2, 1);
+          path.rect(bx2[i] - 0.5, by2[i] - s2, 1, s2 * 2);
         } else {
-          ctx.beginPath();
-          ctx.arc(bx2[i], by2[i], bs[i], 0, Math.PI * 2);
-          ctx.fill();
+          path.moveTo(bx2[i] + bs[i], by2[i]);
+          path.arc(bx2[i], by2[i], bs[i], 0, TAU);
+        }
+      }
+      const warmOf = (li: number) => {
+        const L = (li + 0.5) / LB;
+        return `${Math.round(140 + L * 112)},${Math.round(168 + L * 78)},${Math.round(206 + L * 24)}`;
+      };
+      for (let li = 0; li < LB; li++) {
+        const h = halos[li];
+        if (h) {
+          ctx.fillStyle = `rgba(${warmOf(li)},0.14)`;
+          ctx.fill(h);
+        }
+      }
+      for (let li = 0; li < LB; li++) {
+        const col = warmOf(li);
+        for (let ai = 0; ai < AB; ai++) {
+          const path = buckets[li * AB + ai];
+          if (!path) continue;
+          ctx.fillStyle = `rgba(${col},${((ai + 0.5) / AB) * 0.95})`;
+          ctx.fill(path);
         }
       }
 
@@ -1618,7 +1949,7 @@ export function ValParticles({
       // as it materialises, with a bar that fills as it does. Nothing here
       // names the object — the copy under the stage sells it — and the only
       // number on it is one this file can vouch for: the node count.
-      if (!quiet && pull > 0.3 && vis > 0.2 && burst === 0) {
+      if (!quiet && !morphing && vis > 0.2) {
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         for (let i = 0; i < builders.length; i++) {
           if (bx2[i] < minX) minX = bx2[i];
@@ -1628,7 +1959,7 @@ export function ValParticles({
         }
         const padX = (maxX - minX) * 0.06 + 4, padY = (maxY - minY) * 0.06 + 4;
         minX -= padX; maxX += padX; minY -= padY; maxY += padY;
-        const on = Math.min(1, (pull - 0.3) / 0.3) * vis * st;
+        const on = vis * st;
         const L = Math.min(unit * 0.07, (maxX - minX) * 0.2);
         ctx.lineWidth = 1.2;
         ctx.strokeStyle = `rgba(217,174,100,${0.75 * on})`;
@@ -1650,12 +1981,121 @@ export function ValParticles({
         const fi = FORMS.indexOf(form);
         ctx.fillText(`▸ RENDER ${String(fi + 1).padStart(2, "0")}/${FORMS.length} · ${builders.length} NODES`, minX, minY - fs * 0.9);
         ctx.textAlign = "right";
-        ctx.fillText(pull < 0.999 ? "MATERIALIZING" : closing ? "RELEASE" : "LOCKED", maxX, minY - fs * 0.9);
+        ctx.fillText(closing ? "RELEASING" : "LOCKED", maxX, minY - fs * 0.9);
         const bw = Math.min(unit * 0.3, maxX - minX);
         ctx.fillStyle = `rgba(217,174,100,${0.2 * on})`;
         ctx.fillRect(minX, minY - fs * 0.45, bw, 2);
         ctx.fillStyle = `rgba(217,174,100,${0.85 * on})`;
-        ctx.fillRect(minX, minY - fs * 0.45, bw * Math.min(1, (pull - 0.3) / 0.7), 2);
+        ctx.fillRect(minX, minY - fs * 0.45, bw, 2);
+      }
+
+      // ---- THE MONTH FILLING ----
+      // A grid of empty circles is a grid. Days that fill, hold, and clear are
+      // a calendar — a week booking itself and then releasing. Each day runs on
+      // its own slow clock from a fixed hash, so the pattern never repeats and
+      // never stutters, and a day lighting up throws a ring the way the lock
+      // pulse does.
+      if (!quiet && form.id === "calendar" && !morphing) {
+        const on = 1;
+        for (let i = 0; i < CAL_CELLS.length; i++) {
+          const [cx, cy, cz] = CAL_CELLS[i];
+          // Deterministic per-day period and offset: no Math.random in a loop
+          // that has to look identical from one frame to the next.
+          const hash = ((i * 2654435761) >>> 0) / 4294967296;
+          const period = 5200 + hash * 6400;
+          const u = ((t + hash * 9000) % period) / period;
+          // fill over the first fifth, hold, clear over the last fifth
+          const fill = u < 0.2 ? u / 0.2 : u < 0.72 ? 1 : u < 0.92 ? 1 - (u - 0.72) / 0.2 : 0;
+          if (fill <= 0.01) continue;
+          const q = project(cx, cy, cz);
+          const rad = Math.max(1, unit * 0.045 * q.persp);
+          ctx.beginPath();
+          ctx.arc(q.px, q.py, rad * fill, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${ar},${ag},${ab},${0.55 * fill * on})`;
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(q.px, q.py, rad * fill * 0.45, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(252,246,228,${0.75 * fill * on})`;
+          ctx.fill();
+          // the ring thrown as it lands
+          if (u < 0.2) {
+            const f = u / 0.2;
+            ctx.beginPath();
+            ctx.arc(q.px, q.py, rad * (1 + f * 1.6), 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(252,246,228,${0.5 * (1 - f) * on})`;
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // ---- THE TABLE'S TRAFFIC ----
+      // The point of this shape is not four boxes around a hub. It is that Val
+      // is talking to all four of them at once and the agent is not having to.
+      // So: the seats are NAMED, with labels that turn with the object and
+      // fade as they go round the back, and packets run every spoke in both
+      // directions — out to the party, back with the answer.
+      if (!quiet && form.tags && !morphing) {
+        const on = 1;
+        for (let i = 0; i < SEATS.length; i++) {
+          const { a } = SEATS[i];
+          const hub = project(Math.cos(a) * 0.22, 0, Math.sin(a) * 0.22);
+          const seat = project(Math.cos(a) * SEAT_R, 0.14, Math.sin(a) * SEAT_R);
+          // Alternate seats run the other way, so the table reads as a
+          // conversation rather than a broadcast.
+          const outbound = i % 2 === 0;
+          let u = ((t / 1000) * 0.5 + i * 0.37) % 1;
+          if (!outbound) u = 1 - u;
+          const lerp = (a1: number, b1: number, k: number) => a1 + (b1 - a1) * k;
+          const px = lerp(hub.px, seat.px, u), py = lerp(hub.py, seat.py, u);
+          const tu = Math.max(0, Math.min(1, u + (outbound ? -0.14 : 0.14)));
+          ctx.strokeStyle = `rgba(${ar},${ag},${ab},${0.55 * on})`;
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(lerp(hub.px, seat.px, tu), lerp(hub.py, seat.py, tu));
+          ctx.lineTo(px, py);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(4, unit * 0.022), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${ar},${ag},${ab},${0.18 * on})`;
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(1.6, unit * 0.008), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(252,246,228,${0.95 * on})`;
+          ctx.fill();
+          // A packet landing lights the seat it lands on.
+          const land = outbound ? u : 1 - u;
+          if (land > 0.9) {
+            const f = (land - 0.9) / 0.1;
+            ctx.beginPath();
+            ctx.arc(outbound ? seat.px : hub.px, outbound ? seat.py : hub.py, unit * (0.03 + f * 0.05), 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(252,246,228,${0.5 * (1 - f) * on})`;
+            ctx.lineWidth = 1.4;
+            ctx.stroke();
+          }
+        }
+        {
+          const lf = Math.max(9, Math.round(unit * 0.046));
+          ctx.font = `600 ${lf}px ui-monospace, "SF Mono", Menlo, Consolas, monospace`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "alphabetic";
+          const lon = 1;
+          for (const tg of form.tags) {
+            const q = project(tg.at[0], tg.at[1], tg.at[2]);
+            // Front of the table reads bright, the back falls away.
+            const face = Math.min(1, Math.max(0, (0.55 - q.z2) / 1.1));
+            const A = (0.22 + 0.78 * face) * lon;
+            const anchor = project(tg.at[0], 0.14 - 0.22, tg.at[2]);
+            ctx.strokeStyle = `rgba(${ar},${ag},${ab},${0.4 * A})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(anchor.px, anchor.py);
+            ctx.lineTo(q.px, q.py + lf * 0.35);
+            ctx.stroke();
+            ctx.fillStyle = `rgba(240,226,196,${0.95 * A})`;
+            ctx.fillText(tg.text, q.px, q.py);
+          }
+        }
       }
 
       // No vignette here. A canvas-local one can only ever darken toward the

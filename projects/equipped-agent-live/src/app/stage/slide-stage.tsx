@@ -94,7 +94,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
       <section key={snap.step} className="slide-enter relative flex flex-1 flex-col justify-center">
         {/* VAL, PRESENT FOR THE WHOLE HOUR. A quiet mark in the corner of every
             slide, holding the symbol that belongs to it — the phone on speed to
-            lead, the timeline on Track to Keys, a loose thinking mesh on a poll.
+            lead, the table on the switchboard, a loose thinking mesh on a poll.
             Without this the show has one cinematic screen and then thirty-three
             slides of type, and the drop-off costs more than the standby
             screen earns. */}

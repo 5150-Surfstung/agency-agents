@@ -488,7 +488,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "switchboard",
-    valSymbol: "phone",
+    valSymbol: "table",
     kind: "demo",
     eyebrow: "Live · the part nobody else is doing",
     heading: "Now watch me walk into a conversation that's already happening.",
@@ -550,7 +550,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "demo-t2k",
-    valSymbol: "timeline",
+    valSymbol: "calendar",
     kind: "demo",
     eyebrow: "Live demo · Track to Keys · open it yourself",
     heading: "The deal that keeps its own promises",
