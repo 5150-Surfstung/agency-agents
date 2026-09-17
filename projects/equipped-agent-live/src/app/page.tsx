@@ -1,9 +1,15 @@
 import { Suspense } from "react";
 import { JoinCard } from "./join-card";
+import { ValParticles } from "./stage/val-particles";
 
 export default function JoinPage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-6 py-12">
+      <ValParticles
+        quiet
+        pin="phone"
+        className="pointer-events-none mb-1 h-28 w-28 opacity-90"
+      />
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
         The AGENT Connection™ × Surfstung Systems
       </p>

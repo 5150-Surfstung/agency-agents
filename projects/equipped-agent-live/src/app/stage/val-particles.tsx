@@ -939,7 +939,7 @@ export function ValParticles({
       }
       if (pinned >= 0) {
         // Held, always — with a slow swell so it is alive without being a show.
-        pull = calm ? 1 : 0.9 + Math.sin(t / 1000 * 0.42) * 0.1;
+        pull = calm ? 1 : 0.988 + Math.sin(t / 1000 * 0.42) * 0.012;
         spin = 1;
         burst = 0;
         vis = 1;
@@ -994,7 +994,7 @@ export function ValParticles({
 
       // Trails: fade what's there instead of wiping it, keeping transparency.
       ctx.globalCompositeOperation = "destination-out";
-      const fadeA = calm ? 1 : burst > 0 ? 0.2 : shooting ? 0.42 : 0.5;
+      const fadeA = calm ? 1 : quiet ? 0.85 : burst > 0 ? 0.2 : shooting ? 0.42 : 0.5;
       ctx.fillStyle = `rgba(0,0,0,${fadeA})`;
       ctx.fillRect(0, 0, w, h);
       ctx.globalCompositeOperation = "lighter";
@@ -1460,7 +1460,7 @@ export function ValParticles({
         bl[i] = lit(q.x1, q.y1, q.z2);
         const isCorner = corner[i];
         ba[i] = (((0.1 + k * 0.5) + depth * 0.42) + flash * 0.5 + (isCorner ? k * 0.3 : 0)) * vis;
-        bs[i] = Math.max(0.35, d.size * q.persp * (0.8 + k * 0.4) * (1 + flash * 0.6) * (isCorner ? 1.9 : 1));
+        bs[i] = Math.max(0.35, d.size * q.persp * (0.8 + k * 0.4) * (1 + flash * 0.6) * (isCorner ? (quiet ? 1.2 : 1.9) : 1));
       }
 
       // FEED BEAMS. While the shape is forming, every twelfth particle is
