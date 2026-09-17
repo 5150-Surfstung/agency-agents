@@ -274,6 +274,24 @@ const docSign: [number, number][] = [
   [-0.3, 0.52], [-0.18, 0.4], [-0.1, 0.56], [0.0, 0.38], [0.1, 0.54], [0.22, 0.42], [0.3, 0.5],
 ];
 
+const RAIL_D = 0.05;
+/** Nine milestones on a rail, four behind you, one ringed as today. This is
+ *  Track to Keys drawn the way it actually behaves — the whole product is that
+ *  the chain is visible before any link in it snaps. */
+const RAIL_X = (i: number) => -0.78 + i * 0.195;
+const railAxis: [number, number][] = [[-0.82, 0], [0.82, 0]];
+const railDone: [number, number][] = [[-0.78, -0.09], [RAIL_X(4), -0.09]];
+const railNodes: [number, number][][] = Array.from({ length: 9 }, (_, i) =>
+  ring(RAIL_X(i), 0, i === 4 ? 0.1 : 0.055, i === 4 ? 16 : 10)
+);
+const railNow: [number, number][] = ring(RAIL_X(4), 0, 0.17, 20);
+const railTicks: [number, number][][] = Array.from({ length: 9 }, (_, i) => [
+  [RAIL_X(i), 0.07], [RAIL_X(i), i % 2 === 0 ? 0.3 : 0.22],
+] as [number, number][]);
+/** The far end: a door you get the keys to. */
+const railDoor: [number, number][] = [[0.66, -0.2], [0.9, -0.2], [0.9, -0.62], [0.66, -0.62], [0.66, -0.2]];
+const railFlag: [number, number][] = [[-0.78, -0.09], [-0.78, -0.5], [-0.5, -0.4], [-0.78, -0.3]];
+
 const SHAPES: { id: string; says: string[]; accent: [number, number, number]; lines: Line3[] }[] = [
   {
     id: "house",
@@ -356,6 +374,27 @@ const SHAPES: { id: string; says: string[]; accent: [number, number, number]; li
       ...calGrid.map((l) => at(l, CAL_D)),
       at(calMarked, CAL_D),
       ...joins([[-0.6, -0.44], [0.6, -0.44], [0.6, 0.56], [-0.6, 0.56]], CAL_D, -CAL_D),
+    ],
+  },
+  {
+    id: "timeline",
+    says: [
+      "Binding. Earnest money. Loan application. Due diligence. Appraisal.",
+      "Four behind you, one today, four still coming \u2014 and you can see all nine.",
+      "Your client gets the same chain, in plain English, as a link you text.",
+      "Track to Keys. The contract always had these dates. Nobody ever showed them.",
+    ],
+    accent: [201, 124, 92],
+    lines: [
+      at(railAxis, RAIL_D), at(railAxis, -RAIL_D),
+      at(railDone, RAIL_D), at(railDone, -RAIL_D),
+      ...railNodes.map((n) => at(n, RAIL_D)),
+      ...railNodes.map((n) => at(n, -RAIL_D)),
+      at(railNow, RAIL_D), at(railNow, -RAIL_D),
+      ...railTicks.map((tk) => at(tk, RAIL_D)),
+      at(railDoor, RAIL_D), at(railDoor, -RAIL_D),
+      at(railFlag, RAIL_D),
+      ...joins([[-0.82, 0], [0.82, 0], [RAIL_X(4), -0.17], [RAIL_X(4), 0.17], [0.66, -0.2], [0.9, -0.2], [0.9, -0.62], [0.66, -0.62]], RAIL_D, -RAIL_D),
     ],
   },
   {
@@ -452,11 +491,11 @@ const SHAPES: { id: string; says: string[]; accent: [number, number, number]; li
  *  shape. The first version was far too bright and the symbols had to shout
  *  over it. */
 const ORBS: { c: [number, number, number]; r: number; orbit: number; speed: number; phase: number; tilt: number }[] = [
-  { c: [217, 174, 100], r: 0.40, orbit: 0.22, speed: 0.26, phase: 0.0, tilt: 0.2 },
-  { c: [111, 168, 126], r: 0.34, orbit: 0.30, speed: -0.21, phase: 2.1, tilt: 1.1 },
-  { c: [201, 124, 92], r: 0.28, orbit: 0.27, speed: 0.17, phase: 4.0, tilt: -0.7 },
-  { c: [242, 239, 231], r: 0.20, orbit: 0.13, speed: -0.34, phase: 1.0, tilt: 0.5 },
-  { c: [124, 186, 214], r: 0.26, orbit: 0.34, speed: 0.23, phase: 5.2, tilt: -1.3 },
+  { c: [217, 174, 100], r: 0.40, orbit: 0.22, speed: 0.48, phase: 0.0, tilt: 0.2 },
+  { c: [111, 168, 126], r: 0.34, orbit: 0.30, speed: -0.39, phase: 2.1, tilt: 1.1 },
+  { c: [201, 124, 92], r: 0.28, orbit: 0.27, speed: 0.33, phase: 4.0, tilt: -0.7 },
+  { c: [242, 239, 231], r: 0.20, orbit: 0.13, speed: -0.62, phase: 1.0, tilt: 0.5 },
+  { c: [124, 186, 214], r: 0.26, orbit: 0.34, speed: 0.44, phase: 5.2, tilt: -1.3 },
 ];
 
 const TOTAL = 900;

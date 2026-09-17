@@ -19,6 +19,7 @@ import { useState } from "react";
 import { ValParticles } from "./val-particles";
 import { ValLines, VAL_IDLE } from "./val-lines";
 import { TacLockup } from "./tac-lockup";
+import { ValFeed } from "./val-feed";
 
 // The language of the room, not AI jargon. These are words an agent already
 // thinks in — which is the point Val is making without saying it.
@@ -66,12 +67,15 @@ export function ValStandby() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-between overflow-hidden py-[1.5vh]">
-      <TacLockup />
+      <div className="flex w-full flex-col items-center gap-[1.4vh]">
+        <TacLockup />
+        <ValFeed />
+      </div>
 
       {/* 1em is the ORB's diameter; the stage around it is 2.6em so the
           particle field has room to grow a house bigger than the thing it
           came out of, and so the wordmark below clears the field entirely. */}
-      <div className="text-[min(18vh,13vw)]">
+      <div className="text-[min(16vh,12vw)]">
         <div className="relative mx-auto h-[2.8em] w-[2.8em]">
           {/* The core IS the particles and the bodies of light now. The CSS
               gradient ball that used to sit under here was a second system
