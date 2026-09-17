@@ -110,8 +110,8 @@ export function Rsvp() {
               )}
               {EVENT.online && (
                 <dd className="mt-1.5 text-[15px] text-soft">
-                  You can come {EVENT.online} — say which in your reply and the link or the
-                  address comes back to you.
+                  You can come {EVENT.online} — say which in your reply. The Zoom link comes
+                  back with your confirmation.
                 </dd>
               )}
             </div>

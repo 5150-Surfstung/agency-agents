@@ -20,10 +20,11 @@ export const EVENT = {
   time: "12:00pm noon ET",
   /** One hour, and it starts on time. */
   duration: "one hour",
-  /** Street address — set it and the page shows it everywhere. */
-  place: "",
-  /** The flyer offers both. No Meet link yet, so the page does not print one. */
-  online: "in person, or on Google Meet",
+  /** Street address — shown on the page, in the reveal, and in the message. */
+  place: "2000 Sam Rittenberg Blvd, Suite 2020 · Charleston, SC",
+  /** Both are offered. The Zoom link is not minted yet, so the page says it
+   *  comes with the confirmation rather than printing a link that 404s. */
+  online: "in person, or on Zoom",
   /** The official reservation page from the flyer's QR code. */
   rsvpUrl: "https://theagentconnection.com/#rsvp",
 } as const;

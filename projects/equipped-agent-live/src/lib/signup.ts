@@ -19,7 +19,7 @@ export function rsvpMailto(opts: { name?: string; cell?: string; when: string })
     opts.name ? `Name: ${opts.name}` : `Name:`,
     opts.cell ? `Cell: ${opts.cell}` : `Cell:`,
     ``,
-    `Send me the address and anything I should have installed before I get there.`,
+    `Coming: [ in person / on Zoom ] — whichever, send me anything I should have installed first.`,
     ``,
     `— from theequippedagent`,
   ];
