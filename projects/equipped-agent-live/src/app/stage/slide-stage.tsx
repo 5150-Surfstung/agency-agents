@@ -99,6 +99,7 @@ export function SlideStage({ snap, slide, presentPop = false }: {
           <ValParticles
             quiet
             pin={slide.valSymbol}
+            beat={total + priceTotal + (snap.present ?? 0)}
             className="pointer-events-none absolute right-[1.5vw] top-[1vh] h-[17vh] w-[17vh] opacity-80"
           />
         )}
@@ -156,12 +157,16 @@ export function SlideStage({ snap, slide, presentPop = false }: {
 
         {slide.lines && slide.kind !== "title" && (
           <div
-            className={`rise d3 mt-[3.5vh] flex flex-col gap-[1.2vh] ${
+            className={`mt-[3.5vh] flex flex-col gap-[1.2vh] ${
               slide.kind === "close" ? "max-w-[48ch]" : "max-w-[64ch]"
             }`}
           >
-            {slide.lines.map((l) => (
-              <p key={l} className="text-[clamp(16px,1.6vw,26px)] leading-relaxed text-soft">
+            {slide.lines.map((l, i) => (
+              <p
+                key={l}
+                className="rise text-[clamp(16px,1.6vw,26px)] leading-relaxed text-soft"
+                style={{ animationDelay: `${0.42 + i * 0.14}s` }}
+              >
                 {l}
               </p>
             ))}
@@ -186,12 +191,16 @@ export function SlideStage({ snap, slide, presentPop = false }: {
         {/* ——— two lanes: nobody in this room is bored and nobody is lost ——— */}
         {slide.lanes && (
           <div
-            className={`rise d3 mt-[2.4vh] grid w-full gap-[1.6vw] sm:grid-cols-2 ${
+            className={`mt-[2.4vh] grid w-full gap-[1.6vw] sm:grid-cols-2 ${
               slide.id === "val" ? "max-w-[74ch]" : "max-w-[116ch]"
             }`}
           >
-            {slide.lanes.map((lane) => (
-              <div key={lane.tag} className="rounded-2xl border border-rule bg-sheet-2/70 p-[1.3vw]">
+            {slide.lanes.map((lane, i) => (
+              <div
+                key={lane.tag}
+                className="rise lane-card relative overflow-hidden rounded-2xl border border-rule bg-sheet-2/70 p-[1.3vw]"
+                style={{ animationDelay: `${0.45 + i * 0.18}s` }}
+              >
                 <p className="text-[clamp(10px,0.9vw,14px)] font-bold uppercase tracking-[0.2em] text-gold">
                   {lane.tag}
                 </p>

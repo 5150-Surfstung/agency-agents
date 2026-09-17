@@ -605,8 +605,13 @@ export function ValParticles({
   onForm,
   pin,
   quiet = false,
+  beat,
 }: {
   className?: string;
+  /** Any number that changes when the room does something — votes landing,
+   *  phones joining, guesses locking. Each change is a heartbeat: the held
+   *  symbol flashes and the bodies of light swell for half a second. */
+  beat?: number;
   /** Hold one symbol permanently instead of cycling — what the deck mark does,
    *  so each slide gets the shape that belongs to it. */
   pin?: string;
@@ -620,6 +625,12 @@ export function ValParticles({
   const canvas = useRef<HTMLCanvasElement>(null);
   const formCb = useRef(onForm);
   formCb.current = onForm;
+  const beatAt = useRef(-1e9);
+  const beatSeen = useRef(beat);
+  if (beat !== beatSeen.current) {
+    beatSeen.current = beat;
+    if (typeof performance !== "undefined") beatAt.current = performance.now();
+  }
 
   useEffect(() => {
     const cv = canvas.current;
@@ -732,6 +743,8 @@ export function ValParticles({
       const t = Math.max(0, now - start);
       const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
       last = now;
+      // The room's pulse: 1 at the instant something lands, gone in half a second.
+      const heart = Math.exp(-Math.max(0, now - beatAt.current) / 260);
 
       const form = pinned >= 0
         ? FORMS[pinned]
@@ -894,7 +907,7 @@ export function ValParticles({
       // ---- the bodies of light: Val herself ----
       // They pull in and dim while a symbol is held, so the silhouette reads
       // instead of fighting a wall of glow behind it.
-      const flare = 1 + burst * 0.55 + (spin - 1) * 0.05;
+      const flare = 1 + burst * 0.55 + (spin - 1) * 0.05 + heart * 0.6;
       const orbScale = (1 - 0.42 * pull) * flare;
       const orbGain = (1 - 0.62 * pull) * flare;
       const orbDraw = 1 - 0.5 * pull; // pulled in behind the shape, watching
@@ -1036,7 +1049,7 @@ export function ValParticles({
       // passes: a wide soft one for bloom, then a tight bright one for the
       // actual line. One thin stroke read as a sketch; this reads as an object.
       if (pull > 0.25) {
-        const edge = (pull - 0.25) / 0.75;
+        const edge = Math.min(1.25, (pull - 0.25) / 0.75 + heart * 0.5);
         // Three passes, split by how much key light each edge catches: a warm
         // bright set, a mid set in the shape's own accent, a cool shadow set.
         const warm = new Path2D();

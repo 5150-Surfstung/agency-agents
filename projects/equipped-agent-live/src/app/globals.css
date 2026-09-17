@@ -593,6 +593,21 @@ body {
   from { background-position: 200% 0; }
   to   { background-position: -200% 0; }
 }
+/* ——— LANE CARDS. A gold hairline draws across the top of each as it lands. */
+.lane-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--color-gold-bright), transparent 70%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: wipe 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation-delay: inherit;
+}
+
 /* ——— STAT TILES. The number counts, then lands with a bloom. */
 .slide-enter .stat-num {
   animation: stat-land 0.9s ease-out both;
