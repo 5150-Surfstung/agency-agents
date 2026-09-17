@@ -89,8 +89,21 @@ export function SlideStage({ snap, slide, presentPop = false }: {
 
   return (
       <section key={snap.step} className="slide-enter relative flex flex-1 flex-col justify-center">
-        {/* Val is the only thing in the hour with nothing to look at, so it
-            gets a body — parked in the space a dense slide leaves empty. */}
+        {/* VAL, PRESENT FOR THE WHOLE HOUR. A quiet mark in the corner of every
+            slide, holding the symbol that belongs to it — the phone on speed to
+            lead, the timeline on Track to Keys, a loose thinking mesh on a poll.
+            Without this the show has one cinematic screen and then thirty-three
+            slides of type, and the drop-off costs more than the standby
+            screen earns. */}
+        {slide.kind !== "title" && slide.id !== "val" && (
+          <ValParticles
+            quiet
+            pin={slide.valSymbol}
+            className="pointer-events-none absolute right-[1.5vw] top-[1vh] h-[17vh] w-[17vh] opacity-80"
+          />
+        )}
+
+        {/* On its own slide Val gets the full body, not the mark. */}
         {slide.id === "val" && (
           <ValParticles className="absolute right-[2vw] top-1/2 h-[min(52vh,34vw)] w-[min(52vh,34vw)] -translate-y-1/2" />
         )}

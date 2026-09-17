@@ -67,6 +67,10 @@ export interface Slide {
   lanes?: Lane[];
   /** Scan-and-play-with-it, live, during the slide. */
   link?: SlideLink;
+  /** Which symbol Val holds in the corner while this slide is up. Omit and
+   *  she simply thinks — a loose mesh, which is the right read on a poll.
+   *  Ids come from VAL_SYMBOLS in val-particles. */
+  valSymbol?: string;
   /** Presenter-only cue line, never rendered to attendees. */
   cue?: string;
 }

@@ -63,6 +63,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "host",
+    valSymbol: "lens",
     kind: "content",
     eyebrow: "Your host",
     heading: "Mike Olson",
@@ -86,6 +87,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "promise",
+    valSymbol: "key",
     kind: "content",
     eyebrow: "The deal for the next hour",
     heading: "You don't leave with notes. You leave with things that run.",
@@ -100,6 +102,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "open-floor",
+    valSymbol: "contract",
     kind: "content",
     eyebrow: "Open floor · two minutes",
     heading: "Brag or confess. Both count.",
@@ -112,6 +115,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "install",
+    valSymbol: "phone",
     kind: "content",
     eyebrow: "Everybody · phones up · three minutes",
     heading: "Get Claude. Right now, in this room.",
@@ -146,6 +150,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "how-to-talk",
+    valSymbol: "contract",
     kind: "content",
     eyebrow: "The one skill under everything else",
     heading: "Most agents get bad AI because they ask like it's Google.",
@@ -195,6 +200,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "split",
+    valSymbol: "record",
     kind: "content",
     eyebrow: "The split",
     heading: "The line isn't new vs. experienced. It's equipped vs. unequipped.",
@@ -208,6 +214,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "where-ai-pays",
+    valSymbol: "pin",
     kind: "content",
     eyebrow: "Strategist",
     heading: "Where AI actually pays",
@@ -221,6 +228,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "demo-farming",
+    valSymbol: "pin",
     kind: "demo",
     eyebrow: "Live demo · Neighborhood systems",
     heading: "Farm like you have a research department",
@@ -235,6 +243,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "mls-mcp",
+    valSymbol: "record",
     kind: "demo",
     eyebrow: "Live demo · the one nobody in this room has seen yet",
     heading: "Now plug Claude straight into the MLS.",
@@ -272,6 +281,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "mls-live",
+    valSymbol: "record",
     kind: "demo",
     eyebrow: "Johns Island · residential · pulled live, not typed in",
     heading: "One question. Ten seconds. Your whole farm.",
@@ -291,6 +301,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "connect",
+    valSymbol: "phone",
     kind: "content",
     eyebrow: "Now wire in the rest of your week",
     heading: "Your inbox, your calendar, your files — same pipe.",
@@ -326,6 +337,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "price-game",
+    valSymbol: "record",
     kind: "price",
     eyebrow: "Game one · The room vs. the arithmetic vs. the record",
     heading: "What does a house like this actually close at?",
@@ -350,6 +362,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "everyday-ten",
+    valSymbol: "contract",
     kind: "content",
     eyebrow: "Where the money actually is",
     heading: "Ten places this pays you back before Friday.",
@@ -399,6 +412,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "speed",
+    valSymbol: "phone",
     kind: "content",
     eyebrow: "The most expensive sixty seconds in your business",
     heading: "You don't have to be fast. You have to be FIRST.",
@@ -446,6 +460,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "demo-assistant",
+    valSymbol: "phone",
     kind: "demo",
     eyebrow: "Live demo · The AI assistant",
     heading: "The listing that answers its own phone",
@@ -459,6 +474,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "build",
+    valSymbol: "house",
     kind: "build",
     eyebrow: "Phones out · five minutes · this is yours",
     heading: "Now build YOUR listing's assistant.",
@@ -472,6 +488,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "switchboard",
+    valSymbol: "phone",
     kind: "demo",
     eyebrow: "Live · the part nobody else is doing",
     heading: "Now watch me walk into a conversation that's already happening.",
@@ -485,6 +502,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "duel",
+    valSymbol: "lens",
     kind: "duel",
     eyebrow: "Game two · the room vs. the room",
     heading: "Now try to break each other's.",
@@ -532,6 +550,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "demo-t2k",
+    valSymbol: "timeline",
     kind: "demo",
     eyebrow: "Live demo · Track to Keys · open it yourself",
     heading: "The deal that keeps its own promises",
@@ -550,6 +569,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "leaderboard",
+    valSymbol: "key",
     kind: "leaderboard",
     eyebrow: "THE BOARD · whole-night standings",
     heading: "Somebody's leaving with the crown.",
@@ -561,6 +581,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "kit",
+    valSymbol: "contract",
     kind: "content",
     eyebrow: "Yours · free · no email required",
     heading: "The one-week plan, and everything behind it.",
@@ -614,6 +635,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "tac-exp",
+    valSymbol: "pin",
     kind: "content",
     eyebrow: "What changes when you're not doing this alone",
     heading: "The systems don't stay in this room.",
@@ -643,6 +665,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "the-room",
+    valSymbol: "house",
     kind: "content",
     eyebrow: "Minute 55 — the only real pitch of the hour",
     heading: "And you get me. On site.",
@@ -675,6 +698,7 @@ export const DECK: Slide[] = [
   },
   {
     id: "close",
+    valSymbol: "key",
     kind: "close",
     eyebrow: "The Equipped Agent",
     heading: "Go build something unfair.",

@@ -498,7 +498,7 @@ const ORBS: { c: [number, number, number]; r: number; orbit: number; speed: numb
   { c: [124, 186, 214], r: 0.26, orbit: 0.34, speed: 0.44, phase: 5.2, tilt: -1.3 },
 ];
 
-const TOTAL = 900;
+const TOTAL = 1500;
 /** Kept on the sphere at all times, so Val never fully disappears into a shape. */
 const CORE = Math.round(TOTAL * 0.38);
 const BUILDERS = TOTAL - CORE;
@@ -508,7 +508,7 @@ const BUILDERS = TOTAL - CORE;
  *  the object as a wireframe instead of a dot cloud — joining consecutive
  *  samples only when they actually lie on the same segment, so the pen never
  *  jumps across a gap between two polylines. */
-function sample(lines: Line3[], n: number): { pts: P3[]; link: boolean[] } {
+function sample(lines: Line3[], n: number): { pts: P3[]; link: boolean[]; corner: boolean[] } {
   const segs: { a: P3; b: P3; len: number }[] = [];
   let total = 0;
   for (const line of lines) {
@@ -524,6 +524,7 @@ function sample(lines: Line3[], n: number): { pts: P3[]; link: boolean[] } {
   }
   const out: P3[] = [];
   const link: boolean[] = [];
+  const corner: boolean[] = [];
   let prevSeg = -1;
   for (let i = 0; i < n; i++) {
     let d = ((i + 0.5) / n) * total;
@@ -540,6 +541,8 @@ function sample(lines: Line3[], n: number): { pts: P3[]; link: boolean[] } {
         // one segment apart AND that segment's own end meets the next — which
         // is every corner of a closed outline.
         link.push(i > 0 && (si === prevSeg || si === prevSeg + 1));
+        // The first sample to land on a new segment is sitting on a corner.
+        corner.push(si !== prevSeg);
         prevSeg = si;
         break;
       }
@@ -549,14 +552,33 @@ function sample(lines: Line3[], n: number): { pts: P3[]; link: boolean[] } {
   while (out.length < n) {
     out.push(out[out.length - 1] ?? [0, 0, 0]);
     link.push(false);
+    corner.push(false);
   }
-  return { pts: out, link };
+  return { pts: out, link, corner };
 }
 
+/** How many builders a small instance uses. The mark that sits on every deck
+ *  slide runs at this resolution so eleven slides' worth of canvas never
+ *  competes with the room's own laptop for frames. */
+const SMALL = 150;
+
 const FORMS = SHAPES.map((s) => {
-  const { pts, link } = sample(s.lines, BUILDERS);
-  return { id: s.id, says: s.says, accent: s.accent, pts, link };
+  const big = sample(s.lines, BUILDERS);
+  const small = sample(s.lines, SMALL);
+  return {
+    id: s.id,
+    says: s.says,
+    accent: s.accent,
+    pts: big.pts,
+    link: big.link,
+    corner: big.corner,
+    ptsS: small.pts,
+    linkS: small.link,
+    cornerS: small.corner,
+  };
 });
+
+export const VAL_SYMBOLS = SHAPES.map((s) => s.id);
 
 // Slow on purpose. An earlier pass had the particles SNAP into place with an
 // overshoot, which was exciting for half a second and then over. Forming and
@@ -564,8 +586,8 @@ const FORMS = SHAPES.map((s) => {
 // filling up, so there is nowhere to hurry to. A symbol that takes four
 // seconds to arrive and turns for twelve gets looked at twice.
 const DRIFT = 3000;
-const GATHER = 4800;
-const HOLD = 10500;
+const GATHER = 2600;
+const HOLD = 8200;
 // The wind-up: still whole, but turning harder every frame. This is the beat
 // that makes somebody look up from their phone.
 const SPINUP = 1700;
@@ -581,8 +603,15 @@ const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 
 export function ValParticles({
   className = "",
   onForm,
+  pin,
+  quiet = false,
 }: {
   className?: string;
+  /** Hold one symbol permanently instead of cycling — what the deck mark does,
+   *  so each slide gets the shape that belongs to it. */
+  pin?: string;
+  /** Dimmer, smaller, no plinth and no HUD: a presence, not a performance. */
+  quiet?: boolean;
   /** Fires with the held shape while it is assembled, null while drifting, so
    *  the copy underneath can SELL what Val just made rather than label it. */
   onForm?: (shape: { id: string; says: string[]; closing: boolean } | null) => void;
@@ -600,6 +629,11 @@ export function ValParticles({
     if (!ctx) return;
 
     const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    // A quiet mark is a presence, not a performance: fewer nodes, fewer
+    // builders, no plinth, no HUD, and it never lets go of its symbol.
+    const nCore = quiet ? 120 : CORE;
+    const nBuild = quiet ? SMALL : BUILDERS;
+    const pinned = pin ? FORMS.findIndex((f) => f.id === pin) : -1;
 
     // Fibonacci sphere: an even shell, not a clumped random one.
     const shell = (i: number, n: number) => {
@@ -609,8 +643,8 @@ export function ValParticles({
       return [Math.cos(phi) * r, y, Math.sin(phi) * r] as P3;
     };
 
-    const core = Array.from({ length: CORE }, (_, i) => {
-      const [x, y, z] = shell(i, CORE);
+    const core = Array.from({ length: nCore }, (_, i) => {
+      const [x, y, z] = shell(i, nCore);
       return { x, y, z, r: 0.46 + (i % 5) * 0.012, size: 0.7 + ((i * 7919) % 100) / 140, px: 0, py: 0, seen: false };
     });
     // THE MESH. Each node wired to its two nearest neighbours on the shell,
@@ -633,8 +667,8 @@ export function ValParticles({
       if (b2 > i) WIRES.push([i, b2]);
     }
 
-    const builders = Array.from({ length: BUILDERS }, (_, i) => {
-      const [x, y, z] = shell(i, BUILDERS);
+    const builders = Array.from({ length: nBuild }, (_, i) => {
+      const [x, y, z] = shell(i, nBuild);
       return {
         x, y, z,
         r: 0.72 + (i % 9) * 0.03,
@@ -699,7 +733,12 @@ export function ValParticles({
       const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
       last = now;
 
-      const form = FORMS[Math.floor(t / PHASE) % FORMS.length] ?? FORMS[0];
+      const form = pinned >= 0
+        ? FORMS[pinned]
+        : (FORMS[Math.floor(t / PHASE) % FORMS.length] ?? FORMS[0]);
+      const pts = quiet ? form.ptsS : form.pts;
+      const link = quiet ? form.linkS : form.link;
+      const corner = quiet ? form.cornerS : form.corner;
       const p = t % PHASE;
 
       let pull = 0;
@@ -715,7 +754,13 @@ export function ValParticles({
         pull = 0;
         vis = Math.min(1, p / 700); // come back gently after the throw
       } else if (p < t2) {
-        pull = easeInOut((p - DRIFT) / GATHER);
+        // ANTICIPATION. The particles breathe OUT for a beat before they rush
+        // in — the wind-up before the pitch. Everything that moves well moves
+        // the wrong way first.
+        const u = (p - DRIFT) / GATHER;
+        pull = u < 0.14
+          ? -0.09 * Math.sin((u / 0.14) * Math.PI)
+          : easeInOut((u - 0.14) / 0.86);
         shooting = true;
       } else if (p < t3) {
         pull = 1;
@@ -733,7 +778,15 @@ export function ValParticles({
         shooting = true;
         closing = true;
       }
-      if (calm) {
+      if (pinned >= 0) {
+        // Held, always — with a slow swell so it is alive without being a show.
+        pull = calm ? 1 : 0.9 + Math.sin(t / 1000 * 0.42) * 0.1;
+        spin = 1;
+        burst = 0;
+        vis = 1;
+        closing = false;
+        shooting = false;
+      } else if (calm) {
         pull = 0;
         spin = 1;
         burst = 0;
@@ -743,7 +796,7 @@ export function ValParticles({
 
       // The copy follows the motion: it cycles through the hold, then locks
       // onto the closing line as Val winds up to throw the shape.
-      const heldId = pull > 0.9 ? `${form.id}:${closing ? "close" : "hold"}` : null;
+      const heldId = quiet ? null : pull > 0.9 ? `${form.id}:${closing ? "close" : "hold"}` : null;
       if (heldId !== announced) {
         announced = heldId;
         if (heldId && !closing) lockAt = t;
@@ -752,7 +805,7 @@ export function ValParticles({
 
       // Fast while loose, calmer while holding a shape so it can be read —
       // but never stopped: a symbol that keeps turning gets looked at twice.
-      if (!calm) yaw += dt * (0.95 - 0.45 * pull) * spin;
+      if (!calm) yaw += dt * (1.25 - 0.5 * pull) * spin;
       const pitch = calm ? -0.1 : Math.sin(t / 1000 * 0.29) * 0.36 - 0.1;
       const cy_ = Math.cos(yaw), sy = Math.sin(yaw);
       const cp = Math.cos(pitch), sp = Math.sin(pitch);
@@ -762,7 +815,22 @@ export function ValParticles({
         const y1 = y * cp - z1 * sp;
         const z2 = z1 * cp + y * sp;
         const persp = 1 / (1 + z2 * 0.55);
-        return { px: w / 2 + x1 * unit * 0.94 * persp, py: h / 2 + y1 * unit * 0.94 * persp, persp };
+        return { px: w / 2 + x1 * unit * 0.94 * persp, py: h / 2 + y1 * unit * 0.94 * persp, persp, x1, y1, z2 };
+      };
+
+      // THE LIGHTING RIG. Two lights, the way every animated feature is lit:
+      // a warm key from upper-left-front, a cool fill from the opposite side.
+      // A point's direction from the object's centre stands in for its normal
+      // — exact for a sphere, convincing for anything roughly convex, and it
+      // turns correctly with the object. Faces toward the key go cream, faces
+      // away go a cool deep blue, and the object stops being a flat drawing.
+      const KEY = [-0.52, -0.66, 0.54]; // normalised below
+      const KL = Math.hypot(KEY[0], KEY[1], KEY[2]);
+      const kx = KEY[0] / KL, ky = KEY[1] / KL, kz = KEY[2] / KL;
+      const lit = (x1: number, y1: number, z2: number) => {
+        const L = Math.hypot(x1, y1, z2) || 1;
+        const d = (x1 / L) * kx + (y1 / L) * ky + (z2 / L) * kz; // -1..1
+        return 0.5 + 0.5 * d; // 0 = full fill side, 1 = full key side
       };
 
       // Trails: fade what's there instead of wiping it, keeping transparency.
@@ -773,6 +841,7 @@ export function ValParticles({
 
       // ---- the plinth: a grid the whole thing turns above ----
       const GR = 1.15;
+      if (!quiet) {
       ctx.strokeStyle = `rgba(217,174,100,${0.06 + pull * 0.05})`;
       ctx.lineWidth = 0.8;
       ctx.beginPath();
@@ -788,9 +857,10 @@ export function ValParticles({
         ctx.lineTo(b2.px, b2.py);
       }
       ctx.stroke();
+      }
 
       // ---- HUD rings: the part that reads as machinery ----
-      const ringAlpha = 0.1 + (1 - pull) * 0.16;
+      const ringAlpha = (quiet ? 0.05 : 0.1) + (1 - pull) * 0.16;
       for (const rg of rings) {
         ctx.beginPath();
         for (let i = 0; i < rg.pts.length; i++) {
@@ -818,6 +888,8 @@ export function ValParticles({
       }
 
       const [ar, ag, ab] = form.accent;
+      const settleAge = lockAt >= 0 ? (t - lockAt) / 1000 : 9;
+      const settle = 1 + (settleAge < 1.6 ? 0.045 * Math.sin(settleAge * 21) * Math.exp(-settleAge * 3.6) : 0);
 
       // ---- the bodies of light: Val herself ----
       // They pull in and dim while a symbol is held, so the silhouette reads
@@ -826,12 +898,14 @@ export function ValParticles({
       const orbScale = (1 - 0.42 * pull) * flare;
       const orbGain = (1 - 0.62 * pull) * flare;
       const orbDraw = 1 - 0.5 * pull; // pulled in behind the shape, watching
+      const orbPts: { px: number; py: number }[] = [];
       for (const o of ORBS) {
         const a = t / 1000 * o.speed + o.phase;
         const ox = Math.cos(a) * o.orbit * orbDraw;
         const oz = Math.sin(a) * o.orbit * orbDraw;
         const oy = Math.sin(a * 1.7 + o.phase) * o.orbit * 0.5 * Math.cos(o.tilt) * orbDraw;
         const q = project(ox, oy, oz);
+        orbPts.push(q);
         const rad = Math.max(2, o.r * unit * q.persp * orbScale);
         const g = ctx.createRadialGradient(q.px, q.py, 0, q.px, q.py, rad);
         const peak = (0.2 + q.persp * 0.14) * orbGain;
@@ -868,10 +942,12 @@ export function ValParticles({
       for (const d of core) {
         const q = project(d.x * d.r, d.y * d.r, d.z * d.r);
         const depth = Math.min(1, Math.max(0, (q.persp - 0.66) / 0.9));
-        const a = (0.1 + depth * 0.34) * vis;
+        const rim = 1 - Math.min(1, Math.abs(q.z2) / (d.r * 0.85));
+        const L = lit(q.x1, q.y1, q.z2);
+        const a = (0.08 + depth * 0.26 + rim * rim * 0.42) * vis;
         ctx.beginPath();
-        ctx.arc(q.px, q.py, Math.max(0.35, d.size * q.persp * 0.8), 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(226,232,238,${a})`;
+        ctx.arc(q.px, q.py, Math.max(0.35, d.size * q.persp * (0.75 + rim * 0.5)), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${Math.round(150 + L * 100)},${Math.round(180 + L * 62)},${Math.round(214 + L * 14)},${a})`;
         ctx.fill();
       }
 
@@ -886,6 +962,7 @@ export function ValParticles({
       const by2 = new Float32Array(builders.length);
       const ba = new Float32Array(builders.length);
       const bs = new Float32Array(builders.length);
+      const bl = new Float32Array(builders.length); // key-light factor per particle
 
       // A scan plane travelling through the object while it assembles: dots
       // near it flare as they are "read in".
@@ -893,15 +970,15 @@ export function ValParticles({
 
       for (let i = 0; i < builders.length; i++) {
         const d = builders[i];
-        const tgt = form.pts[i];
+        const tgt = pts[i];
         // Stagger so they arrive in waves rather than as one blob.
         const k = Math.min(1, Math.max(0, pull * (1 + d.lag * 0.5) - d.lag * 0.35));
         const hx = d.x * d.r;
         const hy = d.y * d.r;
         const hz = d.z * d.r;
-        let px2 = hx + (tgt[0] - hx) * k;
-        let py2 = hy + (tgt[1] - hy) * k;
-        let pz2 = hz + (tgt[2] - hz) * k;
+        let px2 = hx + (tgt[0] * settle - hx) * k;
+        let py2 = hy + (tgt[1] * settle - hy) * k;
+        let pz2 = hz + (tgt[2] * settle - hz) * k;
         if (burst > 0) {
           // Outward along its own line from the centre, plus a nudge along the
           // resting shell so particles sitting near the middle still go.
@@ -933,36 +1010,76 @@ export function ValParticles({
 
         bx2[i] = q.px;
         by2[i] = q.py;
-        ba[i] = (((0.1 + k * 0.5) + depth * 0.42) + flash * 0.5) * vis;
-        bs[i] = Math.max(0.35, d.size * q.persp * (0.8 + k * 0.4) * (1 + flash * 0.6));
+        bl[i] = lit(q.x1, q.y1, q.z2);
+        const isCorner = corner[i];
+        ba[i] = (((0.1 + k * 0.5) + depth * 0.42) + flash * 0.5 + (isCorner ? k * 0.3 : 0)) * vis;
+        bs[i] = Math.max(0.35, d.size * q.persp * (0.8 + k * 0.4) * (1 + flash * 0.6) * (isCorner ? 1.9 : 1));
       }
 
-      // The wireframe itself, drawn between particles that share an edge. It
-      // fades in with the shape, so a drifting cloud stays a cloud.
-      if (pull > 0.25) {
-        const edge = (pull - 0.25) / 0.75;
-        ctx.strokeStyle = `rgba(${ar},${ag},${ab},${0.3 * edge * vis})`;
-        ctx.lineWidth = 0.9;
+      // FEED BEAMS. While the shape is forming, every twelfth particle is
+      // wired back to the body of light that is building it. Val stops being a
+      // backdrop the graphic happens in front of and becomes the thing the
+      // graphic is coming out of — which is the entire premise.
+      if (!quiet && pull > 0.02 && pull < 0.99 && orbPts.length) {
+        ctx.lineWidth = 0.8;
         ctx.beginPath();
-        for (let i = 1; i < builders.length; i++) {
-          if (!form.link[i]) continue;
-          const dx = bx2[i] - bx2[i - 1];
-          const dy = by2[i] - by2[i - 1];
-          // Never bridge a gap: a long "edge" means the two samples are on
-          // opposite sides of the object, not next to each other.
-          if (dx * dx + dy * dy > unit * unit * 0.09) continue;
-          ctx.moveTo(bx2[i - 1], by2[i - 1]);
+        for (let i = 0; i < builders.length; i += 12) {
+          const o = orbPts[i % orbPts.length];
+          ctx.moveTo(o.px, o.py);
           ctx.lineTo(bx2[i], by2[i]);
         }
+        ctx.strokeStyle = `rgba(${ar},${ag},${ab},${0.1 * Math.sin(pull * Math.PI) * vis})`;
         ctx.stroke();
       }
 
+      // The wireframe itself, drawn between particles that share an edge. Two
+      // passes: a wide soft one for bloom, then a tight bright one for the
+      // actual line. One thin stroke read as a sketch; this reads as an object.
+      if (pull > 0.25) {
+        const edge = (pull - 0.25) / 0.75;
+        // Three passes, split by how much key light each edge catches: a warm
+        // bright set, a mid set in the shape's own accent, a cool shadow set.
+        const warm = new Path2D();
+        const mid = new Path2D();
+        const cool = new Path2D();
+        for (let i = 1; i < builders.length; i++) {
+          if (!link[i]) continue;
+          const dx = bx2[i] - bx2[i - 1];
+          const dy = by2[i] - by2[i - 1];
+          if (dx * dx + dy * dy > unit * unit * 0.09) continue;
+          const L = bl[i];
+          const path = L > 0.66 ? warm : L > 0.36 ? mid : cool;
+          path.moveTo(bx2[i - 1], by2[i - 1]);
+          path.lineTo(bx2[i], by2[i]);
+        }
+        ctx.lineWidth = quiet ? 2 : 4.5;
+        ctx.strokeStyle = `rgba(${ar},${ag},${ab},${0.13 * edge * vis})`;
+        ctx.stroke(warm); ctx.stroke(mid);
+        ctx.lineWidth = quiet ? 0.8 : 1.4;
+        ctx.strokeStyle = `rgba(252,246,228,${0.8 * edge * vis})`;
+        ctx.stroke(warm);
+        ctx.strokeStyle = `rgba(${Math.min(255, ar + 20)},${Math.min(255, ag + 20)},${Math.min(255, ab + 20)},${0.55 * edge * vis})`;
+        ctx.stroke(mid);
+        ctx.strokeStyle = `rgba(118,150,196,${0.4 * edge * vis})`;
+        ctx.stroke(cool);
+      }
+
       for (let i = 0; i < builders.length; i++) {
+        const L = bl[i];
+        const a = Math.min(0.95, ba[i]) * (0.55 + L * 0.45);
+        // Warm where the key hits, cool where it doesn't.
+        const r = Math.round(140 + L * 112), g = Math.round(168 + L * 78), bb = Math.round(206 + L * 24);
+        // DEPTH OF FIELD: anything well behind the focal plane gets a soft
+        // halo instead of a hard dot, so near reads sharp and far reads far.
+        if (bs[i] < 0.9) {
+          ctx.beginPath();
+          ctx.arc(bx2[i], by2[i], bs[i] * 2.4, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${r},${g},${bb},${a * 0.22})`;
+          ctx.fill();
+        }
         ctx.beginPath();
         ctx.arc(bx2[i], by2[i], bs[i], 0, Math.PI * 2);
-        // White. The colour in this picture is Val; the shape is the light she
-        // is watching get built, and it reads far cleaner against her bloom.
-        ctx.fillStyle = `rgba(246,244,238,${Math.min(0.95, ba[i])})`;
+        ctx.fillStyle = `rgba(${r},${g},${bb},${a})`;
         ctx.fill();
       }
 
