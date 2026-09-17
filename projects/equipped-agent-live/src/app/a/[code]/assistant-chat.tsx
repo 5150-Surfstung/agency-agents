@@ -1,21 +1,40 @@
 "use client";
 
-// The conversation a stranger has with an agent's assistant. Two beats in,
-// it asks for a name and cell — that hand-off is the entire product. Honest
-// throughout: a refusal renders as a refusal, an offline engine says so.
+// The conversation a stranger has with an agent's assistant.
+//
+// It is a THREAD, not a series of one-shots: it remembers what was already
+// said, it survives a page reload, and — the part that makes it feel like a
+// real front desk — the agent can reach in and take over mid-conversation.
+// When that happens the visitor is TOLD, in the transcript, by name. We never
+// pass a human off as the assistant or the assistant off as a human.
+//
+// Honest throughout: a refusal renders as a refusal, an offline engine says so.
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ThreadMsg } from "@/lib/types";
 
-interface Turn {
-  q: string;
-  a: string;
-  refused: boolean;
+/** One thread per assistant per browser. Losing it loses the history and
+ *  nothing else, so a browser that blocks storage still works fine. */
+function threadFor(code: string): string {
+  const k = `ea_thread_${code}`;
+  try {
+    const found = window.localStorage.getItem(k);
+    if (found) return found;
+    const made = crypto.randomUUID();
+    window.localStorage.setItem(k, made);
+    return made;
+  } catch {
+    return crypto.randomUUID();
+  }
 }
 
 export function AssistantChat({ code, agentName }: { code: string; agentName: string }) {
+  const [thread, setThread] = useState("");
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
-  const [log, setLog] = useState<Turn[]>([]);
+  const [pending, setPending] = useState("");
+  const [msgs, setMsgs] = useState<ThreadMsg[]>([]);
+  const [operator, setOperator] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [cell, setCell] = useState("");
@@ -24,48 +43,82 @@ export function AssistantChat({ code, agentName }: { code: string; agentName: st
   const [financing, setFinancing] = useState("");
   const [hasAgent, setHasAgent] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
+  const lastId = useRef(0);
+
+  useEffect(() => setThread(threadFor(code)), [code]);
+
+  const pull = useCallback(async () => {
+    if (!thread) return;
+    try {
+      const res = await fetch(`/api/thread?t=${thread}&after=${lastId.current}`, { cache: "no-store" });
+      const data = await res.json();
+      if (!data?.ok) return;
+      if (Array.isArray(data.messages) && data.messages.length) {
+        lastId.current = data.messages[data.messages.length - 1].id;
+        setMsgs((m) => [...m, ...(data.messages as ThreadMsg[])]);
+      }
+      if (typeof data.operator === "string") setOperator(data.operator);
+    } catch {
+      // a dropped poll is not an error the visitor needs to see
+    }
+  }, [thread]);
+
+  // Slow while the machine is answering; brisk once a human is on the line,
+  // because then somebody is actually typing to them.
+  useEffect(() => {
+    if (!thread) return;
+    void pull();
+    const every = operator ? 2000 : 5000;
+    const h = setInterval(() => void pull(), every);
+    return () => clearInterval(h);
+  }, [thread, operator, pull]);
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [log, busy]);
+  }, [msgs, busy, pending]);
 
   async function ask() {
     const question = q.trim();
-    if (!question || busy) return;
+    if (!question || busy || !thread) return;
     setBusy(true);
     setNotice(null);
     setQ("");
+    setPending(question);
     try {
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, question }),
+        body: JSON.stringify({ code, question, thread }),
       });
       const data = await res.json();
       if (res.ok && data.ok) {
-        setLog((l) => [...l, { q: question, a: data.answer, refused: data.refused }]);
+        if (data.held) setOperator(String(data.operator || ""));
       } else {
         setNotice(
           data?.error === "offline"
-            ? "The assistant is resting right now — text the agent directly and they'll jump on it."
+            ? "The assistant is resting right now — leave your number below and the agent will jump on it."
             : "Something hiccuped. Try that once more?"
         );
       }
     } catch {
       setNotice("No connection — try again in a moment.");
     }
+    // The thread is the source of truth: pull, then drop the local bubble.
+    await pull();
+    setPending("");
     setBusy(false);
   }
 
   async function leaveDetails() {
     if (!name.trim() || !cell.trim()) return;
     try {
+      const lastAsk = [...msgs].reverse().find((m) => m.role === "visitor");
       const res = await fetch("/api/ask", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          code, name: name.trim(), cell: cell.trim(),
-          question: log[log.length - 1]?.q ?? "",
+          code, thread, name: name.trim(), cell: cell.trim(),
+          question: lastAsk?.body ?? "",
           timeline, financing, hasAgent,
         }),
       });
@@ -75,9 +128,11 @@ export function AssistantChat({ code, agentName }: { code: string; agentName: st
     }
   }
 
+  const asked = msgs.filter((m) => m.role === "visitor").length;
+
   return (
     <section className="mt-6 flex flex-1 flex-col">
-      {log.length === 0 && (
+      {msgs.length === 0 && !pending && (
         <div className="rounded-2xl border border-rule bg-sheet-2 p-4">
           <p className="text-sm text-soft">
             Ask me anything about this home — beds, baths, square footage, showings. If it isn&apos;t on
@@ -87,27 +142,24 @@ export function AssistantChat({ code, agentName }: { code: string; agentName: st
         </div>
       )}
 
-      <div className="flex flex-col gap-3">
-        {log.map((t, i) => (
-          <div key={i} className="pop-in flex flex-col gap-2">
-            <p className="self-end rounded-2xl rounded-br-sm bg-gold px-4 py-2.5 text-[15px] font-semibold text-sheet">
-              {t.q}
-            </p>
-            <div
-              className={`self-start rounded-2xl rounded-bl-sm border px-4 py-3 text-[15px] leading-relaxed ${
-                t.refused ? "border-gold/60 bg-sheet-2 text-cream" : "border-rule bg-sheet-2 text-cream"
-              }`}
-            >
-              {t.a}
-              {t.refused && (
-                <p className="mt-2 text-[11px] font-bold uppercase tracking-wider text-gold-bright">
-                  straight answer · no guessing
-                </p>
-              )}
-            </div>
-          </div>
-        ))}
-        {busy && <p className="self-start text-sm text-faint">typing…</p>}
+      {/* A human has the wheel. Say so plainly and keep saying it. */}
+      {operator && (
+        <div className="pop-in mt-3 flex items-center gap-2 rounded-2xl border border-moss/60 bg-sheet-2 px-4 py-3">
+          <span className="live-dot" aria-hidden />
+          <p className="text-sm font-semibold text-moss">
+            {operator} is on the line with you now — you&apos;re talking to a person.
+          </p>
+        </div>
+      )}
+
+      <div className="mt-3 flex flex-col gap-3">
+        {msgs.map((m) => <Bubble key={m.id} m={m} />)}
+        {pending && (
+          <p className="self-end rounded-2xl rounded-br-sm bg-gold px-4 py-2.5 text-[15px] font-semibold text-sheet opacity-70">
+            {pending}
+          </p>
+        )}
+        {busy && !operator && <p className="self-start text-sm text-faint">typing…</p>}
         <div ref={bottom} />
       </div>
 
@@ -126,7 +178,7 @@ export function AssistantChat({ code, agentName }: { code: string; agentName: st
             }
           }}
           rows={2}
-          placeholder="How many bedrooms? When can I see it?"
+          placeholder={operator ? `Message ${operator}…` : "How many bedrooms? When can I see it?"}
           aria-label="Your question"
           className="w-full resize-none rounded-2xl border border-rule bg-sheet-2 px-4 py-3 text-[15px] text-cream placeholder:text-faint focus:border-gold focus:outline-none"
         />
@@ -135,12 +187,12 @@ export function AssistantChat({ code, agentName }: { code: string; agentName: st
           disabled={busy || !q.trim()}
           className="shrink-0 rounded-2xl bg-gold px-5 py-3 text-sm font-bold text-sheet disabled:opacity-40"
         >
-          Ask
+          Send
         </button>
       </div>
 
       {/* The hand-off — the whole reason this page exists. */}
-      {log.length >= 2 && !sent && (
+      {asked >= 2 && !sent && (
         <div className="pop-in mt-5 rounded-2xl border border-gold/50 bg-sheet-2 p-4">
           <p className="text-sm font-semibold text-cream">
             Want {agentName} to answer the rest personally?
@@ -182,6 +234,43 @@ export function AssistantChat({ code, agentName }: { code: string; agentName: st
         </p>
       )}
     </section>
+  );
+}
+
+/** Four kinds of line, and they never look alike: the visitor, the assistant,
+ *  a human who broke in, and the handoff note itself. */
+function Bubble({ m }: { m: ThreadMsg }) {
+  if (m.role === "system") {
+    return (
+      <p className="pop-in self-center rounded-full border border-rule bg-sheet px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-faint">
+        {m.body}
+      </p>
+    );
+  }
+  if (m.role === "visitor") {
+    return (
+      <p className="pop-in self-end rounded-2xl rounded-br-sm bg-gold px-4 py-2.5 text-[15px] font-semibold text-sheet">
+        {m.body}
+      </p>
+    );
+  }
+  const human = m.role === "agent";
+  return (
+    <div
+      className={`pop-in self-start rounded-2xl rounded-bl-sm border px-4 py-3 text-[15px] leading-relaxed ${
+        human ? "border-moss/60 bg-moss/10 text-cream" : "border-rule bg-sheet-2 text-cream"
+      }`}
+    >
+      {human && (
+        <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-moss">from the agent</p>
+      )}
+      {m.body}
+      {m.refused && !human && (
+        <p className="mt-2 text-[11px] font-bold uppercase tracking-wider text-gold-bright">
+          straight answer · no guessing
+        </p>
+      )}
+    </div>
   );
 }
 

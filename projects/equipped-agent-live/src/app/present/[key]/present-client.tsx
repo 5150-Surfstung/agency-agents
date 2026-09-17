@@ -7,8 +7,10 @@
 //
 //   → / ←   slides        space   open → reveal
 //   L       leads         Q       big join QR        S  open the audience screen
+//   W       switchboard — every live conversation, and the button that breaks in
 
 import { useCallback, useEffect, useState } from "react";
+import { Switchboard } from "@/app/switchboard";
 import { DECK } from "@/lib/deck";
 import { type Snapshot } from "@/app/stage/slide-stage";
 
@@ -16,6 +18,7 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [showLeads, setShowLeads] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [showBoard, setShowBoard] = useState(false);
   const [startedAt] = useState(() => Date.now());
   const [elapsed, setElapsed] = useState(0);
 
@@ -70,6 +73,7 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
         void act("poll");
       } else if (e.key.toLowerCase() === "l") setShowLeads((v) => !v);
       else if (e.key.toLowerCase() === "q") setShowQr((v) => !v);
+      else if (e.key.toLowerCase() === "w") setShowBoard((v) => !v);
       else if (e.key.toLowerCase() === "s") openScreen();
     }
     window.addEventListener("keydown", onKey);
@@ -230,7 +234,35 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
         >
           Leads{snap.leads.length > 0 ? ` ${snap.leads.length}` : ""}
         </button>
+        <button
+          onClick={() => setShowBoard((v) => !v)}
+          className="rounded-2xl border border-rule bg-sheet-2 px-5 py-4 text-sm font-bold text-soft"
+        >
+          Switchboard
+        </button>
       </div>
+
+      {/* ——— the switchboard (W) — live conversations, and breaking into one.
+           Full-width because reading a transcript from a lectern is the whole
+           point; the audience screen is unaffected. ——— */}
+      {showBoard && (
+        <div className="fixed inset-0 z-30 flex flex-col bg-sheet/97 p-5 backdrop-blur">
+          <div className="flex items-baseline gap-4 pb-3">
+            <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-cream">
+              The switchboard
+            </h2>
+            <p className="text-sm text-faint">
+              every assistant in the room, answering live — tap one and type to take it over
+            </p>
+            <button onClick={() => setShowBoard(false)} className="ml-auto text-xs font-bold text-faint">
+              close (W)
+            </button>
+          </div>
+          <div className="min-h-0 flex-1">
+            <Switchboard seatKey={presenterKey} fallbackName="Mike Olson" />
+          </div>
+        </div>
+      )}
 
       {/* ——— leads drawer (L) ——— */}
       {showLeads && (

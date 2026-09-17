@@ -294,6 +294,94 @@ if (process.env.ANTHROPIC_API_KEY) {
   check("refuses the unknown (roof)", r.body?.refused === true, reply.slice(0, 160));
 }
 
+// ---- THE SWITCHBOARD ------------------------------------------------
+// The visitor's message is recorded BEFORE the model is called, which is what
+// makes this testable with the engine dark: the thread exists either way.
+const thread = crypto.randomUUID();
+await fetch(`${BASE}/api/ask`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ code: codes[0], question: "Is the dock deeded to the house?", thread }),
+});
+r = await (async () => {
+  const res = await fetch(`${BASE}/api/thread?t=${thread}&after=0`);
+  return { status: res.status, body: await res.json() };
+})();
+check("visitor question is recorded as a thread", r.status === 200 && (r.body.messages ?? []).some((m) => m.role === "visitor"), JSON.stringify(r.body).slice(0, 160));
+check("thread starts with the AI holding the wheel", r.body.operator === "");
+check("a malformed thread id → 400", (await fetch(`${BASE}/api/thread?t=not-a-uuid`)).status === 400);
+
+// The console sees every live conversation in the room.
+r = await (async () => {
+  const res = await fetch(`${BASE}/api/switchboard?key=${encodeURIComponent(KEY)}`);
+  return { status: res.status, body: await res.json() };
+})();
+check("console lists the live conversation", r.status === 200 && (r.body.threads ?? []).some((t) => t.id === thread), JSON.stringify(r.body.stats));
+check("console counts it in the stats", (r.body.stats?.threads ?? 0) >= 1 && (r.body.stats?.msgs ?? 0) >= 1);
+
+// A stranger with a thread id cannot read the room.
+check("switchboard without a seat → 401", (await fetch(`${BASE}/api/switchboard`)).status === 401);
+
+// BREAK IN.
+const sbPost = (body) =>
+  fetch(`${BASE}/api/switchboard`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (res) => ({ status: res.status, body: await res.json() }));
+
+r = await sbPost({ key: KEY, t: thread, who: "Mike Olson", body: "Hey — Mike here. It's a community dock, and I can show you Saturday." });
+check("presenter breaks into the conversation", r.status === 200 && r.body.ok === true, JSON.stringify(r.body));
+
+r = await (async () => {
+  const res = await fetch(`${BASE}/api/thread?t=${thread}&after=0`);
+  return { body: await res.json() };
+})();
+check("the visitor is TOLD a person joined", (r.body.messages ?? []).some((m) => m.role === "system" && /Mike Olson joined/.test(m.body)), JSON.stringify(r.body.messages).slice(0, 200));
+check("the human's words land as a human turn", (r.body.messages ?? []).some((m) => m.role === "agent" && /community dock/.test(m.body)));
+check("the thread now reports a human on the wheel", r.body.operator === "Mike Olson", r.body.operator);
+
+// While a human holds it, the machine must NOT answer over them — and this
+// holds with the engine dark, because we never reach the engine at all.
+r = await (async () => {
+  const res = await fetch(`${BASE}/api/ask`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: codes[0], question: "What time Saturday?", thread }),
+  });
+  return { status: res.status, body: await res.json() };
+})();
+check("the AI stands down while a human has the wheel", r.status === 200 && r.body.held === true && r.body.operator === "Mike Olson", JSON.stringify(r.body));
+
+// Hand it back.
+r = await sbPost({ key: KEY, t: thread, release: true });
+check("presenter hands the conversation back", r.status === 200 && r.body.released === true);
+r = await (async () => {
+  const res = await fetch(`${BASE}/api/thread?t=${thread}&after=0`);
+  return { body: await res.json() };
+})();
+check("the handback is on the record too", r.body.operator === "" && (r.body.messages ?? []).some((m) => m.role === "system" && /handed the conversation back/.test(m.body)));
+
+// The owner's phone sees its own desk; another phone does not see it.
+r = await phones[0]("/api/switchboard");
+check("the builder sees their own front desk", r.status === 200 && (r.body.threads ?? []).some((t) => t.id === thread));
+check("the builder is not handed the whole room", r.body.presenter === false);
+r = await phones[1]("/api/switchboard");
+check("another phone does not see someone else's desk", (r.body.threads ?? []).every((t) => t.id !== thread), JSON.stringify(r.body.threads).slice(0, 160));
+r = await phones[1]("/api/switchboard", { method: "POST", body: JSON.stringify({ t: thread, body: "let me in" }) });
+check("another phone cannot break into it → 403", r.status === 403, JSON.stringify(r.body));
+
+// ---- TRACK TO KEYS ---------------------------------------------------
+{
+  const page = await fetch(`${BASE}/t2k`);
+  check("Track to Keys renders cold", page.status === 200 && (await page.text()).includes("Track to Keys"));
+  const shared = await fetch(`${BASE}/t2k?binding=2026-09-01&closing=2026-10-15&ddDays=10`);
+  check("a shared deal link renders", shared.status === 200);
+  const qr = await fetch(`${BASE}/api/qr?u=${encodeURIComponent("/t2k?binding=2026-09-01")}`);
+  check("QR mints for a deal link", qr.status === 200 && qr.headers.get("content-type") === "image/png");
+  check("QR refuses an off-site path → 400", (await fetch(`${BASE}/api/qr?u=${encodeURIComponent("//evil.example.com")}`)).status === 400);
+}
+
 // Back to the top for a clean room.
 await control("goto", 0);
 

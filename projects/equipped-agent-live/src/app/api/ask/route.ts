@@ -13,6 +13,7 @@ import { DECK } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
 import { notifyAssistantLead } from "@/lib/notify";
 import { sessionFromCookies } from "@/lib/room";
+import { isThreadId, toChat } from "@/lib/thread";
 import { getStore } from "@/lib/store";
 
 
@@ -20,11 +21,13 @@ export async function POST(req: NextRequest) {
   let code = "";
   let question = "";
   let duel = false;
+  let thread: string | null = null;
   try {
     const b = await req.json();
     code = String(b?.code ?? "").trim().toUpperCase().slice(0, 12);
     question = String(b?.question ?? "").trim().slice(0, 300);
     duel = Boolean(b?.duel);
+    thread = isThreadId(b?.thread) ? b.thread : null;
   } catch {
     return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
   }
@@ -50,12 +53,27 @@ export async function POST(req: NextRequest) {
     const roomKey = sess?.roomKey ?? code;
     const deviceId = sess?.deviceId ?? "00000000-0000-4000-8000-0000000000ff";
 
+    // With a thread, the conversation is real: it remembers, it is watchable
+    // from the switchboard, and a human can be holding the wheel right now.
+    let history = [{ role: "user" as const, content: question }];
+    if (thread) {
+      await store.threadAppend(thread, code, "visitor", question);
+      const { messages, operator } = await store.threadPoll(thread, 0);
+      if (operator) {
+        // A person took over. We do NOT answer over them, and we do not fake
+        // a reply — the question is recorded and the human is looking at it.
+        return NextResponse.json({ ok: true, held: true, operator, answer: "", refused: false });
+      }
+      const chat = toChat(messages);
+      if (chat.length) history = chat as typeof history;
+    }
+
     const result = await runArcadeTurn({
       roomKey,
       deviceId,
       tool: "listing",
       system: listingAssistantSystem(a.facts, a.agentName, a.voice, a.brokerage, a.notes),
-      messages: [{ role: "user", content: question }],
+      messages: history,
     });
     if (!result.ok) {
       const status = result.reason === "offline" ? 503 : result.reason === "error" ? 502 : 429;
@@ -63,6 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
     const refused = isRefusal(result.reply);
+    if (thread) await store.threadAppend(thread, code, "assistant", result.reply, refused);
     let attackId: number | null = null;
     if (duel && sess) {
       attackId = await store.attackAdd(sess.roomKey, sess.deviceId, code, question, result.reply, refused);
@@ -82,6 +101,7 @@ export async function PUT(req: NextRequest) {
   let timeline = "";
   let financing = "";
   let hasAgent = "";
+  let thread: string | null = null;
   try {
     const b = await req.json();
     code = String(b?.code ?? "").trim().toUpperCase().slice(0, 12);
@@ -91,6 +111,7 @@ export async function PUT(req: NextRequest) {
     timeline = String(b?.timeline ?? "").trim().slice(0, 60);
     financing = String(b?.financing ?? "").trim().slice(0, 60);
     hasAgent = String(b?.hasAgent ?? "").trim().slice(0, 60);
+    thread = isThreadId(b?.thread) ? b.thread : null;
   } catch {
     return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
   }
@@ -98,6 +119,8 @@ export async function PUT(req: NextRequest) {
   try {
     const store = getStore();
     await store.assistantLeadAdd(code, name, cell, question, { timeline, financing, hasAgent });
+    // The switchboard should show "Dana R." once we know it, not a uuid.
+    if (isThreadId(thread)) await store.threadLabel(thread, name);
     // The whole point of the thing: the agent's phone buzzes NOW, not at 5pm.
     const a = await store.assistantGet(code);
     const ownerCell = await store.assistantOwnerCell(code);

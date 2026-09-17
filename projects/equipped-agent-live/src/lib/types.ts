@@ -173,3 +173,34 @@ export interface AssistantLead {
   hasAgent: string;
   at: number;
 }
+
+// ---------------------------------------------------------- THE SWITCHBOARD
+
+/** Who is speaking in a thread. `agent` is a HUMAN who broke in; `system` is
+ *  the handoff line the room sees, never a line anyone typed. */
+export type ThreadRole = "visitor" | "assistant" | "agent" | "system";
+
+export interface ThreadMsg {
+  id: number;
+  role: ThreadRole;
+  body: string;
+  /** Only meaningful on an assistant turn: it declined rather than invented. */
+  refused: boolean;
+  at: number;
+}
+
+/** A live conversation as the switchboard lists it. `operator` empty means the
+ *  AI still has the wheel; `waiting` means a human took it and hasn't replied. */
+export interface ThreadRow {
+  id: string;
+  code: string;
+  agentName: string;
+  headline: string;
+  visitorLabel: string;
+  operator: string;
+  msgs: number;
+  lastRole: ThreadRole | "";
+  lastBody: string;
+  lastAt: number;
+  waiting: boolean;
+}

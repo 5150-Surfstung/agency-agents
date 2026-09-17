@@ -6,6 +6,7 @@
 // makes it real) a lead inbox that fills with strangers.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Switchboard } from "@/app/switchboard";
 import { STUMP_FACTS, STUMP_NOTES } from "@/lib/deck";
 import type { Assistant, AssistantLead } from "@/lib/types";
 
@@ -172,6 +173,22 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
               ))}
             </ul>
           )}
+        </div>
+
+        {/* YOUR FRONT DESK — the part that outlives the class. The assistant
+            takes the question; you watch it happen and step in when it's worth
+            stepping in. This is the same switchboard Mike runs from the stage. */}
+        <div className="mt-5">
+          <div className="mb-2 flex items-baseline gap-2">
+            <h3 className="text-sm font-bold text-cream">Your front desk</h3>
+            <p className="text-[11px] text-faint">live conversations on YOUR listing</p>
+          </div>
+          <div className="h-[30rem]">
+            <Switchboard
+              fallbackName={mine.agentName}
+              emptyLine="Nothing yet. Have somebody scan your QR and ask a question — it shows up here as they type, and you can jump in mid-sentence."
+            />
+          </div>
         </div>
       </section>
     );

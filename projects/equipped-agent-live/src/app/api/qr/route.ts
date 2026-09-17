@@ -1,4 +1,4 @@
-// The one QR the room ever sees. It carries the PIN (?pin=…) so a scan lands
+// Every QR this app mints. The join code carries the PIN (?pin=…) so a scan lands
 // a phone straight in the room — mid-slide, in person or on a shared screen —
 // with zero typing. The database owns the real PIN, so the QR follows every
 // rotation on its own; only the presenter key can mint it.
@@ -23,6 +23,25 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "store_error" }, { status: 502 });
     }
     const png = await QRCode.toBuffer(`${proto0}://${host0}/a/${code.toUpperCase()}`, {
+      type: "png",
+      width: 640,
+      margin: 1,
+      color: { dark: "#071320", light: "#f2efe7" },
+    });
+    return new NextResponse(new Uint8Array(png), {
+      headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=300" },
+    });
+  }
+
+  // ?u=/path — a QR for a page on THIS site. Public, and deliberately narrow:
+  // a leading single slash only, so it can never mint a code pointing somewhere
+  // else under our domain's good name.
+  const path = req.nextUrl.searchParams.get("u");
+  if (path) {
+    if (!path.startsWith("/") || path.startsWith("//")) {
+      return NextResponse.json({ ok: false, error: "bad_path" }, { status: 400 });
+    }
+    const png = await QRCode.toBuffer(`${proto0}://${host0}${path}`, {
       type: "png",
       width: 640,
       margin: 1,

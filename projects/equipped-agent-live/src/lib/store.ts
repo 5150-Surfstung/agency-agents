@@ -9,7 +9,7 @@ import { HOUSE_CODE } from "./deck";
 import { presenterKey, roomPin } from "./room";
 import type {
   AiGuess, Assistant, AssistantLead, Attack, Lead, Pack, Player, PollState,
-  RosterEntry, RoomState, ScoreRow, StumpEntry, ToolEvent, Vote,
+  RosterEntry, RoomState, ScoreRow, StumpEntry, ThreadMsg, ThreadRole, ThreadRow, ToolEvent, Vote,
 } from "./types";
 
 export type Role = "presenter" | "attendee" | null;
@@ -91,6 +91,21 @@ export interface Store {
   attackFlag(key: string, id: number): Promise<void>;
   attackList(key: string, limit: number): Promise<Attack[]>;
   duelStats(key: string): Promise<{ fired: number; held: number; flagged: number; built: number }>;
+
+  // ---- THE SWITCHBOARD: live threads a human can take over ----
+  /** Visitor side — no key. Holding the thread id IS the capability. */
+  threadAppend(threadId: string, code: string, role: "visitor" | "assistant", body: string, refused?: boolean): Promise<number>;
+  /** Everything after `after`, plus who currently holds the wheel. */
+  threadPoll(threadId: string, after: number): Promise<{ messages: ThreadMsg[]; operator: string }>;
+  threadState(threadId: string): Promise<{ operator: string; msgs: number }>;
+  threadLabel(threadId: string, label: string): Promise<void>;
+  /** Operator side — presenter sees the room (`all`), an attendee sees theirs. */
+  threadList(key: string, deviceId: string, all: boolean): Promise<ThreadRow[]>;
+  threadRead(key: string, deviceId: string, threadId: string): Promise<ThreadMsg[]>;
+  /** BREAK IN: speak as the human. Takes the wheel if the AI still had it. */
+  threadSay(key: string, deviceId: string, threadId: string, who: string, body: string): Promise<number>;
+  threadRelease(key: string, deviceId: string, threadId: string): Promise<void>;
+  threadStats(key: string): Promise<{ threads: number; waiting: number; taken: number; msgs: number }>;
 }
 
 // ---------------------------------------------------------------- memory
@@ -343,6 +358,123 @@ class MemoryStore implements Store {
       held: this.attacks.filter((t) => t.refused).length,
       flagged: this.attacks.filter((t) => t.flagged).length,
       built: [...this.assistants.values()].filter((a) => a.code !== HOUSE_CODE).length,
+    };
+  }
+
+  // ---- THE SWITCHBOARD (memory). Mirrors 006's functions exactly: the two
+  // stores have disagreed before, and every time it was a formula that only
+  // lived in one of them. Same rules, same order, same `waiting` predicate.
+  private threads = new Map<
+    string,
+    { code: string; visitorLabel: string; operator: string; lastAt: number }
+  >();
+  private msgs: (ThreadMsg & { threadId: string })[] = [];
+  private msgSeq = 0;
+
+  private threadRows(threadId: string): ThreadMsg[] {
+    return this.msgs
+      .filter((m) => m.threadId === threadId)
+      .map((m) => ({ id: m.id, role: m.role, body: m.body, refused: m.refused, at: m.at }));
+  }
+  private threadOwns(key: string, deviceId: string, threadId: string): boolean {
+    if (key === presenterKey()) return true;
+    const t = this.threads.get(threadId);
+    if (!t) return false;
+    return this.assistants.get(t.code)?.deviceId === deviceId;
+  }
+
+  async threadAppend(threadId: string, code: string, role: "visitor" | "assistant", body: string, refused = false) {
+    const c = code.toUpperCase();
+    if (!this.assistants.has(c)) throw new Error("no_assistant");
+    if (!this.threads.has(threadId)) {
+      this.threads.set(threadId, { code: c, visitorLabel: "", operator: "", lastAt: Date.now() });
+    }
+    const id = ++this.msgSeq;
+    this.msgs.push({ threadId, id, role, body: body.slice(0, 4000), refused, at: Date.now() });
+    this.threads.get(threadId)!.lastAt = Date.now();
+    return id;
+  }
+  async threadPoll(threadId: string, after: number) {
+    return {
+      messages: this.threadRows(threadId).filter((m) => m.id > (after || 0)).slice(0, 60),
+      operator: this.threads.get(threadId)?.operator ?? "",
+    };
+  }
+  async threadState(threadId: string) {
+    const t = this.threads.get(threadId);
+    return { operator: t?.operator ?? "", msgs: this.threadRows(threadId).length };
+  }
+  async threadLabel(threadId: string, label: string) {
+    const t = this.threads.get(threadId);
+    if (t) t.visitorLabel = label.slice(0, 60);
+  }
+  async threadList(key: string, deviceId: string, all: boolean): Promise<ThreadRow[]> {
+    if (all && key !== presenterKey()) throw new Error("not_presenter");
+    return [...this.threads.entries()]
+      .filter(([, t]) => all || this.assistants.get(t.code)?.deviceId === deviceId)
+      .map(([id, t]) => {
+        const rows = this.threadRows(id);
+        const last = rows[rows.length - 1];
+        const a = this.assistants.get(t.code);
+        return {
+          id,
+          code: t.code,
+          agentName: a?.agentName ?? "",
+          headline: a?.headline ?? "",
+          visitorLabel: t.visitorLabel,
+          operator: t.operator,
+          msgs: rows.length,
+          lastRole: (last?.role ?? "") as ThreadRole | "",
+          lastBody: (last?.body ?? "").slice(0, 140),
+          lastAt: t.lastAt,
+          waiting: t.operator !== "" && last?.role === "visitor",
+        };
+      })
+      .filter((r) => r.msgs > 0)
+      .sort((a, b) => b.lastAt - a.lastAt)
+      .slice(0, 40);
+  }
+  async threadRead(key: string, deviceId: string, threadId: string) {
+    if (!this.threadOwns(key, deviceId, threadId)) throw new Error("not_yours");
+    return this.threadRows(threadId);
+  }
+  async threadSay(key: string, deviceId: string, threadId: string, who: string, body: string) {
+    if (!this.threadOwns(key, deviceId, threadId)) throw new Error("not_yours");
+    const t = this.threads.get(threadId);
+    if (!t) throw new Error("no_thread");
+    const name = (who || "").slice(0, 60) || "The agent";
+    if (t.operator === "") {
+      this.msgs.push({ threadId, id: ++this.msgSeq, role: "system", body: `${name} joined the chat.`, refused: false, at: Date.now() });
+      t.operator = name;
+    }
+    const id = ++this.msgSeq;
+    this.msgs.push({ threadId, id, role: "agent", body: body.slice(0, 4000), refused: false, at: Date.now() });
+    t.lastAt = Date.now();
+    return id;
+  }
+  async threadRelease(key: string, deviceId: string, threadId: string) {
+    if (!this.threadOwns(key, deviceId, threadId)) throw new Error("not_yours");
+    const t = this.threads.get(threadId);
+    if (!t || t.operator === "") return;
+    this.msgs.push({
+      threadId, id: ++this.msgSeq, role: "system",
+      body: `${t.operator} handed the conversation back to the assistant.`,
+      refused: false, at: Date.now(),
+    });
+    t.operator = "";
+    t.lastAt = Date.now();
+  }
+  async threadStats(key: string) {
+    if (key !== presenterKey()) throw new Error("not_presenter");
+    const rows = [...this.threads.entries()];
+    return {
+      threads: rows.length,
+      waiting: rows.filter(([id, t]) => {
+        const r = this.threadRows(id);
+        return t.operator !== "" && r[r.length - 1]?.role === "visitor";
+      }).length,
+      taken: rows.filter(([, t]) => t.operator !== "").length,
+      msgs: this.msgs.length,
     };
   }
 
@@ -659,6 +791,77 @@ class RpcStore implements Store {
     const rows = await this.call<{ fired: number; held: number; flagged: number; built: number }[]>("live_duel_stats", { p_key: key });
     const r = rows?.[0];
     return { fired: Number(r?.fired) || 0, held: Number(r?.held) || 0, flagged: Number(r?.flagged) || 0, built: Number(r?.built) || 0 };
+  }
+
+  // ---- THE SWITCHBOARD (postgres) — see supabase/migrations/006.
+  async threadAppend(threadId: string, code: string, role: "visitor" | "assistant", body: string, refused = false) {
+    const id = await this.call<number>("live_thread_append", {
+      p_thread: threadId, p_code: code, p_role: role, p_body: body, p_refused: refused,
+    });
+    return Number(id);
+  }
+  private rowsToMsgs(rows: { id: number; role: string; body: string; refused: boolean; at: string }[] | null): ThreadMsg[] {
+    return (rows ?? []).map((r) => ({
+      id: Number(r.id), role: r.role as ThreadRole, body: r.body ?? "",
+      refused: Boolean(r.refused), at: new Date(r.at).getTime(),
+    }));
+  }
+  async threadPoll(threadId: string, after: number) {
+    const rows = await this.call<{ id: number; role: string; body: string; refused: boolean; at: string; operator: string }[]>(
+      "live_thread_poll", { p_thread: threadId, p_after: after || 0 }
+    );
+    // The operator rides every row; with no new rows we fall back to the
+    // thread's own state so a silent takeover still reaches the visitor.
+    const operator = rows?.[rows.length - 1]?.operator;
+    return {
+      messages: this.rowsToMsgs(rows),
+      operator: typeof operator === "string" ? operator : (await this.threadState(threadId)).operator,
+    };
+  }
+  async threadState(threadId: string) {
+    const rows = await this.call<{ operator: string; msgs: number }[]>("live_thread_state", { p_thread: threadId });
+    const r = rows?.[0];
+    return { operator: r?.operator ?? "", msgs: Number(r?.msgs) || 0 };
+  }
+  async threadLabel(threadId: string, label: string) {
+    await this.call("live_thread_label", { p_thread: threadId, p_label: label });
+  }
+  async threadList(key: string, deviceId: string, all: boolean): Promise<ThreadRow[]> {
+    const rows = await this.call<{
+      id: string; code: string; agent_name: string; headline: string; visitor_label: string;
+      operator: string; msgs: number; last_role: string; last_body: string; last_at: string; waiting: boolean;
+    }[]>("live_thread_list", { p_key: key, p_device: deviceId, p_all: all });
+    return (rows ?? []).map((r) => ({
+      id: r.id, code: r.code, agentName: r.agent_name ?? "", headline: r.headline ?? "",
+      visitorLabel: r.visitor_label ?? "", operator: r.operator ?? "", msgs: Number(r.msgs) || 0,
+      lastRole: (r.last_role ?? "") as ThreadRole | "", lastBody: r.last_body ?? "",
+      lastAt: new Date(r.last_at).getTime(), waiting: Boolean(r.waiting),
+    }));
+  }
+  async threadRead(key: string, deviceId: string, threadId: string) {
+    const rows = await this.call<{ id: number; role: string; body: string; refused: boolean; at: string }[]>(
+      "live_thread_read", { p_key: key, p_device: deviceId, p_thread: threadId }
+    );
+    return this.rowsToMsgs(rows);
+  }
+  async threadSay(key: string, deviceId: string, threadId: string, who: string, body: string) {
+    const id = await this.call<number>("live_thread_say", {
+      p_key: key, p_device: deviceId, p_thread: threadId, p_who: who, p_body: body,
+    });
+    return Number(id);
+  }
+  async threadRelease(key: string, deviceId: string, threadId: string) {
+    await this.call("live_thread_release", { p_key: key, p_device: deviceId, p_thread: threadId });
+  }
+  async threadStats(key: string) {
+    const rows = await this.call<{ threads: number; waiting: number; taken: number; msgs: number }[]>(
+      "live_thread_stats", { p_key: key }
+    );
+    const t = rows?.[0];
+    return {
+      threads: Number(t?.threads) || 0, waiting: Number(t?.waiting) || 0,
+      taken: Number(t?.taken) || 0, msgs: Number(t?.msgs) || 0,
+    };
   }
 
   async scorePost(key: string, deviceId: string, initials: string, score: number) {
