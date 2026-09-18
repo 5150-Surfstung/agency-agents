@@ -1909,3 +1909,329 @@ body {
   color: var(--color-faint);
 }
 .market-table tbody th, .market-table thead th:first-child { text-align: left; color: var(--color-cream); }
+
+/* ── Val takes the reservation ──────────────────────────────────────────── */
+.book {
+  position: relative;
+  z-index: 1;
+  margin-top: 3rem;
+  border-top: 2px solid var(--color-gold);
+  padding-top: 0.5rem;
+}
+.book-talk { margin-top: 0.5rem; }
+.book-say {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(1.45rem, 5.8vw, 2.1rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  font-variation-settings: "wdth" 108;
+  color: var(--color-cream);
+  max-width: 22ch;
+  text-wrap: balance;
+}
+.book-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+}
+.book-row input {
+  flex: 1 1 12rem;
+  min-width: 0;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--color-rule-strong);
+  border-left: 3px solid var(--color-gold);
+  border-radius: 8px;
+  background: var(--color-sheet-2);
+  color: var(--color-cream);
+  font: inherit;
+  font-size: 1.0625rem;
+}
+.book-row input::placeholder { color: var(--color-faint); }
+.book-row input:focus { outline: none; border-left-color: var(--color-gold-bright); }
+.book-row button {
+  flex: 0 0 auto;
+  padding: 0.95rem 1.4rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-gold);
+  color: var(--color-sheet);
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 104;
+  font-weight: 800;
+  font-size: 1.0625rem;
+  cursor: pointer;
+}
+.book-row button:disabled { background: var(--color-sheet-3); color: var(--color-faint); cursor: default; }
+
+.book-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+}
+.book-pick button {
+  flex: 1 1 9rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-gold);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-gold);
+  font: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.book-pick button:hover { background: color-mix(in srgb, var(--color-gold) 14%, transparent); }
+.book-trouble {
+  margin: 1rem 0 0;
+  padding-left: 0.9rem;
+  border-left: 3px solid var(--color-clay);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--color-cream);
+}
+.book-fineprint {
+  margin: 1.25rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--color-faint);
+}
+
+/* ── the mini dash: every row is a thing that happened ─────────────────── */
+.dash { margin-top: 0.5rem; }
+.dash-said {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(1.5rem, 6vw, 2.15rem);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  font-variation-settings: "wdth" 108;
+  color: var(--color-cream);
+}
+.dash-rows {
+  margin: 1.35rem 0 0;
+  border-top: 1px solid var(--color-gold);
+}
+.dash-rows > div {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  gap: 0 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+.dash-rows dt {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-faint);
+}
+.dash-rows dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-cream);
+}
+.dash-ref {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.125rem !important;
+  letter-spacing: 0.02em;
+  color: var(--color-gold-bright) !important;
+}
+/* The one row that is NOT done yet reads differently on purpose. */
+/* The one row that is not done yet. The words already say so, so it does not
+   need a marker glyph that just reads as a typo. */
+.dash-pending dd { color: var(--color-soft); }
+
+.dash-go {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.35rem;
+}
+.invite .dash-go a {
+  flex: 1 1 11rem;
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+.invite .dash-go a:first-child { background: var(--color-gold); color: var(--color-sheet); }
+.invite .dash-go a + a { border: 1px solid var(--color-rule-strong); color: var(--color-cream); }
+
+.dash-truth {
+  margin: 1.35rem 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--color-rule-strong);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-soft);
+}
+.dash-sell {
+  margin: 1.25rem 0 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-cream);
+}
+.dash-fine {
+  margin: 1.25rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--color-faint);
+}
+
+/* The stub. Two figures, both of them handed back by the database — the
+   reference and the time. A perforation, because a reservation is a ticket. */
+.stub {
+  margin-top: 1.35rem;
+  padding: 1.15rem 1.15rem 1.25rem;
+  border: 1px solid var(--color-gold);
+  border-radius: 10px 10px 0 0;
+  background: var(--color-sheet-2);
+  text-align: center;
+}
+.stub-ref {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(2rem, 9vw, 3rem);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--color-gold-bright);
+}
+.stub-at {
+  margin: 0.6rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-faint);
+}
+/* The tear line: a dashed rule with a notch bitten out of each end. */
+.stub + .dash-rows {
+  margin-top: 0;
+  border-top: 2px dashed var(--color-gold);
+  position: relative;
+}
+.stub + .dash-rows::before,
+.stub + .dash-rows::after {
+  content: "";
+  position: absolute;
+  top: -9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-sheet);
+}
+.stub + .dash-rows::before { left: -9px; }
+.stub + .dash-rows::after { right: -9px; }
+.dash-more {
+  margin: 1.1rem 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--color-gold);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-cream);
+}
+
+/* ── the head start: the prompt they leave with, before they arrive ────── */
+.starter {
+  margin-top: 1.5rem;
+  border-left: 3px solid var(--color-gold);
+  border-radius: 0 10px 10px 0;
+  background: var(--color-sheet-2);
+  padding: 1.15rem 1.15rem 1.25rem;
+}
+.starter h3 {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(1.3rem, 5.2vw, 1.7rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-variation-settings: "wdth" 108;
+  color: var(--color-cream);
+}
+.starter > p {
+  margin: 0.65rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-soft);
+}
+.starter-text {
+  margin: 1rem 0 0;
+  padding: 0.9rem 1rem;
+  max-height: 13rem;
+  overflow-y: auto;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-sheet);
+  color: var(--color-soft);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  /* It is 6,500 characters. The scroll is the point: they can see it is real
+     without the page giving up eight screens to it. */
+  -webkit-overflow-scrolling: touch;
+}
+.starter-go {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+.starter-go button {
+  flex: 1 1 13rem;
+  padding: 0.9rem 1.1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-gold);
+  color: var(--color-sheet);
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 104;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.invite .starter-go a {
+  flex: 0 1 9rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 8px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--color-cream);
+}
+.starter-fine {
+  margin: 0.85rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--color-faint);
+}
+
+.starter-alt {
+  margin-top: 1.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--color-rule);
+}
+.starter-alt p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-faint);
+}
+.starter-alt p b { color: var(--color-soft); }
+.invite .starter-alt a {
+  display: inline-block;
+  margin-top: 0.8rem;
+  padding: 0.7rem 1.05rem;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--color-cream);
+}

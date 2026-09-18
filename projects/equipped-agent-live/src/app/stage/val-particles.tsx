@@ -765,8 +765,14 @@ export const VAL_SYMBOLS = SHAPES.map((s) => s.id);
 // travels from where it was in THIS shape to where it belongs in the NEXT
 // one: the house becomes the key, the key becomes the sold sign, forever. The
 // object is never not there, and the transition is the best part.
-const MORPH = 2500;
-const HOLD = 7400;
+// Ten seconds a shape meant thirteen shapes took over two minutes to come
+// round, so somebody who spent thirty seconds on the invite saw three of them
+// and left thinking the thing only makes a sphere and a table. At five and a
+// bit, the same visit gets the house, the key, the sold sign, the phone and
+// the calendar — the ones an agent recognises — and the morph still has room
+// to read as a rebuild rather than a cut.
+const MORPH = 1700;
+const HOLD = 3600;
 const PHASE = MORPH + HOLD;
 
 /** Slow at both ends, unhurried through the middle. Cubic rather than

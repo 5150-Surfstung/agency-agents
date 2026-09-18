@@ -13,11 +13,8 @@
 
 import { ValReel } from "./val-reel";
 import { LEARNS } from "./learns";
-import { eventLine } from "@/lib/event";
-import { rsvpMailto } from "@/lib/signup";
 
 export function Closer() {
-  const when = eventLine();
   return (
     <section className="close-band">
       <ValReel facts={LEARNS} height="40vh" orb="34vh" />
@@ -25,12 +22,12 @@ export function Closer() {
         <b>One hour. You leave with it running.</b>
         <span>Friday, October 2 · 12:00pm ET · 2000 Sam Rittenberg Blvd, Suite 2020</span>
       </p>
-      <a href={rsvpMailto({ name: "", cell: "", when })} className="close-go">
-        Save my seat
+      <a href="#seat" className="close-go">
+        Have Val hold me a seat
       </a>
       <p className="close-note">
-        That opens the message in your own mail app — you hit send. The room is
-        our office, not a ballroom, so when it is full it is full.
+        She takes it herself and hands you a reference you can hold Mike to.
+        The room is our office, not a ballroom, so when it is full it is full.
       </p>
     </section>
   );

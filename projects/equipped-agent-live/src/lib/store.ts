@@ -41,6 +41,10 @@ export interface Store {
    *  and a listing assistant reached by QR from a rider sign. The room-key
    *  versions above use the key as an auth token, so they fail closed for a
    *  stranger; these partition by an explicit room label instead. */
+  /** Val's reservation. Returns the row's real timestamp, which is what the
+   *  confirmation on screen is allowed to show. */
+  rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }): Promise<string>;
+
   meterLog(room: string, e: ToolEvent): Promise<void>;
   meterCount(room: string, deviceId: string, sinceMs: number): Promise<number>;
   meterSpendUsd(room: string): Promise<number>;
@@ -185,6 +189,15 @@ class MemoryStore implements Store {
   }
   async totalSpendUsd() {
     return this.events.reduce((s, e) => s + e.costUsd, 0);
+  }
+  private rsvps = new Map<string, string>();
+  async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
+    if (!r.name.trim()) throw new Error("need_name");
+    const had = this.rsvps.get(r.ref);
+    if (had) return had;
+    const at = new Date().toISOString();
+    this.rsvps.set(r.ref, at);
+    return at;
   }
   async meterLog(room: string, e: ToolEvent) {
     this.events.push({ ...e, room });
@@ -641,6 +654,16 @@ class RpcStore implements Store {
       p_seconds: Math.max(1, Math.round(sinceMs / 1000)),
     });
     return Number(n) || 0;
+  }
+  async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
+    const at = await this.call<string>("live_rsvp_add", {
+      p_ref: r.ref,
+      p_name: r.name,
+      p_cell: r.cell,
+      p_attend: r.attend,
+      p_note: r.note,
+    });
+    return String(at);
   }
   async meterLog(room: string, e: ToolEvent) {
     await this.call("live_meter_log", {

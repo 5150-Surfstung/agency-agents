@@ -5,7 +5,7 @@ import { Closer } from "./closer";
 import { Deadlines } from "./deadlines";
 import { MarketPanel } from "./market-panel";
 import { Profile } from "./profile";
-import { Rsvp } from "./rsvp";
+import { Book } from "./book";
 import { HOST } from "@/lib/contact";
 import { EVENT } from "@/lib/event";
 
@@ -302,9 +302,7 @@ export default function LivePage() {
         </p>
       </section>
 
-      <section className="invite-band" id="seat">
-        <Rsvp />
-      </section>
+      <Book />
 
       <Closer />
 
