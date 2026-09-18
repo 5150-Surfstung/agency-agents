@@ -250,6 +250,40 @@ export async function GET(req: NextRequest) {
     if (!refused) throw new Error("the cleanup accepted a real reference");
   });
 
+  // WHERE AN AGENT'S LEADS LAND. The alert is the entire point of the hosted
+  // assistant — it is the one thing a Skill in somebody's own Claude account
+  // can never do — and it is silently useless if the address never got
+  // stored. This proves the round-trip and that ownership is enforced.
+  await run("assistant: owner email stores, reads back, and is owner-only", async () => {
+    const code = `ST${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    const mine = randomUUID();
+    const notMine = randomUUID();
+    await store.assistantCreate(key, mine, {
+      code,
+      agentName: "· selftest ·",
+      brokerage: "",
+      cell: "000",
+      headline: "selftest listing",
+      facts: "A fact sheet long enough to stand on, written only so this step has something to create.",
+      notes: "",
+      voice: "warm",
+    });
+
+    if (!(await store.assistantSetOwnerEmail(code, mine, "leads@example.com"))) {
+      throw new Error("the owner could not set their own address");
+    }
+    if ((await store.assistantOwnerEmail(code)) !== "leads@example.com") {
+      throw new Error("the address did not read back");
+    }
+    // Somebody else's device must not be able to point these leads anywhere.
+    if (await store.assistantSetOwnerEmail(code, notMine, "thief@example.com")) {
+      throw new Error("a device that does not own this assistant redirected its leads");
+    }
+    if ((await store.assistantOwnerEmail(code)) !== "leads@example.com") {
+      throw new Error("the address changed under a non-owner");
+    }
+  });
+
   // ?deep=1 — one real grounded model round-trip: must state a sheet fact and
   // refuse an off-sheet one. Costs a fraction of a cent; the pre-room proof.
   // If the engine is dark, this FAILS rather than quietly skipping — a green

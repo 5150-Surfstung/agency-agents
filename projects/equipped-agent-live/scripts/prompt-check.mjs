@@ -78,6 +78,13 @@ const checks = [
   // start operating before it starts explaining where to keep it.
   ["audit: becomes the assistant in the same chat", /BECOME IT, NOW/.test(audit)],
   ["audit: does a real job before explaining setup", /Real output, not an offer to help/.test(audit)],
+  // The one claim that would get an agent burned in front of a client: that a
+  // thing living in their own chat can answer a stranger overnight. It cannot,
+  // and the interview has to say so rather than let them assume it.
+  ["audit: admits it cannot answer while they sleep", /cannot answer somebody else while I am asleep/.test(audit)],
+  ["audit: admits it cannot email or text them", /cannot email or text me/.test(audit)],
+  ["audit: names the hosted after-hours assistant as a separate thing", /has to be RUNNING somewhere/.test(audit)],
+  ["audit: hands that one off rather than faking it", /Do not oversell this and do not apologise for it/.test(audit)],
 
   // --- the orb ---
   ["orb: the group rule is stated", /group rule/i.test(orb)],

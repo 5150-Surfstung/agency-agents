@@ -24,6 +24,9 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
   const [agentName, setAgentName] = useState("");
   const [brokerage, setBrokerage] = useState("");
   const [cell, setCell] = useState("");
+  // Where the leads land. Without this the assistant catches somebody at
+  // eleven at night and has nowhere to put them.
+  const [ownerEmail, setOwnerEmail] = useState("");
   const [headline, setHeadline] = useState("");
   const [facts, setFacts] = useState("");
   const [notes, setNotes] = useState("");
@@ -67,7 +70,7 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
       const res = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentName, brokerage, cell, headline, facts, notes, voice }),
+        body: JSON.stringify({ agentName, brokerage, cell, ownerEmail, headline, facts, notes, voice }),
       });
       const data = await res.json();
       if (res.ok && data.ok) {
@@ -232,6 +235,16 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
           className="w-full rounded-xl border border-rule bg-sheet-2 px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none"
         />
       </div>
+      <input
+        value={ownerEmail}
+        onChange={(e) => setOwnerEmail(e.target.value)}
+        placeholder="Where your leads get emailed"
+        aria-label="Where your leads get emailed"
+        type="email"
+        inputMode="email"
+        autoComplete="email"
+        className="mt-2 w-full rounded-xl border border-rule bg-sheet-2 px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none"
+      />
       <input
         value={headline}
         onChange={(e) => setHeadline(e.target.value)}

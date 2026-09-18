@@ -528,7 +528,19 @@ Then give me three ways to keep it, easiest first, and be honest that the first 
 
 Do not make me pick. Tell me which one to do given what I told you about how I work, and why that one.
 
-════ PHASE 6 — THE ONE THING TONIGHT ════
+════ PHASE 6 — WHAT YOU CANNOT DO, AND WHO CAN ════
+
+Be straight with me about your own edges, because I will otherwise assume you can do something you cannot and find out the hard way in front of a client.
+
+Tell me plainly: you are MY assistant. You work when I open you. You cannot answer somebody else while I am asleep, you cannot be reached at an address of your own, and you cannot email or text me when a stranger asks something — because nothing is running when this window is closed. Anyone who tells me otherwise about a thing like you is wrong.
+
+Then tell me what that other thing is, because it is real and it is different: an assistant that sits on ONE listing, on a page behind a QR code on the sign, answering buyers at eleven at night off a fact sheet, refusing anything not on it, and emailing the agent the second it catches somebody's name and number. That one has to be RUNNING somewhere — a server, always on — so it is not something I paste into a chat, and it is not something you can become.
+
+If I am a real-estate agent, tell me that is exactly what gets built and switched on in the room at The Equipped Agent on Friday, October 2, and that I walk out with mine live on my own listing with my own number on it. If I am in another trade, tell me the same shape exists for my work — the after-hours front desk belongs to whoever answers the phone for a living — and that Mike Olson builds those, at 843-442-7992.
+
+Do not oversell this and do not apologise for it. One line each. The split is the honest architecture, not a limitation to talk around: the thing that knows my business inside out lives with me, and the thing that answers strangers has to live somewhere that never sleeps.
+
+════ PHASE 7 — THE ONE THING TONIGHT ════
 
 Last, tell me to say four words to you — "build my mark" — and watch you build me a living version of my brand, on my colours, out of my objects, as one file I double-click. That is the one thing to do tonight.`;
 }

@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { mintCode } from "@/lib/code";
 import { sessionFromCookies } from "@/lib/room";
 import { getStore } from "@/lib/store";
+import { looksLikeEmail } from "@/lib/mailer";
 
 const VOICES = new Set(["warm", "luxury", "energy"]);
 
@@ -21,6 +22,7 @@ export async function POST(req: NextRequest) {
   let facts = "";
   let notes = "";
   let voice = "warm";
+  let ownerEmail = "";
   try {
     const b = await req.json();
     agentName = String(b?.agentName ?? "").trim().slice(0, 60);
@@ -30,6 +32,7 @@ export async function POST(req: NextRequest) {
     facts = String(b?.facts ?? "").trim().slice(0, 4000);
     notes = String(b?.notes ?? "").trim().slice(0, 4000);
     voice = String(b?.voice ?? "warm");
+    ownerEmail = String(b?.ownerEmail ?? "").trim().slice(0, 160);
   } catch {
     return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
   }
@@ -53,7 +56,16 @@ export async function POST(req: NextRequest) {
       notes,
       voice: voice as "warm" | "luxury" | "energy",
     });
-    return NextResponse.json({ ok: true, code });
+    // Set right after the create, by the same device, so an agent leaves the
+    // room with somewhere for their leads to land. A bad address is not worth
+    // failing a deployed assistant over — the agent can fix it and the QR on
+    // their sign keeps working either way.
+    if (ownerEmail && looksLikeEmail(ownerEmail)) {
+      try {
+        await store.assistantSetOwnerEmail(code, sess.deviceId, ownerEmail);
+      } catch {}
+    }
+    return NextResponse.json({ ok: true, code, alerts: Boolean(ownerEmail && looksLikeEmail(ownerEmail)) });
   } catch {
     return NextResponse.json({ ok: false, error: "store_error" }, { status: 502 });
   }
