@@ -12,7 +12,7 @@ import { runArcadeTurn } from "@/lib/ai";
 import { isRefusal } from "@/lib/refusal";
 import { DECK } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
-import { notifyAssistantLead } from "@/lib/notify";
+import { emailAssistantLead, notifyAssistantLead } from "@/lib/notify";
 import { sessionFromCookies } from "@/lib/room";
 import { isThreadId, toChat } from "@/lib/thread";
 import { getStore } from "@/lib/store";
@@ -150,12 +150,20 @@ export async function PUT(req: NextRequest) {
     if (isThreadId(thread)) await store.threadLabel(thread, name);
     // The whole point of the thing: the agent's phone buzzes NOW, not at 5pm.
     const a = await store.assistantGet(code);
-    const ownerCell = await store.assistantOwnerCell(code);
-    notifyAssistantLead({
-      ownerCell,
+    const [ownerCell, ownerEmail] = await Promise.all([
+      store.assistantOwnerCell(code),
+      store.assistantOwnerEmail(code).catch(() => null),
+    ]);
+    const alert = {
       headline: a?.headline ?? "your listing",
       name, cell, question, timeline, financing, hasAgent,
-    });
+    };
+    // Both channels, neither required. The text needs Twilio; the email needs
+    // only a sender domain, which is why it is the one an agent can be given
+    // on day one. A failed alert never costs us the lead — the row is already
+    // written by the time either of these is attempted.
+    notifyAssistantLead({ ownerCell, ...alert });
+    void emailAssistantLead({ ownerEmail, ...alert }).catch(() => false);
     return NextResponse.json({ ok: true });
   } catch (e) {
     // A code that never existed is a 404, not a server fault.

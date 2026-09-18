@@ -118,6 +118,11 @@ export interface Store {
   ): Promise<void>;
   /** Server-side only — routes a captured lead to the owner's phone. */
   assistantOwnerCell(code: string): Promise<string | null>;
+  /** Where this assistant's leads should land in writing. Email needs no
+   *  carrier, no number and no per-message fee, so it is the default alert
+   *  channel and the text is the upgrade. */
+  assistantOwnerEmail(code: string): Promise<string | null>;
+  assistantSetOwnerEmail(code: string, deviceId: string, email: string): Promise<boolean>;
   assistantLeadsMine(key: string, deviceId: string): Promise<AssistantLead[]>;
 
   // ---- THE DUEL ----
@@ -437,6 +442,16 @@ class MemoryStore implements Store {
       timeline: q?.timeline ?? "", financing: q?.financing ?? "", hasAgent: q?.hasAgent ?? "",
       at: Date.now(),
     });
+  }
+  private aEmail = new Map<string, string>();
+  async assistantOwnerEmail(code: string) {
+    return this.aEmail.get(code.toUpperCase()) || null;
+  }
+  async assistantSetOwnerEmail(code: string, deviceId: string, email: string) {
+    const a = this.assistants.get(code.toUpperCase());
+    if (!a || a.deviceId !== deviceId) return false;
+    this.aEmail.set(code.toUpperCase(), email.trim().slice(0, 160));
+    return true;
   }
   async assistantOwnerCell(code: string) {
     return this.assistants.get(code.toUpperCase())?.cell ?? null;
@@ -947,6 +962,16 @@ class RpcStore implements Store {
   async assistantOwnerCell(code: string) {
     const v = await this.call<string | null>("live_assistant_owner_cell", { p_code: code });
     return typeof v === "string" && v ? v : null;
+  }
+  async assistantOwnerEmail(code: string) {
+    const v = await this.call<string | null>("live_assistant_owner_email", { p_code: code });
+    return typeof v === "string" && v ? v : null;
+  }
+  async assistantSetOwnerEmail(code: string, deviceId: string, email: string) {
+    const ok = await this.call<boolean>("live_assistant_set_owner_email", {
+      p_code: code, p_device: deviceId, p_email: email,
+    });
+    return Boolean(ok);
   }
   async assistantLeadsMine(key: string, deviceId: string): Promise<AssistantLead[]> {
     const rows = await this.call<{ name: string; cell: string; question: string; timeline: string; financing: string; has_agent: string; at: string }[]>(
