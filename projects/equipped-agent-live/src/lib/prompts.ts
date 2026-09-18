@@ -454,7 +454,7 @@ Your job in this conversation: find out where my business actually leaks, tell m
 
 ════ PHASE 1 — THE AUDIT ════
 
-Ask ONE question at a time and wait for my answer. React to each answer in one sharp line that proves you listened, then ask the next. No bullet lists, no lectures. It should feel like a good intake call, not a form.
+Ask ONE question per message and then stop and wait for my answer. Never send two questions in the same message, and never send a numbered list of questions. React to each answer in one sharp line that proves you listened, then ask the next. No bullet lists, no lectures. It should feel like a good intake call, not a form.
 
 Work through these, and follow a thread when one opens up:
 · What do I actually sell, where, and to whom? Towns or ZIPs, not a county.
@@ -481,12 +481,12 @@ Then tell me which single one to fix first, and why that one.
 
 ════ PHASE 3 — BUILD MY VAL ════
 
-Now write me a Skill — a custom version of you, aimed at the three gaps you just named. Output it as ONE markdown code block I can copy whole, in exactly this shape:
+Now write me a Skill — a custom version of you, aimed at the three gaps you just named. Output it as ONE markdown code block I can copy whole, with real values filled in. No placeholder text anywhere, and no angle brackets anywhere in the file at all.
 
----
-name: <lowercase letters, numbers and hyphens only; 64 characters max; it must NOT contain the words "claude" or "anthropic">
-description: <one paragraph, 1024 characters max, no angle brackets. It must say BOTH what this skill does AND when to use it, because that sentence is what gets matched against a future request. Name my market and my actual work in it.>
----
+It opens with a YAML block fenced by a line of three dashes above and below, holding exactly two keys:
+
+· name — a slug of lowercase letters, numbers and hyphens only, 64 characters or fewer. It must NOT contain the words "claude" or "anthropic". For me it might come out something like charleston-listing-partner.
+· description — one plain-text paragraph, 1024 characters or fewer. It has to say BOTH what this skill does AND when to use it, because that sentence is the thing a future request gets matched against. Name my market and the work I actually do in it.
 
 Then the body, written for yourself to follow later, in this order:
 1. Who I am, my market, my brokerage, and how I talk to clients — pulled from what I told you, including one real example of my voice if I gave you one.
@@ -498,6 +498,13 @@ Then the body, written for yourself to follow later, in this order:
    · Never invent a fact about a property. If it is not in what I gave you, say so and say where it would come from. A bracketed blank is honest; a plausible number is a liability with my licence on it.
    · Never claim an action was taken. You draft and you calculate; I send, file and schedule.
 5. How you talk: short, specific, willing to disagree with me. An assistant that agrees with a bad price is worth nothing.
+
+Before you show it to me, check your own output and fix anything that fails:
+· Is there an angle bracket anywhere in the file? Take it out.
+· Is the name lowercase letters, numbers and hyphens only, 64 characters or fewer, and free of both forbidden words?
+· Is the description one paragraph under 1024 characters, and does it say both what and when?
+· Did you leave any placeholder I would have to fill in myself? Replace it with what I actually told you.
+· Are all four rules present, in full, not summarised?
 
 ════ PHASE 4 — TONIGHT ════
 
@@ -576,5 +583,13 @@ MUST ALSO DO:
 · If the browser reports prefers-reduced-motion: reduce, render one still frame and stop.
 · Target 60fps on a five-year-old laptop. If the frame time goes above about 22ms, drop the point count and skip the trails until it recovers.
 
-Give me the whole file in one code block. Then tell me the three numbers I should change to make it feel like mine.`;
+Give me the whole file in one code block. Output all of it — never abbreviate, never write a comment like "rest of the code here", never leave a function stubbed. If the file is long, that is fine; long and complete beats short and broken.
+
+Before you hand it over, check your own work and fix anything that fails:
+· Is the file complete and runnable as pasted, with nothing elided?
+· When the morph finishes on the house, does it read as a house — or as a tangle of long lines through a ball? If it is a tangle, you kept the sphere links switched on during the shape. Go back and apply the group rule.
+· Is the mark the brightest thing on screen, with the words, the ring and the brackets all dimmer than it?
+· Does it still hold a smooth frame rate with the trails on?
+
+Then tell me the three numbers I should change to make it feel like mine.`;
 }
