@@ -131,6 +131,69 @@ export default function LivePage() {
       <OrbGive />
 
 
+      {/* ---- what the tool actually is. Most of the room has heard the
+              word and never been shown the thing. ---- */}
+      <section className="learn">
+        <h2 className="display">You are learning Claude. Specifically.</h2>
+        <p className="learn-lede">
+          Not &ldquo;AI&rdquo; in the abstract, and not a lecture about where
+          it is all going. One tool, learned the way you learned a lockbox or
+          a CRM — by using it on your own work until it is boring. Claude is
+          made by Anthropic, it runs in a browser at claude.ai, and the free
+          tier is genuinely enough for everything in this hour.
+        </p>
+
+        <ol className="learn-list">
+          <li>
+            <span className="learn-n">Briefing it</span>
+            <p>
+              The whole difference between people who get nothing out of this
+              and people who run their week on it. Asking a question gets you
+              a search engine with better manners. Handing over your listing,
+              your terms, your voice and your constraints gets you a colleague
+              who already knows the file. You will do the second one, out
+              loud, and see the gap.
+            </p>
+          </li>
+          <li>
+            <span className="learn-n">Making it say &ldquo;I don&rsquo;t know&rdquo;</span>
+            <p>
+              The part nobody teaches and the only reason any of this is safe
+              in front of a client. You will ground it in a real fact sheet,
+              then ask it something nobody told it, and watch it refuse
+              instead of inventing. If you learn one thing on the 2nd, make it
+              this one.
+            </p>
+          </li>
+          <li>
+            <span className="learn-n">Connecting it to the MLS</span>
+            <p>
+              Claude reaches outside itself through connectors, and FlexMLS
+              publishes one. Switching it on is a settings screen and a key,
+              not a project — and then you ask about your own farm in English
+              and it answers from the record.
+            </p>
+          </li>
+          <li>
+            <span className="learn-n">Keeping it</span>
+            <p>
+              A Skill is a version of Claude that already knows your market,
+              your brokerage and how you talk, so you stop re-explaining
+              yourself every time you open a window. You leave with one. Skills
+              install on the paid plans; on the free tier you paste yours in
+              and it works the same, one conversation at a time.
+            </p>
+          </li>
+        </ol>
+
+        <p className="learn-cost">
+          Plainly, on cost: free covers the hour and almost everything after
+          it. The paid plan buys you installed Skills and more headroom. Come
+          on free, decide later, and nobody here is selling you a
+          subscription.
+        </p>
+      </section>
+
       {/* ---- the one scarce thing. Everything else about AI is free. ---- */}
       <section className="invite-why">
         <h2 className="display">
