@@ -15,6 +15,13 @@ import type {
 
 export type Role = "presenter" | "attendee" | null;
 
+/** The one reference prefix a selftest reservation may carry. Real references
+ *  are minted as EA-XXXXXX and validated against that shape before they are
+ *  written, so the two can never collide — which is what lets the seat count
+ *  bench a test row and the cleanup refuse to touch a real one. Both backends
+ *  and the database check against this same string. */
+export const SELFTEST_REF = "SELFTEST-";
+
 export interface Store {
   backend(): "memory" | "supabase";
   checkKey(key: string): Promise<Role>;
@@ -53,6 +60,11 @@ export interface Store {
   rsvpGet(ref: string): Promise<{ who: string; attend: string; at: string } | null>;
   /** The public wall: first name and brokerage of people who opted in. */
   rsvpWall(): Promise<{ who: string; brokerage: string; bringing: boolean }[]>;
+  /** Removes a reservation the selftest made, and refuses to remove any other
+   *  kind. Covering the booking means writing a real row; benching it from
+   *  the seat count and then deleting it is what keeps the test from ever
+   *  showing up as a guest. */
+  rsvpSelftestClear(ref: string): Promise<number>;
 
   meterLog(room: string, e: ToolEvent): Promise<void>;
   meterCount(room: string, deviceId: string, sinceMs: number): Promise<number>;
@@ -199,31 +211,60 @@ class MemoryStore implements Store {
   async totalSpendUsd() {
     return this.events.reduce((s, e) => s + e.costUsd, 0);
   }
-  private rsvps = new Map<string, string>();
-  private rsvpNames = new Map<string, string>();
-  async rsvpCount() { return this.rsvps.size; }
-  private room = new Map<string, { who: string; brokerage: string; bringing: boolean }>();
+  // One row per reservation, not three maps keyed by the same reference. The
+  // parallel version drifted: rsvpGet returned a hardcoded "in-person" because
+  // attendance was the one field nothing kept, so local dev showed every
+  // visitor the opposite of what they picked. The booking selftest caught it
+  // the first time it ran. Fields that must agree live in one object.
+  private rsvps = new Map<string, {
+    name: string; cell: string; attend: string; note: string; at: string;
+    show: boolean; brokerage: string; bringing: boolean;
+  }>();
+
+  async rsvpCount() {
+    // Same bench as the database: a selftest booking is not a guest.
+    return [...this.rsvps.keys()].filter((r) => !r.startsWith(SELFTEST_REF)).length;
+  }
+  async rsvpSelftestClear(ref: string) {
+    if (!ref.startsWith(SELFTEST_REF)) throw new Error("refusing to delete a real reservation");
+    return this.rsvps.delete(ref) ? 1 : 0;
+  }
   async rsvpRoom(ref: string, show: boolean, brokerage: string, bringing: string) {
-    const name = this.rsvpNames.get(ref);
-    if (!name) return false;
-    if (show) this.room.set(ref, { who: name.split(" ")[0], brokerage, bringing: bringing.trim().length > 0 });
-    else this.room.delete(ref);
+    const row = this.rsvps.get(ref);
+    if (!row) return false;
+    row.show = show;
+    row.brokerage = brokerage;
+    row.bringing = bringing.trim().length > 0;
     return true;
   }
-  async rsvpWall() { return [...this.room.values()].reverse(); }
+  async rsvpWall() {
+    return [...this.rsvps.entries()]
+      .filter(([ref, r]) => r.show && r.name.trim() && !ref.startsWith(SELFTEST_REF))
+      .reverse()
+      .map(([, r]) => ({ who: r.name.trim().split(" ")[0], brokerage: r.brokerage, bringing: r.bringing }));
+  }
   async rsvpGet(ref: string) {
-    const at = this.rsvps.get(ref);
-    if (!at) return null;
-    const name = this.rsvpNames.get(ref) ?? "";
-    return { who: name.split(" ")[0] ?? "", attend: "in-person", at };
+    const row = this.rsvps.get(ref);
+    if (!row) return null;
+    // First name only, exactly as live_rsvp_get does it — a reference is not
+    // a password, so this may never hand back a cell or a full legal name.
+    return { who: row.name.trim().split(" ")[0] ?? "", attend: row.attend, at: row.at };
   }
   async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
     if (!r.name.trim()) throw new Error("need_name");
     const had = this.rsvps.get(r.ref);
-    if (had) return had;
+    if (had) return had.at;
     const at = new Date().toISOString();
-    this.rsvps.set(r.ref, at);
-    this.rsvpNames.set(r.ref, r.name);
+    this.rsvps.set(r.ref, {
+      name: r.name,
+      cell: r.cell,
+      attend: ["in-person", "zoom", "either"].includes(r.attend) ? r.attend : "in-person",
+      note: r.note,
+      at,
+      show: false,
+      brokerage: "",
+      bringing: false,
+    });
     return at;
   }
   async meterLog(room: string, e: ToolEvent) {
@@ -700,6 +741,11 @@ class RpcStore implements Store {
     const rows = await this.call<{ who: string; attend: string; at: string }[]>("live_rsvp_get", { p_ref: ref });
     const r = Array.isArray(rows) ? rows[0] : null;
     return r ? { who: String(r.who ?? ""), attend: String(r.attend ?? "in-person"), at: String(r.at) } : null;
+  }
+  async rsvpSelftestClear(ref: string) {
+    if (!ref.startsWith(SELFTEST_REF)) throw new Error("refusing to delete a real reservation");
+    const n = await this.call<number>("live_rsvp_selftest_clear", { p_ref: ref });
+    return Number(n ?? 0);
   }
   async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
     const at = await this.call<string>("live_rsvp_add", {

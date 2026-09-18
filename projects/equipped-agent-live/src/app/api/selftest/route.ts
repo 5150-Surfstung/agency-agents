@@ -11,7 +11,7 @@ import { bragSystem, orbPrompt, starterPrompt } from "@/lib/prompts";
 import { DECK, STUMP_FACTS, STUMP_NOTES, opensOnArrival } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
 import { isRefusal } from "@/lib/refusal";
-import { getStore } from "@/lib/store";
+import { SELFTEST_REF, getStore } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
   const key = req.nextUrl.searchParams.get("key") ?? "";
@@ -184,6 +184,69 @@ export async function GET(req: NextRequest) {
     if ((await store.meterSpendUsd("big-reveal")) !== roomBefore) {
       throw new Error("a public turn moved the room's own spend");
     }
+  });
+
+  // THE BOOKING — the only thing on the public invite a visitor can press, and
+  // for a long time the only public path with no step here. That is exactly
+  // the shape of the metering bug above: sixteen green steps, and none of them
+  // ran the route a stranger actually runs.
+  //
+  // Covering it means writing a REAL reservation, which runs straight into the
+  // rule the whole invite is built on — never claim a number you cannot
+  // defend. The seat count on the page is live_rsvp_count(). So the test books
+  // under a reference the count benches and the cleanup is the only thing
+  // allowed to delete, then proves the seat count never moved.
+  await run("booking: reserve, read back, clean up (seat count untouched)", async () => {
+    // live_rsvp_add caps a reference at 24 characters, so the device id gets
+    // trimmed to fit under the prefix rather than rejected as a bad ref.
+    const ref = `${SELFTEST_REF}${device.replace(/-/g, "").slice(0, 12)}`;
+    const seatsBefore = await store.rsvpCount();
+    try {
+      const at = await store.rsvpAdd({
+        ref, name: "· selftest ·", cell: "000", attend: "zoom", note: "selftest",
+      });
+      if (!at) throw new Error("no timestamp came back from the write");
+
+      // What /kit/[ref] greets somebody with has to be the row, not an echo of
+      // what the browser sent — that is the whole reason the confirmation is
+      // allowed to exist.
+      const got = await store.rsvpGet(ref);
+      if (!got) throw new Error("the reservation did not read back by its reference");
+      if (got.who !== "·") throw new Error(`read back the wrong name: ${got.who}`);
+      if (got.attend !== "zoom") throw new Error(`read back the wrong attendance: ${got.attend}`);
+
+      // Idempotent: a retry from a flaky phone is the same seat, not a second.
+      const again = await store.rsvpAdd({
+        ref, name: "· selftest ·", cell: "000", attend: "zoom", note: "selftest",
+      });
+      if (again !== at) throw new Error("a retry on the same reference minted a second seat");
+
+      if ((await store.rsvpCount()) !== seatsBefore) {
+        throw new Error("a selftest booking moved the public seat count");
+      }
+    } finally {
+      // Runs even when an assertion above threw, so a failure reports a
+      // failure instead of leaving a row behind that looks like a guest.
+      await store.rsvpSelftestClear(ref).catch(() => {});
+    }
+    if (await store.rsvpGet(ref)) {
+      throw new Error("the selftest reservation survived its own cleanup");
+    }
+    if ((await store.rsvpCount()) !== seatsBefore) {
+      throw new Error("the seat count did not come back to where it started");
+    }
+  });
+
+  // And the cleanup has to be narrow, because anon can call it: there must be
+  // no argument that deletes somebody's actual seat.
+  await run("booking cleanup refuses a real reference", async () => {
+    let refused = false;
+    try {
+      await store.rsvpSelftestClear("EA-ABC234");
+    } catch {
+      refused = true;
+    }
+    if (!refused) throw new Error("the cleanup accepted a real reference");
   });
 
   // ?deep=1 — one real grounded model round-trip: must state a sheet fact and
