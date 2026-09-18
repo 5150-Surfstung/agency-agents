@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mark</title>
+<style>
+  html,body{margin:0;padding:0;height:100%;background:#0A1A2F;overflow:hidden;
+            font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  canvas#c{display:block;width:100%;height:100%;}
+
+  /* ---- the conversation. It sits over the mark rather than beside it, so
+         the thing you are talking to and the thing you are watching are one
+         object. Nothing here is opaque: the orb stays visible behind it. ---- */
+  #talk{position:fixed;left:0;right:0;bottom:0;z-index:2;
+        padding:0 16px calc(14px + env(safe-area-inset-bottom,0px));
+        display:flex;flex-direction:column;align-items:center;pointer-events:none;}
+  #log{width:100%;max-width:680px;max-height:38vh;overflow-y:auto;
+       display:flex;flex-direction:column;gap:10px;margin-bottom:12px;
+       pointer-events:auto;scrollbar-width:thin;
+       scrollbar-color:rgba(159,198,255,0.28) transparent;}
+  #log::-webkit-scrollbar{width:6px}
+  #log::-webkit-scrollbar-thumb{background:rgba(159,198,255,0.28);border-radius:3px}
+  .turn{font-size:13.5px;line-height:1.62;max-width:88%;
+        padding:9px 13px;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;}
+  .me{align-self:flex-end;color:#0A1A2F;background:rgba(255,232,200,0.90);
+      border:1px solid rgba(255,232,200,0.5);}
+  .it{align-self:flex-start;color:#E8F0FF;background:rgba(10,26,47,0.78);
+      border:1px solid rgba(159,198,255,0.26);}
+  /* A state the system is actually in, never a fake one: this shows only
+     while a request is genuinely in flight, and is replaced by the reply. */
+  .wait{align-self:flex-start;color:rgba(214,230,255,0.62);background:transparent;
+        border:1px solid rgba(159,198,255,0.16);letter-spacing:0.08em;font-size:11px;}
+  .bad{align-self:flex-start;color:#FFE8C8;background:rgba(10,26,47,0.78);
+       border:1px solid rgba(255,232,200,0.34);font-size:12.5px;}
+
+  #bar{width:100%;max-width:680px;display:flex;gap:8px;pointer-events:auto;}
+  #q{flex:1;min-width:0;background:rgba(10,26,47,0.82);color:#E8F0FF;
+     border:1px solid rgba(159,198,255,0.34);border-radius:10px;
+     padding:12px 14px;font:inherit;font-size:15px;outline:none;}
+  #q::placeholder{color:rgba(214,230,255,0.42)}
+  #q:focus{border-color:rgba(255,232,200,0.72)}
+  #go{background:rgba(255,232,200,0.92);color:#0A1A2F;border:0;border-radius:10px;
+      padding:12px 18px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+  #go:disabled{background:rgba(159,198,255,0.20);color:rgba(214,230,255,0.45);cursor:default}
+  #note{width:100%;max-width:680px;margin:9px 0 0;font-size:10.5px;line-height:1.55;
+        color:rgba(214,230,255,0.40);text-align:center;pointer-events:auto;}
+  @media (max-width:520px){ .turn{max-width:94%} #note{font-size:10px} }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="talk">
+  <div id="log" aria-live="polite"></div>
+  <form id="bar" autocomplete="off">
+    <input id="q" type="text" maxlength="1200" placeholder="Ask it something."
+           aria-label="Ask the mark something">
+    <button id="go" type="submit">Ask</button>
+  </form>
+  <p id="note">It answers from Mike&rsquo;s record and a dated MLS snapshot. It has no live
+     system, so it will tell you when it doesn&rsquo;t have something rather than invent it.</p>
+</div>
+<script>
+(function(){
+"use strict";
+
+/* ---------------- palette : navy and white only ---------------- */
+var BG_CSS = "#0A1A2F";
+var WARM = [255,232,200];
+var COOL = [159,198,255];
+
+var N = 300;
+var LAGMAX = 0.35;
+
+/* ---------------- vector helpers ---------------- */
+function len3(a){return Math.sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]);}
+function norm(a){var L=len3(a)||1;return [a[0]/L,a[1]/L,a[2]/L];}
+function cross(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+function dist3(a,b){var x=a[0]-b[0],y=a[1]-b[1],z=a[2]-b[2];return Math.sqrt(x*x+y*y+z*z);}
+
+/* ---------------- arc-length sampling ---------------- */
+function polyLength(p){var L=0;for(var i=1;i<p.length;i++)L+=dist3(p[i-1],p[i]);return L;}
+
+function samplePoly(p,k){
+  var segL=[],L=0,i;
+  for(i=1;i<p.length;i++){var d=dist3(p[i-1],p[i]);segL.push(d);L+=d;}
+  var out=[];
+  if(L<=1e-9||segL.length===0){for(i=0;i<k;i++)out.push(p[0].slice());return out;}
+  for(var j=0;j<k;j++){
+    var target=(k===1)?0:(j/(k-1))*L,acc=0,idx=0;
+    while(idx<segL.length-1 && acc+segL[idx]<target){acc+=segL[idx];idx++;}
+    var f=segL[idx]>1e-9?(target-acc)/segL[idx]:0;
+    if(f>1)f=1; if(f<0)f=0;
+    var a=p[idx],b=p[idx+1];
+    out.push([a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f]);
+  }
+  return out;
+}
+
+/* points allocated across segments BY ARC LENGTH, segment id recorded */
+function buildObject(segs,n){
+  var lens=segs.map(polyLength);
+  var total=lens.reduce(function(a,b){return a+b;},0)||1;
+  var counts=lens.map(function(L){return Math.max(2,Math.round(n*L/total));});
+  var sum=counts.reduce(function(a,b){return a+b;},0);
+  var guard=0,i;
+  while(sum>n && guard++<200000){
+    var idx=-1,best=2;
+    for(i=0;i<counts.length;i++){if(counts[i]>best){best=counts[i];idx=i;}}
+    if(idx<0)break;
+    counts[idx]--;sum--;
+  }
+  guard=0;
+  while(sum<n && guard++<200000){
+    var id2=0,bestD=-1;
+    for(i=0;i<counts.length;i++){var d=lens[i]/counts[i];if(d>bestD){bestD=d;id2=i;}}
+    counts[id2]++;sum++;
+  }
+  var pos=[],seg=[];
+  for(var s=0;s<segs.length;s++){
+    var pts=samplePoly(segs[s],counts[s]);
+    for(var q=0;q<pts.length;q++){pos.push(pts[q]);seg.push(s);}
+  }
+  while(pos.length>n){pos.pop();seg.pop();}
+  while(pos.length<n){pos.push(pos[pos.length-1].slice());seg.push(seg[seg.length-1]);}
+
+  /* centre, then fit wide shapes without crushing them */
+  var mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
+  for(i=0;i<n;i++){for(var k=0;k<3;k++){if(pos[i][k]<mn[k])mn[k]=pos[i][k];if(pos[i][k]>mx[k])mx[k]=pos[i][k];}}
+  var c=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2];
+  var hx=(mx[0]-mn[0])/2,hy=(mx[1]-mn[1])/2,hz=(mx[2]-mn[2])/2;
+  var fit=Math.max(hx/1.30,hy/1.02,hz/1.12,1e-6);
+  var sc=1/fit;
+  var flat=new Float32Array(n*3);
+  for(i=0;i<n;i++){
+    flat[i*3]  =(pos[i][0]-c[0])*sc;
+    flat[i*3+1]=(pos[i][1]-c[1])*sc;
+    flat[i*3+2]=(pos[i][2]-c[2])*sc;
+  }
+  /* THE RULE: join i to i+1 only when they share a segment */
+  var links=[];
+  for(i=0;i<n-1;i++){if(seg[i]===seg[i+1])links.push([i,i+1]);}
+  return {pos:flat,links:links};
+}
+
+/* ---------------- the core : fibonacci sphere ---------------- */
+function fibSphere(n){
+  var pos=new Float32Array(n*3);
+  for(var i=0;i<n;i++){
+    var y=1-(i/(n-1))*2;
+    var r=Math.sqrt(Math.max(0,1-y*y));
+    var phi=i*Math.PI*(3-Math.sqrt(5));
+    pos[i*3]=Math.cos(phi)*r;
+    pos[i*3+1]=y;
+    pos[i*3+2]=Math.sin(phi)*r;
+  }
+  return pos;
+}
+
+/* two nearest neighbours, ONCE at startup. these belong to the sphere only. */
+function sphereLinks(pos,n){
+  var seen={},out=[];
+  for(var i=0;i<n;i++){
+    var b1=-1,b2=-1,d1=1e18,d2=1e18;
+    var ax=pos[i*3],ay=pos[i*3+1],az=pos[i*3+2];
+    for(var j=0;j<n;j++){
+      if(j===i)continue;
+      var dx=pos[j*3]-ax,dy=pos[j*3+1]-ay,dz=pos[j*3+2]-az;
+      var d=dx*dx+dy*dy+dz*dz;
+      if(d<d1){d2=d1;b2=b1;d1=d;b1=j;}
+      else if(d<d2){d2=d;b2=j;}
+    }
+    var cand=[b1,b2];
+    for(var q=0;q<2;q++){
+      var jj=cand[q];
+      if(jj<0)continue;
+      var a=Math.min(i,jj),b=Math.max(i,jj),key=a+"_"+b;
+      if(!seen[key]){seen[key]=1;out.push([a,b]);}
+    }
+  }
+  return out;
+}
+
+/* ---------------- object one : the orb (armillary) ---------------- */
+function circlePoly(u,v,r,steps,ctr){
+  var p=[];
+  for(var i=0;i<=steps;i++){
+    var a=i/steps*Math.PI*2,ca=Math.cos(a)*r,sa=Math.sin(a)*r;
+    p.push([ctr[0]+u[0]*ca+v[0]*sa,ctr[1]+u[1]*ca+v[1]*sa,ctr[2]+u[2]*ca+v[2]*sa]);
+  }
+  return p;
+}
+function orbSegs(){
+  var s=[];
+  s.push(circlePoly([1,0,0],[0,1,0],1.0,46,[0,0,0]));
+  s.push(circlePoly([1,0,0],[0,0,1],1.0,46,[0,0,0]));
+  s.push(circlePoly([0,1,0],[0,0,1],1.0,46,[0,0,0]));
+  var u=norm([0.80,0.42,0.43]);
+  var v=norm(cross(u,[0.1,1,0.25]));
+  s.push(circlePoly(u,v,0.46,38,[0,0,0]));
+  return s;
+}
+
+/* ---------------- object two : the land (a surveyed lot) ---------------- */
+function landSegs(){
+  var s=[];
+  var b=[[-1.05,0,-0.62],[0.16,0,-0.80],[1.04,0,-0.44],[0.96,0,0.50],[0.10,0,0.74],[-0.90,0,0.60],[-1.05,0,-0.62]];
+  s.push(b);
+  var corners=[b[0],b[2],b[3],b[5]];
+  corners.forEach(function(c){
+    s.push([[c[0]-0.11,0,c[2]],[c[0]+0.11,0,c[2]]]);
+    s.push([[c[0],0,c[2]-0.11],[c[0],0,c[2]+0.11]]);
+    s.push([[c[0],0,c[2]],[c[0],0.17,c[2]]]);
+  });
+  var creek=[];
+  for(var i=0;i<=28;i++){
+    var t=i/28;
+    var x=-1.16+2.36*t;
+    var z=0.38*Math.sin(t*Math.PI*2.2)+0.12-0.30*t;
+    creek.push([x,0.014,z]);
+  }
+  s.push(creek);
+  return s;
+}
+
+/* ---------------- object three : the city (skyline and bridge) ---------------- */
+function citySegs(){
+  var s=[];
+  var blds=[
+    [-1.42,-1.20,0.52,false],
+    [-1.16,-0.92,0.86,false],
+    [-0.88,-0.66,0.40,true ],
+    [-0.62,-0.36,1.02,false],
+    [-0.32,-0.10,0.66,false],
+    [-0.06, 0.16,0.44,false],
+    [ 0.20, 0.42,0.92,true ],
+    [ 0.46, 0.66,0.58,false],
+    [ 0.70, 0.90,0.78,false],
+    [ 0.94, 1.12,0.36,false]
+  ];
+  var z0=-0.14,z1=0.14;
+  blds.forEach(function(b){
+    var x0=b[0],x1=b[1],h=b[2];
+    s.push([[x0,0,z0],[x0,h,z0],[x1,h,z0],[x1,0,z0]]);
+    s.push([[x0,0,z1],[x0,h,z1],[x1,h,z1],[x1,0,z1]]);
+    s.push([[x0,h,z0],[x0,h,z1]]);
+    s.push([[x1,h,z0],[x1,h,z1]]);
+    if(b[3]){var cxb=(x0+x1)/2;s.push([[cxb,h,0],[cxb,h+0.26,0]]);}
+  });
+  var deckY=0.20;
+  s.push([[1.24,deckY,0],[2.52,deckY,0]]);
+  var towers=[1.56,2.16];
+  towers.forEach(function(tx){
+    s.push([[tx,0,0],[tx,1.02,0]]);
+    s.push([[tx,0.42,0],[tx+0.085,0.64,0],[tx,0.86,0],[tx-0.085,0.64,0],[tx,0.42,0]]);
+  });
+  var fans=[[1.56,[1.26,1.40,1.74,1.88]],[2.16,[1.86,2.00,2.32,2.48]]];
+  fans.forEach(function(t){
+    var tx=t[0];
+    t[1].forEach(function(dx){s.push([[tx,1.02,0],[dx,deckY,0]]);});
+  });
+  return s;
+}
+
+/* ---------------- build everything once ---------------- */
+var SPH_POS=fibSphere(N);
+var SPH_LINKS=sphereLinks(SPH_POS,N);
+var OBJ=[buildObject(orbSegs(),N),buildObject(landSegs(),N),buildObject(citySegs(),N)];
+var READOUT=["TWENTY YEARS, ONE SYSTEM","FOUR SUBMARKETS, FOUR SETS OF COMPS","THE DATES ARE THE DEAL"];
+
+var LAG=new Float32Array(N);
+var ORDER=new Int32Array(N);
+var i0;
+for(i0=0;i0<N;i0++){LAG[i0]=Math.random()*LAGMAX;ORDER[i0]=i0;}
+for(i0=N-1;i0>0;i0--){var j0=(Math.random()*(i0+1))|0,tmp=ORDER[i0];ORDER[i0]=ORDER[j0];ORDER[j0]=tmp;}
+
+var VIS=new Uint8Array(N);
+var visibleCount=N;
+function applyVis(){for(var k=0;k<N;k++)VIS[ORDER[k]]=(k<visibleCount)?1:0;}
+applyVis();
+
+/* ---------------- canvas ---------------- */
+var cvs=document.getElementById("c");
+var ctx=cvs.getContext("2d");
+var W=0,H=0,DPR=1;
+function fit(){
+  DPR=Math.min(window.devicePixelRatio||1,2.5);
+  W=cvs.clientWidth;H=cvs.clientHeight;
+  cvs.width=Math.round(W*DPR);
+  cvs.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle=BG_CSS;
+  ctx.fillRect(0,0,W,H);
+}
+window.addEventListener("resize",fit);
+
+/* ---------------- lights : two fixed directions, warm and cool ---------------- */
+var LWARM=norm([0.58,0.60,-0.55]);
+var LCOOL=norm([-0.64,-0.28,-0.72]);
+
+/* ---------------- drifting words ---------------- */
+var WORDS=["i try to remember","memory is not a system","contracts until 10pm",
+           "listings and buyers","twenty years","the dates are the deal"];
+var drifters=[];
+function makeDrifter(k){
+  return {t:WORDS[k%WORDS.length],u:Math.random(),sp:0.050+Math.random()*0.045,
+          a0:Math.random()*Math.PI*2,a1:0,ain:(Math.random()-0.5)*0.9};
+}
+for(i0=0;i0<WORDS.length;i0++)drifters.push(makeDrifter(i0));
+
+var RING_TEXT="JOHNS ISLAND · JAMES ISLAND · WEST ASHLEY · MOUNT PLEASANT · ";
+RING_TEXT=RING_TEXT+RING_TEXT;
+var MONO='ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+
+/* ---------------- timeline ---------------- */
+var HOLD_S=1.10,MORPH=1.50,HOLD_O=4.00;
+var phase="holdS",pt=0,objIdx=0,lastLabel=0;
+
+/* ---------------- what it is doing, for real ----------------
+   `mode` is set from the actual state of the request, never ahead of it:
+   "think" goes on when a fetch is genuinely in flight and comes off when the
+   reply is in hand. So the thing you watch it do is a thing it is doing.
+   `thinkAmt` eases so nothing snaps; `beat` is the one flash when an answer
+   lands. */
+var mode="idle", thinkAmt=0, beatAt=-1e9, beat=0;
+
+/* ---------------- scratch ---------------- */
+var PX=new Float32Array(N),PY=new Float32Array(N),PZ=new Float32Array(N);
+var SR=new Float32Array(N),SG=new Float32Array(N),SB=new Float32Array(N);
+var SA=new Float32Array(N),SS=new Float32Array(N);
+
+function ease(t){return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
+function clamp01(t){return t<0?0:(t>1?1:t);}
+
+var yaw=0.6,time=0,ema=16,last=0;
+var PITCH_OBJ=[0.52,0.88,0.36];
+var PITCH_SPH=0.46;
+var pitchNow=0.52;
+
+function step(dt){
+  time+=dt;
+  thinkAmt+=((mode==="think"?1:0)-thinkAmt)*Math.min(1,dt*3.0);
+  beat=Math.exp(-Math.max(0,time-beatAt)/0.42);
+  /* It winds up while it is working and falls back when it answers — the
+     spin is the wait, so nobody wonders whether the thing heard them. */
+  yaw+=dt*0.28*(1+thinkAmt*3.4);
+  pt+=dt;
+  var want;
+  if(phase==="holdS")want=PITCH_SPH;
+  else if(phase==="holdO")want=PITCH_OBJ[objIdx];
+  else if(phase==="morphIn")want=PITCH_SPH+(PITCH_OBJ[objIdx]-PITCH_SPH)*(pt/MORPH);
+  else want=PITCH_OBJ[objIdx]+(PITCH_SPH-PITCH_OBJ[objIdx])*(pt/MORPH);
+  pitchNow+=(want-pitchNow)*Math.min(1,dt*3.2);
+  if(phase==="holdS"&&pt>=HOLD_S){phase="morphIn";pt=0;}
+  else if(phase==="morphIn"&&pt>=MORPH){phase="holdO";pt=0;}
+  else if(phase==="holdO"&&pt>=HOLD_O){phase="morphOut";pt=0;}
+  else if(phase==="morphOut"&&pt>=MORPH){phase="holdS";pt=0;objIdx=(objIdx+1)%OBJ.length;}
+}
+
+function draw(){
+  var pitch=pitchNow+0.085*Math.sin(time*0.31);
+  var obj=OBJ[objIdx];
+
+  var from,to,m,sphAlpha,objAlpha;
+  if(phase==="holdS"){from=SPH_POS;to=SPH_POS;m=0;sphAlpha=1;objAlpha=0;}
+  else if(phase==="morphIn"){m=pt/MORPH;from=SPH_POS;to=obj.pos;sphAlpha=1-m;objAlpha=m;}
+  else if(phase==="holdO"){from=obj.pos;to=obj.pos;m=1;sphAlpha=0;objAlpha=1;}
+  else {m=pt/MORPH;from=obj.pos;to=SPH_POS;sphAlpha=m;objAlpha=1-m;}
+
+  if(phase==="morphIn"&&m>0.45)lastLabel=objIdx;
+
+  /* The conversation owns the bottom of the screen, so the mark is centred in
+     what is left rather than behind it. */
+  var free=Math.max(160,H-CHAT_H());
+  var cx=W/2,cy=free*0.47;
+  var R=Math.min(W,free)*0.28;
+  var fov=3.2;
+  var cyaw=Math.cos(yaw),syaw=Math.sin(yaw);
+  var cpit=Math.cos(pitch),spit=Math.sin(pitch);
+
+  /* trails */
+  ctx.globalCompositeOperation="source-over";
+  ctx.fillStyle="rgba(10,26,47,0.18)";
+  ctx.fillRect(0,0,W,H);
+
+  var i;
+  for(i=0;i<N;i++){
+    if(!VIS[i]){SA[i]=0;continue;}
+    var lt=ease(clamp01((m-LAG[i])/(1-LAGMAX)));
+    var ax=from[i*3],ay=from[i*3+1],az=from[i*3+2];
+    var bx=to[i*3],by=to[i*3+1],bz=to[i*3+2];
+    var px=ax+(bx-ax)*lt,py=ay+(by-ay)*lt,pz=az+(bz-az)*lt;
+    /* pulled through the centre so it reads as being rebuilt */
+    var rr=1-0.62*Math.sin(Math.PI*lt);
+    /* and pulled in tight while it is working something out */
+    rr*=(1-0.26*thinkAmt);
+    px*=rr;py*=rr;pz*=rr;
+
+    var nx=px,ny=py,nz=pz;
+    var nl=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
+    nx/=nl;ny/=nl;nz/=nl;
+
+    var x1=px*cyaw-pz*syaw, z1=px*syaw+pz*cyaw, y1=py;
+    var y2=y1*cpit-z1*spit, z2=y1*spit+z1*cpit;
+
+    var mx1=nx*cyaw-nz*syaw, mz1=nx*syaw+nz*cyaw, my1=ny;
+    var my2=my1*cpit-mz1*spit, mz2=my1*spit+mz1*cpit;
+
+    var sc=fov/(fov+z2);
+    PX[i]=cx+x1*sc*R;
+    PY[i]=cy-y2*sc*R;
+    PZ[i]=z2;
+    SS[i]=sc;
+
+    var wdot=mx1*LWARM[0]+my2*LWARM[1]+mz2*LWARM[2]; if(wdot<0)wdot=0;
+    var cdot=mx1*LCOOL[0]+my2*LCOOL[1]+mz2*LCOOL[2]; if(cdot<0)cdot=0;
+    var rim=Math.pow(1-Math.abs(mz2),2.2);
+    var base=0.26+0.62*rim;
+    var dim=0.32+0.68*((1.55-z2)/3.10);
+    if(dim<0.16)dim=0.16; if(dim>1)dim=1;
+
+    var r=(255*base+WARM[0]*0.42*wdot+COOL[0]*0.36*cdot)*dim;
+    var g=(255*base+WARM[1]*0.42*wdot+COOL[1]*0.36*cdot)*dim;
+    var b=(255*base+WARM[2]*0.42*wdot+COOL[2]*0.36*cdot)*dim;
+    /* the one flash, when an answer actually arrives */
+    var lift=1+0.55*beat;
+    r*=lift; g*=lift; b*=lift;
+    SR[i]=r>255?255:r; SG[i]=g>255?255:g; SB[i]=b>255?255:b;
+    SA[i]=Math.min(1,(0.38+0.56*rim)*dim*(1+0.5*beat));
+  }
+
+  ctx.globalCompositeOperation="lighter";
+
+  /* links : sphere set at its fade, object set at its fade */
+  ctx.lineWidth=0.9;
+  var L,a,b2,al;
+  if(sphAlpha>0.004){
+    for(L=0;L<SPH_LINKS.length;L++){
+      a=SPH_LINKS[L][0];b2=SPH_LINKS[L][1];
+      if(!VIS[a]||!VIS[b2])continue;
+      al=Math.min(SA[a],SA[b2])*sphAlpha*0.52;
+      if(al<0.006)continue;
+      ctx.strokeStyle="rgba("+(SR[a]|0)+","+(SG[a]|0)+","+(SB[a]|0)+","+al.toFixed(3)+")";
+      ctx.beginPath();ctx.moveTo(PX[a],PY[a]);ctx.lineTo(PX[b2],PY[b2]);ctx.stroke();
+    }
+  }
+  if(objAlpha>0.004){
+    var OL=obj.links;
+    for(L=0;L<OL.length;L++){
+      a=OL[L][0];b2=OL[L][1];
+      if(!VIS[a]||!VIS[b2])continue;
+      al=Math.min(SA[a],SA[b2])*objAlpha*1.00;
+      if(al<0.006)continue;
+      ctx.strokeStyle="rgba("+(SR[a]|0)+","+(SG[a]|0)+","+(SB[a]|0)+","+al.toFixed(3)+")";
+      ctx.beginPath();ctx.moveTo(PX[a],PY[a]);ctx.lineTo(PX[b2],PY[b2]);ctx.stroke();
+    }
+  }
+
+  /* points */
+  for(i=0;i<N;i++){
+    if(!VIS[i]||SA[i]<=0.006)continue;
+    var rad=(0.95+1.30*(SA[i]))*SS[i];
+    ctx.fillStyle="rgba("+(SR[i]|0)+","+(SG[i]|0)+","+(SB[i]|0)+","+Math.min(0.95,SA[i]).toFixed(3)+")";
+    ctx.beginPath();ctx.arc(PX[i],PY[i],rad,0,6.2832);ctx.fill();
+  }
+
+  ctx.globalCompositeOperation="source-over";
+
+  /* ---------- the swagger, all dimmer than the mark ---------- */
+  var ringR=Math.min(W,free)*0.40;
+  var spacing=(2*Math.PI*ringR)/RING_TEXT.length;
+  var fsz=Math.max(7,Math.min(12,spacing*0.80));
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.font=fsz+"px "+MONO;
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillStyle="rgba(214,230,255,0.30)";
+  var stepA=(Math.PI*2)/RING_TEXT.length;
+  for(i=0;i<RING_TEXT.length;i++){
+    ctx.save();
+    ctx.rotate(time*0.055+i*stepA);
+    ctx.translate(0,-ringR);
+    ctx.fillText(RING_TEXT.charAt(i),0,0);
+    ctx.restore();
+  }
+  ctx.restore();
+
+  /* readout under the mark */
+  var lab=READOUT[lastLabel];
+  var labAlpha=0.46;
+  if(phase==="morphIn")labAlpha=0.46*Math.abs(2*m-1);
+  ctx.font="11px "+MONO;
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillStyle="rgba(214,230,255,"+labAlpha.toFixed(3)+")";
+  var ly=Math.min(free-14,cy+ringR+30);
+  var sp=[],ch;
+  for(i=0;i<lab.length;i++)sp.push(lab.charAt(i));
+  ctx.fillText(sp.join(" "),cx,ly);
+
+  /* his own words, in dim and back out brighter */
+  ctx.font="10px "+MONO;
+  var Rin=ringR*1.16,Rout=Math.max(W,free)*0.80;
+  for(i=0;i<drifters.length;i++){
+    var d=drifters[i];
+    var u=d.u,rr2,aa;
+    if(u<0.5){var e=ease(u*2);rr2=Rout+(Rin-Rout)*e;aa=0.05+0.15*e;}
+    else{var e2=ease((u-0.5)*2);rr2=Rin+(Rout-Rin)*e2;aa=(0.20+0.26*e2)*(1-e2*0.35);}
+    var ang=d.a0+d.ain*u;
+    var wx=cx+Math.cos(ang)*rr2,wy=cy+Math.sin(ang)*rr2*0.55;
+    ctx.fillStyle="rgba(232,240,255,"+aa.toFixed(3)+")";
+    ctx.fillText(d.t,wx,wy);
+  }
+
+  /* corner brackets */
+  ctx.strokeStyle="rgba(214,230,255,0.22)";
+  ctx.lineWidth=1;
+  var pad=24,arm=28,Hb=free;
+  ctx.beginPath();
+  ctx.moveTo(pad,pad+arm);ctx.lineTo(pad,pad);ctx.lineTo(pad+arm,pad);
+  ctx.moveTo(W-pad-arm,pad);ctx.lineTo(W-pad,pad);ctx.lineTo(W-pad,pad+arm);
+  ctx.moveTo(W-pad,Hb-pad-arm);ctx.lineTo(W-pad,Hb-pad);ctx.lineTo(W-pad-arm,Hb-pad);
+  ctx.moveTo(pad+arm,Hb-pad);ctx.lineTo(pad,Hb-pad);ctx.lineTo(pad,Hb-pad-arm);
+  ctx.stroke();
+}
+
+/* ================= THE CONVERSATION =================================
+   The orb was the mark and had nothing behind it. This is the part that lets
+   somebody talk to it.
+
+   WHERE THE BRAIN IS, AND WHY IT IS NOT IN THIS FILE. This file gets opened
+   off a laptop at an open house, mailed to people, dropped on a USB stick. An
+   API key written into it would be readable by anyone who opened it or viewed
+   source, and billable by every one of them. So there is no credential here:
+   it posts to an endpoint that holds the key server-side, meters the spend and
+   caps it. Point ENDPOINT somewhere else and the same file talks to that.
+
+   The other rule this thing is built on: it never shows a state the system is
+   not in. "Thinking" appears only while a request is genuinely in flight, an
+   answer is printed only when one came back, and when something fails it says
+   which thing failed instead of quietly writing a plausible reply. */
+
+/* Served from a site, it talks to that site. Opened straight off the disk
+   (file://, where there is no origin to speak of) it falls back to the
+   deployment — so the same file works double-clicked on a laptop and hosted
+   at a URL, with no edit in between. */
+var ENDPOINT=(location.protocol==="http:"||location.protocol==="https:")
+  ? location.origin+"/api/mark"
+  : "https://the-equipped-agent.vercel.app/api/mark";
+
+var logEl=document.getElementById("log");
+var formEl=document.getElementById("bar");
+var qEl=document.getElementById("q");
+var goEl=document.getElementById("go");
+var talkEl=document.getElementById("talk");
+
+/* How much room the conversation is taking, so the mark can centre itself in
+   what is left instead of hiding behind it. */
+function CHAT_H(){ return talkEl?Math.min(H*0.62,talkEl.offsetHeight+18):120; }
+
+var history=[];      /* what has actually been said, both sides */
+var busy=false;
+
+function bubble(cls,text){
+  var d=document.createElement("div");
+  d.className="turn "+cls;
+  d.textContent=text;
+  logEl.appendChild(d);
+  logEl.scrollTop=logEl.scrollHeight;
+  return d;
+}
+
+/* Every one of these is a real failure with its own cause, and each says which
+   — a single "something went wrong" would be the same lie in four costumes. */
+var TROUBLE={
+  offline:"The engine is not switched on for this deployment, so there is nothing to answer with. Nothing was sent.",
+  device_cap:"That is the daily limit for this browser. It resets tomorrow — or call Mike at 843-442-7992.",
+  room_cap:"This mark has hit its spending cap for now. Nothing was charged for that message.",
+  error:"That did not get through. Nothing was recorded, so try it again.",
+  network:"No answer from the endpoint — you may be offline, or it may be unreachable from here. Nothing was sent."
+};
+
+function ask(text){
+  if(busy)return;
+  busy=true; mode="think";
+  goEl.disabled=true; qEl.value="";
+  bubble("me",text);
+  history.push({role:"user",content:text});
+  var waiting=bubble("wait","THINKING");
+  if(reduce)paint();
+
+  fetch(ENDPOINT,{
+    method:"POST",
+    headers:{"content-type":"application/json"},
+    body:JSON.stringify({messages:history.slice(-12)})
+  }).then(function(r){
+    return r.json().then(function(j){return {ok:r.ok,j:j};})
+                   .catch(function(){return {ok:false,j:null};});
+  }).then(function(res){
+    waiting.remove();
+    if(res.j&&res.j.ok&&res.j.reply){
+      history.push({role:"assistant",content:res.j.reply});
+      bubble("it",res.j.reply);
+      beatAt=time;                 /* the flash belongs to a real arrival */
+    }else{
+      var why=(res.j&&res.j.error)||"error";
+      bubble("bad",TROUBLE[why]||TROUBLE.error);
+      /* A turn that failed is not part of the conversation. */
+      history.pop();
+    }
+  }).catch(function(){
+    waiting.remove();
+    bubble("bad",TROUBLE.network);
+    history.pop();
+  }).then(function(){
+    busy=false; mode="idle"; goEl.disabled=false;
+    logEl.scrollTop=logEl.scrollHeight;
+    if(reduce)paint();
+    qEl.focus();
+  });
+}
+
+formEl.addEventListener("submit",function(e){
+  e.preventDefault();
+  var t=qEl.value.trim();
+  if(t)ask(t);
+});
+
+/* ---------------- reduced motion : one still frame ---------------- */
+var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* One frame on demand — the still version still has to repaint when the
+   conversation changes, or the mark would freeze mid-answer. */
+function paint(){ ctx.fillStyle=BG_CSS; ctx.fillRect(0,0,W,H); draw(); }
+
+fit();
+
+if(reduce){
+  phase="holdO";pt=0;objIdx=0;lastLabel=0;time=2.2;yaw=0.85;pitchNow=PITCH_OBJ[0];
+  paint();
+  window.addEventListener("resize",paint);
+}else{
+  var loop=function(ts){
+    requestAnimationFrame(loop);
+    if(document.hidden){last=ts;return;}
+    if(!last){last=ts;return;}
+    var dt=(ts-last)/1000;
+    last=ts;
+    if(dt>0.1)dt=0.1;
+    ema=ema*0.90+(dt*1000)*0.10;
+    if(ema>22&&visibleCount>150){visibleCount-=6;applyVis();}
+    else if(ema<15&&visibleCount<N){visibleCount+=3;if(visibleCount>N)visibleCount=N;applyVis();}
+    for(var k=0;k<drifters.length;k++){
+      drifters[k].u+=dt*drifters[k].sp;
+      if(drifters[k].u>=1){drifters[k].u=0;drifters[k].a0=Math.random()*Math.PI*2;drifters[k].ain=(Math.random()-0.5)*0.9;drifters[k].sp=0.050+Math.random()*0.045;}
+    }
+    step(dt);
+    draw();
+  };
+  requestAnimationFrame(loop);
+}
+})();
+</script>
+</body>
+</html>
