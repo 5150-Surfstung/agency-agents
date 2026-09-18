@@ -265,13 +265,27 @@ export function kitHtml(name: string, ref: string): string {
   </div>
 
   <p style="margin:22px 0 0;font-size:16px;line-height:1.6;color:${ink};">
-    Everything else lives on one page — both prompts with buttons that copy them,
-    the files, and what we do on the 2nd. Bookmark it: the prompts keep getting
-    better and that link always has the current ones.
+    <b>Scan this with your phone.</b> It opens your page, where your assistant
+    gets built — and where you put your listing behind a QR code of its own
+    before Friday.
   </p>
 
-  <a href="${url}" style="display:block;margin:22px 0 0;padding:16px 20px;background:${gold};color:${sheet};border-radius:8px;text-align:center;text-decoration:none;font-size:17px;font-weight:700;">
-    Open your kit
+  <!-- THE QR IS THE POINT OF THIS EMAIL. Phone in hand, camera up, and they
+       are in their own kit in two seconds without typing a reference. Most
+       clients block images by default, so the button and the plain URL below
+       are not decoration — they are the same door for anybody who never sees
+       this. -->
+  <div style="margin:18px 0 0;padding:20px;background:${card};border:1px solid ${rule};border-radius:12px;text-align:center;">
+    <img src="${SITE}/api/qr?u=${encodeURIComponent(`/kit/${R}`)}" width="240" height="240"
+         alt="QR code — scan to open your kit and build your assistant"
+         style="display:block;width:240px;max-width:70%;height:auto;margin:0 auto;border-radius:8px;">
+    <p style="margin:14px 0 0;font-size:13px;line-height:1.55;color:${faint};">
+      Point your camera at it. No app, no typing.
+    </p>
+  </div>
+
+  <a href="${url}" style="display:block;margin:18px 0 0;padding:16px 20px;background:${gold};color:${sheet};border-radius:8px;text-align:center;text-decoration:none;font-size:17px;font-weight:700;">
+    Or open it right here
   </a>
 
   <p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:${faint};">

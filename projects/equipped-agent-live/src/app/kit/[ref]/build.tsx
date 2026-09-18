@@ -31,7 +31,11 @@ const TROUBLE: Record<string, string> = {
   store_error: "That did not save. Nothing was recorded, so try it again.",
 };
 
-export function Build({ ref: bookingRef, name }: { ref: string; name: string }) {
+// The prop is NOT called `ref`. React reserves that name, and a server
+// component passing one to a client component throws at render — which took
+// the whole kit page down with a 500 while every API route under it kept
+// answering perfectly, so nothing that only tested the endpoints noticed.
+export function Build({ bookingRef, name }: { bookingRef: string; name: string }) {
   const [mine, setMine] = useState<Mine[] | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   // Fixing one they already built. Everybody gets the sheet wrong once.

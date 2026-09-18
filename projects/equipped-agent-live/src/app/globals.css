@@ -2930,6 +2930,29 @@ body {
 .pb-mine b { font-family: var(--font-mono); color: var(--color-gold-bright); }
 .pb-mine span { font-size: 0.75rem; color: var(--color-faint); }
 
+/* The code that opens their kit, on the screen they are already looking at.
+   White plate because a camera wants contrast and the page is nearly black. */
+.dash-qr {
+  margin: 1.1rem 0 0;
+  text-align: center;
+}
+.dash-qr img {
+  display: block;
+  margin: 0 auto;
+  width: min(260px, 62vw);
+  height: auto;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f2efe7;
+}
+.dash-qr p {
+  margin: 0.7rem auto 0;
+  max-width: 26rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--color-faint);
+}
+
 .pb-mine li { flex-direction: column; align-items: stretch; }
 .pb-fixlink {
   border: 0;

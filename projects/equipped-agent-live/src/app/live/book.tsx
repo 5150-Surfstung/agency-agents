@@ -457,21 +457,38 @@ export function Book() {
             </p>
           )}
 
+          {/* THE QR, HERE, NOW.
+              This used to live only in an email, which made the whole product
+              wait on a mail provider being configured — and on a stranger's
+              spam folder. It does not need to. The reference exists the moment
+              the row is written, so the code that opens their kit can be on
+              the screen they are already looking at, and their phone can take
+              it straight off the laptop in front of them. The email, when it
+              is switched on, becomes a second copy of something they already
+              have rather than the only way to get it. */}
           <div className="dash-kit">
-            <h3 className="display">Your kit is ready.</h3>
+            <h3 className="display">Point your phone at this.</h3>
             <p>
-              Both prompts with buttons that copy them, the files, the series
-              and what we do on the 2nd — one page, yours, bookmark it. The
-              prompts keep getting better and that link always has the current
-              ones.
+              It opens your page: the interview that builds your assistant, the
+              one that writes your listing sheet, and the box that puts your
+              listing behind a QR code of its own before Friday.
             </p>
+            <div className="dash-qr">
+              <img
+                src={`/api/qr?u=${encodeURIComponent(`/kit/${ref}`)}`}
+                alt={`QR code that opens your kit, reference ${ref}`}
+                width={260}
+                height={260}
+              />
+              <p>No app, no typing. Or tap the button if you are on your phone already.</p>
+            </div>
             <a className="dash-kit-go" href={`/kit/${encodeURIComponent(ref)}`}>
               Open my kit
             </a>
             <p className="dash-kit-fine">
               {emailed
-                ? `The link is also in your inbox at ${email} — check spam if it is not there in a minute.`
-                : "Bookmark it or send yourself the link — nothing was emailed, and this page will not pretend otherwise."}
+                ? `A copy is in your inbox at ${email} too — check spam if it is not there in a minute.`
+                : "Screenshot this or bookmark the page. Nothing was emailed, and this page will not pretend otherwise — the code above is the whole thing."}
             </p>
           </div>
 

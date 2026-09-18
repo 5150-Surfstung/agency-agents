@@ -197,7 +197,7 @@ export default async function KitPage({ params }: { params: Promise<{ ref: strin
           put it on the rider, and bring it on the 2nd. We will point the MLS
           at it and put it in front of the room.
         </p>
-        <Build ref={ref} name={who} />
+        <Build bookingRef={ref} name={who} />
         <p className="pg-hit">
           Bring it and we spend the hour putting it to work rather than setting
           it up. Turn up without it and you will still leave with one &mdash;
