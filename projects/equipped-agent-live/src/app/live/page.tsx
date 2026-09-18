@@ -1,29 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Top } from "./top";
-import { Closer } from "./closer";
 import { MarketPanel } from "./market-panel";
-import { OrbGive } from "./orb-give";
-import { Room } from "./room";
-import { Seats } from "./seats";
 import { Profile } from "./profile";
+import { Room } from "./room";
 import { Book } from "./book";
+import { Closer } from "./closer";
+import { Seats } from "./seats";
 import { HOST } from "@/lib/contact";
 import { EVENT } from "@/lib/event";
 
-// THE PAGE YOU PUT ON FACEBOOK.
+// THE INVITE.
 //
-// It is not a flyer. A flyer describes value; an agent scrolling past a flyer
-// keeps scrolling. This page hands two working things over before it asks for
-// anything: the after-hours desk, which drafts the reply to whatever a client
-// just texted them, and the deadline chain, which counts a live file's dates
-// in front of them for free. If neither of those is useful, the hour would not
-// have been either, and they have lost nothing but a scroll.
+// One argument, one action. A stranger opens this from a Facebook post and
+// has to get four things before they decide: what it is, that it is real,
+// what happens in the hour, and who else is in the room. Then one button.
 //
-// The share card stays deliberately short — four words and the orb. A long
-// title and a paragraph of description is a wall of grey text above the image,
-// which is exactly what makes a post look like an ad. The page does the
-// selling; the card only has to stop the thumb.
+// Everything else that used to be here — both prompts, the orb build, the
+// full run sheet, what we build for other people, Track to Keys — moved to
+// the kit page they reach the second they book. That is the right order: the
+// page makes the case, the kit is the payoff. A page carrying both was
+// fifteen phone screens and asked somebody to choose between four demos,
+// which is how you get "later" instead of a seat.
 export const metadata: Metadata = {
   title: "The Equipped Agent",
   description: "Mike Olson · Friday, October 2 · noon ET",
@@ -45,7 +43,6 @@ export const metadata: Metadata = {
 export default function LivePage() {
   return (
     <main className="stage invite">
-      {/* Who is behind it, said once, at the top, the way a product says it. */}
       <div className="rail">
         <span className="rail-mark">
           <i aria-hidden />
@@ -58,252 +55,114 @@ export default function LivePage() {
       <Top
         head={
           <header className="invite-head">
-          <h1 className="display">
-            The Equipped
-            <br />
-            Agent
-          </h1>
-          <p className="invite-lede">
-            One hour, live, in our office in West Ashley. You will not watch a
-            slideshow about AI. You will build something on your own account
-            that answers a real buyer at eleven at night, and you will take it
-            home working.
-          </p>
-
+            <h1 className="display">
+              The Equipped
+              <br />
+              Agent
+            </h1>
+            <p className="invite-lede">
+              One hour, live, in our office in West Ashley. You will not watch
+              a slideshow about AI — you will build something on your own
+              account that answers a real buyer at eleven at night, and you
+              will take it home working.
+            </p>
           </header>
         }
         details={
           <div className="invite-details">
-            <p className="byline">
-            <b>{HOST.full}</b>
-            <span>
-              {HOST.title}, {HOST.org} · REALTOR<sup>®</sup> at {HOST.brokerage}
-            </span>
-            <em>
-              First Friday of every month, this is the room where Charleston
-              real estate finds out what these tools actually do — run by the
-              person whose job that is.
-            </em>
-          </p>
-
-          <dl className="stamp">
-            <div>
-              <dt>When</dt>
-              <dd>
-                <b>Friday, October 2</b>
-                <span className="stamp-num">12:00pm ET</span>
-              </dd>
-            </div>
-            <div>
-              <dt>Where</dt>
-              <dd>
-                <b>2000 Sam Rittenberg Blvd, Suite 2020</b>
-                <span>Charleston — {EVENT.online}</span>
-              </dd>
-            </div>
-            <div>
-              <dt>Bring</dt>
-              <dd>
-                <b>A laptop and your phone. Both.</b>
-                <span>
-                  Claude installed on the laptop — the free tier is genuinely
-                  fine. The phone is half the show.
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt>Series</dt>
-              <dd>
-                <b>AI REvealed with {HOST.full}</b>
-                <span>First Friday of the month</span>
-              </dd>
-            </div>
-          </dl>
+            <dl className="stamp">
+              <div>
+                <dt>When</dt>
+                <dd>
+                  <b>Friday, October 2</b>
+                  <span className="stamp-num">12:00pm ET</span>
+                </dd>
+              </div>
+              <div>
+                <dt>Where</dt>
+                <dd>
+                  <b>2000 Sam Rittenberg Blvd, Suite 2020</b>
+                  <span>Charleston — {EVENT.online}</span>
+                </dd>
+              </div>
+              <div>
+                <dt>Bring</dt>
+                <dd>
+                  <b>A laptop and your phone. Both.</b>
+                  <span>Claude on the laptop — the free tier is fine.</span>
+                </dd>
+              </div>
+            </dl>
             <Seats />
           </div>
         }
       />
 
-      {/* Proof before argument. */}
+      {/* ---- 1. Proof, before any claim. Real numbers, zero input. ---- */}
       <MarketPanel />
 
-      {/* Ungated on purpose — see orb-give.tsx. */}
-      <OrbGive />
-
-
-      {/* ---- what the tool actually is. Most of the room has heard the
-              word and never been shown the thing. ---- */}
-      <section className="learn">
-        <h2 className="display">You are learning Claude. Specifically.</h2>
-        <p className="learn-lede">
-          Not &ldquo;AI&rdquo; in the abstract, and not a lecture about where
-          it is all going. One tool, learned the way you learned a lockbox or
-          a CRM — by using it on your own work until it is boring. Claude is
-          made by Anthropic, it runs in a browser at claude.ai, and the free
-          tier is genuinely enough for everything in this hour.
-        </p>
-
-        <ul className="learn-tight">
-          <li><b>Briefing it.</b> A question gets a search engine with better manners. Handing over the listing, the terms and your voice gets a colleague who knows the file.</li>
-          <li><b>Making it say &ldquo;I don&rsquo;t know&rdquo;.</b> The only reason this is safe in front of a client, and the part nobody teaches.</li>
-          <li><b>Connecting it to the MLS.</b> A settings screen and a key, not a project.</li>
-          <li><b>Keeping it.</b> A version that already knows your market and how you talk, so you stop re-explaining yourself.</li>
-        </ul>
-
-        <p className="learn-cost">
-          Plainly, on cost: free covers the hour and almost everything after
-          it. The paid plan buys you installed Skills and more headroom. Come
-          on free, decide later, and nobody here is selling you a
-          subscription.
-        </p>
-      </section>
-
-      {/* ---- the one scarce thing. Everything else about AI is free. ---- */}
-      <section className="invite-why">
-        <h2 className="display">
-          Everything you can learn about AI is free and everywhere. This is the
-          part that isn&rsquo;t.
-        </h2>
-        <p>
-          Your MLS, answering a question about your own farm, in plain English,
-          on your own laptop. FlexMLS publishes a connector for exactly this
-          and almost nobody in this market has switched it on. You will, in
-          this hour — it is a settings screen and a key, not a project, and it
-          keeps working after you leave.
-        </p>
-
-        <p className="asks-note">
-          You type the question. In English. It answers from the record, on
-          the screen — and when it does not have something, it says so instead
-          of guessing. Bring the one you have been meaning to ask about your
-          own farm; that is the one we run.
-        </p>
-
-        <ol className="runsheet">
+      {/* ---- 2. The hour itself, in three lines. ---- */}
+      <section className="hour">
+        <h2 className="display">The hour, start to finish.</h2>
+        <ol className="hour-list">
           <li>
-            <span className="runsheet-when">First fifteen</span>
+            <span>First fifteen</span>
             <p>
-              You watch one listing answer its own phone — a QR on the rider, a
-              page that replies in under a second, and a refusal when somebody
-              asks it something nobody told it.{" "}
-              <Link href="/a/HAUS24">The one from the last room is still up</Link>
-              , so try to break it before you come.
+              You watch one listing answer its own phone — and refuse to invent
+              an answer when somebody asks it something nobody told it. That
+              refusal is the whole reason this is safe in front of a client.
             </p>
           </li>
           <li>
-            <span className="runsheet-when">Next thirty</span>
+            <span>Next thirty</span>
             <p>
-              You build yours. Your listing, your account, your phone number on
-              it. Everybody in the room ends up with a working page and a QR
-              code that goes on a real sign.
+              You build yours. Your listing, your Claude account, your number
+              on it. Everybody leaves with a working page and a QR code that
+              goes on a real sign.
             </p>
           </li>
           <li>
-            <span className="runsheet-when">Last fifteen</span>
+            <span>Last fifteen</span>
             <p>
-              We turn the MLS connection on and ask it about your farm, live,
-              on the screen — then you leave with{" "}
-              <Link href="/kit">the page of prompts</Link> that runs the rest of
-              your week. Free, no email, complete as written.
-            </p>
-          </li>
-          <li>
-            <span className="runsheet-when">Afterwards</span>
-            <p>
-              Nobody gets rushed out. We stay in the office, people put what
-              they just built on the screen and show it off, and the dumb
-              questions get asked with no audience. That part is usually the
-              best part.
+              We switch the MLS connection on and ask it about your farm, live,
+              on the screen. Almost nobody in this market has turned that on.
             </p>
           </li>
         </ol>
-      </section>
-
-      {/* ---- who it is for. Named plainly, because an agent deciding in four
-              seconds needs to find themselves on the list. ---- */}
-      <section className="invite-for">
-        <h2 className="display">Come if any of these is you.</h2>
-        <ul className="who">
-          <li>
-            <b>You are licensed and slammed.</b> You do not need to be taught
-            what AI is. You need the eleven-o'clock reply written, the deadlines
-            counted, and the listing answering for itself while you are at a
-            soccer game.
-          </li>
-          <li>
-            <b>You just got licensed.</b> No database, no systems, nobody has
-            shown you the back half of the job. You will leave this hour with a
-            working assistant on a real listing — which is more than most agents
-            three years in have.
-          </li>
-          <li>
-            <b>You are in class, or still deciding.</b> Come anyway. Watch what
-            the job looks like with the tools switched on, and start ahead of
-            people who have been doing it a decade.
-          </li>
-        </ul>
-        <p className="invite-bring">
-          <b>Bring somebody.</b> One who is licensed, or one who is still making
-          up their mind — both of them belong in that room, and between the
-          people hosting the hour there is close to a century in this business
-          to ask about.
+        <p className="hour-after">
+          Then nobody gets rushed out. People put what they built on the screen
+          and we stay in the office. That part is usually the best part.
         </p>
       </section>
 
-      {/* ---- who is running it. Figures that can be defended, set as a
-              spec sheet rather than three big gold numbers in a row. ---- */}
-      <section className="invite-who">
-        <h2 className="display">
-          The job title is new. The twenty years behind it are not.
-        </h2>
-        <Profile />
-        <p>
-          {HOST.full} is {HOST.title} at {HOST.org} and a REALTOR<sup>®</sup> at{" "}
-          {HOST.brokerage}. Inspector first, then agent, then multifamily
-          investor, and now the person who builds these systems for the agents
-          around him. Nothing in this hour came out of a course — it came out
-          of running the business in this market, with these clients, on these
-          contracts.
-        </p>
-        <table className="spec">
-          <tbody>
-            <tr>
-              <th scope="row">Years in real estate, still selling</th>
-              <td>20+</td>
-            </tr>
-            <tr>
-              <th scope="row">Homes inspected, residential and commercial</th>
-              <td>1,800+</td>
-            </tr>
-            <tr>
-              <th scope="row">Multifamily units owned in part</th>
-              <td>346</td>
-            </tr>
-          </tbody>
-        </table>
-        <p className="invite-aside">
-          And selfishly — it would be good to see some old faces in the room.
-        </p>
-      </section>
-
-
+      {/* ---- 3. Who else is in the room. ---- */}
       <Room />
 
+      {/* ---- 4. Who is running it. ---- */}
+      <section className="invite-who">
+        <h2 className="display">The job title is new. The twenty years are not.</h2>
+        <Profile />
+        <p>
+          Inspector first, then agent, then multifamily investor, and now the
+          person who builds these systems for the agents around him. Nothing in
+          this hour came out of a course — it came out of running the business
+          in this market, on these contracts.
+        </p>
+      </section>
+
+      {/* ---- 5. The one action. ---- */}
       <Book />
 
       <Closer />
 
       <footer className="invite-foot">
         <p>
-          Curious what the assistant actually is?{" "}
-          <Link href="/val">Meet Val</Link>. Want the prompts without coming?{" "}
-          <Link href="/kit">Take them</Link>. Neither one asks for an email,
-          because a page that asks for an email to hand over a prompt was never
-          giving you much.
+          Curious what the assistant is? <Link href="/val">Meet Val</Link>.
+          Want the prompts without coming? They are yours the moment you take a
+          seat — no email required, nothing kept.
         </p>
         <p className="invite-sponsor">
-          Hosted by The AGENT Connection. Built and sponsored by Surfstung
-          Systems.
+          Hosted by {HOST.org}. Built and sponsored by Surfstung Systems.
         </p>
         <p className="invite-pillars">
           Smarter tools. Stronger agents. Bigger opportunities. Real impact.

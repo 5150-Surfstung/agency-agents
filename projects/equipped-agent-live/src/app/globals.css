@@ -2856,3 +2856,45 @@ body {
   font-size: 1.0625rem;
 }
 .dash-kit-fine { font-size: 0.8125rem !important; color: var(--color-faint) !important; }
+
+/* ── the hour, in three lines ──────────────────────────────────────────── */
+.hour {
+  position: relative;
+  z-index: 1;
+  margin-top: 3rem;
+  border-top: 2px solid var(--color-gold);
+  padding-top: 1.5rem;
+}
+.hour h2 {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(1.7rem, 6.6vw, 2.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.038em;
+  font-variation-settings: "wdth" 108;
+  color: var(--color-cream);
+}
+.hour-list { margin: 1.5rem 0 0; padding: 0; list-style: none; }
+.hour-list li {
+  display: grid;
+  gap: 0.2rem 1.25rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--color-rule);
+}
+@media (min-width: 40rem) { .hour-list li { grid-template-columns: 8rem 1fr; } }
+.hour-list span {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--color-gold);
+  padding-top: 0.2rem;
+}
+.hour-list p { margin: 0; max-width: var(--measure); font-size: 1rem; line-height: 1.6; color: var(--color-soft); }
+.hour-after {
+  margin: 1.35rem 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--color-rule-strong);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-cream);
+}
