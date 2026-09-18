@@ -46,6 +46,10 @@ export interface Store {
   rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }): Promise<string>;
   /** How many have actually booked. A count of rows, nothing about who. */
   rsvpCount(): Promise<number>;
+  /** Consent, given after the seat exists so it never gates the booking. */
+  rsvpRoom(ref: string, show: boolean, brokerage: string, bringing: string): Promise<boolean>;
+  /** The public wall: first name and brokerage of people who opted in. */
+  rsvpWall(): Promise<{ who: string; brokerage: string; bringing: boolean }[]>;
 
   meterLog(room: string, e: ToolEvent): Promise<void>;
   meterCount(room: string, deviceId: string, sinceMs: number): Promise<number>;
@@ -193,13 +197,24 @@ class MemoryStore implements Store {
     return this.events.reduce((s, e) => s + e.costUsd, 0);
   }
   private rsvps = new Map<string, string>();
+  private rsvpNames = new Map<string, string>();
   async rsvpCount() { return this.rsvps.size; }
+  private room = new Map<string, { who: string; brokerage: string; bringing: boolean }>();
+  async rsvpRoom(ref: string, show: boolean, brokerage: string, bringing: string) {
+    const name = this.rsvpNames.get(ref);
+    if (!name) return false;
+    if (show) this.room.set(ref, { who: name.split(" ")[0], brokerage, bringing: bringing.trim().length > 0 });
+    else this.room.delete(ref);
+    return true;
+  }
+  async rsvpWall() { return [...this.room.values()].reverse(); }
   async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
     if (!r.name.trim()) throw new Error("need_name");
     const had = this.rsvps.get(r.ref);
     if (had) return had;
     const at = new Date().toISOString();
     this.rsvps.set(r.ref, at);
+    this.rsvpNames.set(r.ref, r.name);
     return at;
   }
   async meterLog(room: string, e: ToolEvent) {
@@ -661,6 +676,16 @@ class RpcStore implements Store {
   async rsvpCount() {
     const n = await this.call<number>("live_rsvp_count", {});
     return Number(n ?? 0);
+  }
+  async rsvpRoom(ref: string, show: boolean, brokerage: string, bringing: string) {
+    const ok = await this.call<boolean>("live_rsvp_room", {
+      p_ref: ref, p_show: show, p_brokerage: brokerage, p_bringing: bringing,
+    });
+    return Boolean(ok);
+  }
+  async rsvpWall() {
+    const rows = await this.call<{ who: string; brokerage: string; bringing: boolean }[]>("live_rsvp_wall", {});
+    return Array.isArray(rows) ? rows : [];
   }
   async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
     const at = await this.call<string>("live_rsvp_add", {

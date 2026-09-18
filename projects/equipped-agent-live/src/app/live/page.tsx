@@ -4,6 +4,7 @@ import { Top } from "./top";
 import { Closer } from "./closer";
 import { MarketPanel } from "./market-panel";
 import { OrbGive } from "./orb-give";
+import { Room } from "./room";
 import { Seats } from "./seats";
 import { Profile } from "./profile";
 import { Book } from "./book";
@@ -303,6 +304,8 @@ export default function LivePage() {
           ninety days look like. Coffee, no script, no closing.
         </p>
       </section>
+
+      <Room />
 
       <Book />
 

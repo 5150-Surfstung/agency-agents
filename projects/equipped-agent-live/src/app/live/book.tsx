@@ -47,6 +47,10 @@ export function Book() {
   const [at, setAt] = useState("");
   const [trouble, setTrouble] = useState("");
   const [took, setTook] = useState<"" | "audit" | "orb">("");
+  const [brokerage, setBrokerage] = useState("");
+  const [bringing, setBringing] = useState("");
+  const [onWall, setOnWall] = useState(false);
+  const [wallSaved, setWallSaved] = useState(false);
 
   // The orb does what the block is doing, and nothing else.
   const mode: Mode = step === "working" ? "think" : step === "done" ? "speak" : "listen";
@@ -103,6 +107,23 @@ export function Book() {
       setTook("");
     }
   }, []);
+
+  // Asked only AFTER the seat exists, so a decision about being listed never
+  // stands between somebody and their booking.
+  const joinRoom = useCallback(async () => {
+    try {
+      const r = await fetch("/api/room", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ref, show: true, brokerage, bringing }),
+      });
+      const j = await r.json().catch(() => null);
+      // Only claim it worked if it worked.
+      if (r.ok && j?.ok) { setOnWall(true); setWallSaved(true); }
+    } catch {
+      setWallSaved(false);
+    }
+  }, [ref, brokerage, bringing]);
 
   const saved = at
     ? new Date(at).toLocaleString(undefined, {
@@ -243,6 +264,50 @@ export function Book() {
             </a>
             <a href={mailto}>Send it to his inbox too</a>
           </div>
+
+          {/* ---- the room ---- */}
+          {!onWall ? (
+            <div className="join">
+              <h3 className="display">Want the room to know you&rsquo;re coming?</h3>
+              <p>
+                Half of why anyone shows up is who else will be there. Put your
+                first name and brokerage on the page and somebody who is on the
+                fence sees a name they recognise. First name and brokerage
+                only — never your number, never your full name.
+              </p>
+              <div className="join-in">
+                <label>
+                  <span>Brokerage or team</span>
+                  <input
+                    value={brokerage}
+                    onChange={(e) => setBrokerage(e.target.value.slice(0, 60))}
+                    placeholder="optional"
+                  />
+                </label>
+                <label>
+                  <span>Bringing something you built?</span>
+                  <input
+                    value={bringing}
+                    onChange={(e) => setBringing(e.target.value.slice(0, 160))}
+                    placeholder="optional — what is it?"
+                  />
+                </label>
+              </div>
+              <button type="button" onClick={joinRoom} className="join-go">
+                Put me on the list
+              </button>
+              <p className="join-fine">
+                Skip it and nothing about you appears anywhere. Your seat is
+                held either way.
+              </p>
+            </div>
+          ) : (
+            <p className="join-done">
+              You&rsquo;re on the wall{brokerage ? ` with ${brokerage}` : ""}
+              {bringing ? ", and marked as bringing a build" : ""}. Somebody on
+              the fence is going to see your name and decide to come.
+            </p>
+          )}
 
           <p className="dash-truth">
             Straight about what just happened: your reservation is a row in a
