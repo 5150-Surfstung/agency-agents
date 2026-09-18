@@ -84,7 +84,10 @@ const res = await fetch("https://api.resend.com/emails", {
   }),
 });
 
-const body = await res.json().catch(() => null);
+const body = await res.json().catch(async () => {
+  // A non-JSON body is the tell that something other than Resend answered.
+  try { return await res.text(); } catch { return null; }
+});
 
 if (res.ok && body?.id) {
   console.log("  SENT. Resend accepted it, id:", body.id);
@@ -98,13 +101,25 @@ if (res.ok && body?.id) {
 
 // The failures worth naming, because each has a different fix and the raw
 // message is not always obvious about which one you hit.
-const msg = String(body?.message ?? body?.name ?? `HTTP ${res.status}`);
+// The raw text too: Resend puts its reason in `message`, but anything between
+// here and Resend (a proxy, an egress filter) answers in plain text, and a
+// handler that only reads `message` turns that into a confident wrong answer.
+const raw = typeof body === "string" ? body : JSON.stringify(body ?? {});
+const msg = String(body?.message ?? body?.name ?? raw ?? `HTTP ${res.status}`);
 console.log("  REFUSED:", msg);
 console.log("");
 if (/domain is not verified|not verified/i.test(msg)) {
   console.log("  The sender domain is not verified in Resend. Either verify it");
   console.log("  (Resend, Domains, Add, then the DNS records), or prove the rest of the");
   console.log("  wiring right now with RESEND_FROM=onboarding@resend.dev and swap it after.");
+} else if (/not in allowlist|egress/i.test(msg)) {
+  // Not Resend at all. A sandbox that cannot reach api.resend.com returns a
+  // 403 that looks exactly like a rejected key, and reading it that way sends
+  // somebody off to regenerate a credential that was never the problem.
+  console.log("  This machine cannot reach api.resend.com — the request never left it.");
+  console.log("  That is a network egress policy, not your key and not Resend.");
+  console.log("  Set the two values in the deployment's own environment instead;");
+  console.log("  production is what has to send anyway.");
 } else if (res.status === 401 || res.status === 403) {
   console.log("  The key was rejected. Check it was copied whole, and that it has not");
   console.log("  been revoked in Resend.");

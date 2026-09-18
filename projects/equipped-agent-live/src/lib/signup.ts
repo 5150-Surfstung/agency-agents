@@ -2,7 +2,15 @@
 // with Melanie cc'd. Zero-field capture — the attendee's own send button is
 // the signature. Safe for client bundles: addresses only, no env.
 
-export const SIGNUP_TO = "mike@mikeolsonre.com";
+/** ONE INBOX FOR EVERYTHING THIS SYSTEM SENDS HIM.
+ *
+ *  These lived in two files and disagreed with a third: the ladder leads went
+ *  to one address and the reservations to another, which is exactly how a
+ *  notification ends up in a mailbox nobody is watching on the day it matters.
+ *  His published contact details are a separate thing — those stay on the
+ *  card, the vCard and the closing slide, because a client should reach a
+ *  person, not an operations inbox. */
+export const SIGNUP_TO = "info@surfstung.com";
 export const SIGNUP_CC = "melaniejager@thejagergroup.com";
 
 /** The public invite books through the office inbox, not Mike's personal one:

@@ -5,7 +5,7 @@
 
 import { emailOnline, sendEmail } from "./mailer";
 
-const SIGNUP_TO = "mike@mikeolsonre.com";
+const SIGNUP_TO = "info@surfstung.com";
 const SIGNUP_CC = "melaniejager@thejagergroup.com";
 
 export const SIGNUP = { to: SIGNUP_TO, cc: SIGNUP_CC };
