@@ -2678,7 +2678,9 @@ body {
 .pg a { color: var(--color-gold); text-decoration: underline; text-underline-offset: 3px; }
 .pg :focus-visible { outline: 2px solid var(--color-gold-bright); outline-offset: 3px; }
 
-.pg-head { position: relative; z-index: 1; margin-top: -1.5vh; }
+/* No negative pull here: the reel prints its line in the bottom of its own
+   field, and lifting the header over it put the headline through the caption. */
+.pg-head { position: relative; z-index: 1; margin-top: 1.25rem; }
 .pg-head h1 {
   margin: 0;
   font-variation-settings: "wdth" 112;
