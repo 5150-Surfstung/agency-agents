@@ -467,6 +467,7 @@ Work through these, and follow a thread when one opens up:
 · Where did my last deal nearly die, and what saved it?
 · How do I keep track of dates on a live contract right now? Honestly.
 · What have I already tried with AI, and why did I stop?
+· Last two, quick, and tell me they are for something you are going to build me at the end: what are my brand colours, and what are the three objects that say what I sell? (A Charleston single, a key, a SOLD sign. Or whatever mine actually are.)
 
 If an answer is vague, push once. "I do not know" is a real answer — say so and move on.
 
@@ -498,6 +499,22 @@ Then the body, written for yourself to follow later, in this order:
    · Never invent a fact about a property. If it is not in what I gave you, say so and say where it would come from. A bracketed blank is honest; a plausible number is a liability with my licence on it.
    · Never claim an action was taken. You draft and you calculate; I send, file and schedule.
 5. How you talk: short, specific, willing to disagree with me. An assistant that agrees with a bad price is worth nothing.
+6. A section headed "Building my mark". This is what lets you make me a living wireframe mark later, on my colours and my objects, whenever I ask. Write it into the skill in full, using MY colours and MY three objects from the interview, so you do not have to ask me again:
+
+   When I say "build my mark", produce ONE self-contained HTML file — no libraries, no CDN, no build step — with a canvas showing a 3D wireframe that morphs between my objects. Output all of it, never abbreviated.
+   · Size the canvas backing store to devicePixelRatio and re-fit on resize, or it looks soft.
+   · Core: about 300 points on a Fibonacci sphere — y = 1 - (i/(n-1))*2, r = sqrt(1-y*y), phi = i*PI*(3-sqrt(5)).
+   · Wire each point to its two nearest neighbours ONCE at startup. Those links belong to the SPHERE ONLY.
+   · Each object is a list of 3D line segments, sampled into points BY ARC LENGTH so they spread evenly instead of bunching at corners. Record which segment each point came from.
+   · THE RULE THAT MAKES OR BREAKS IT: while in an object, join point i to point i+1 only when they share a segment, and cross-fade — sphere links at (1 - morph), object links at (morph). Keeping the sphere links on during an object turns it into a ball of spaghetti with the shape lost inside.
+   · Rotate by yaw and pitch, project with scale = fov / (fov + z), and dim the far side.
+   · Draw points and links with globalCompositeOperation = "lighter" so it glows; set it back afterwards.
+   · Light it with two fixed direction vectors, one warm one cool, using each point's own position as its normal. Brighten points whose normal is perpendicular to the view — that rim is most of the perceived quality.
+   · Trails: fill with the background at about 0.18 alpha instead of clearing.
+   · Hold an object about four seconds, morph over about one and a half with a per-point lag so it assembles rather than snaps, and pull the points through the centre on the way so it reads as being rebuilt.
+   · Then the swagger, all of it, all dimmer than the mark: a slowly rotating ring of tiny monospace capitals set on the curve with my market on it; a short readout line under the mark that changes with the object; my own words drifting in from the edges and being thrown back out brighter; four corner brackets.
+   · Pause on document.hidden, render one still frame under prefers-reduced-motion, and shed points if the frame time goes above about 22ms.
+   Before handing it over, check: is the file complete, and does the object read as itself rather than a tangle? A tangle means the sphere links were left on.
 
 Before you show it to me, check your own output and fix anything that fails:
 · Is there an angle bracket anywhere in the file? Take it out.
@@ -510,7 +527,7 @@ Before you show it to me, check your own output and fix anything that fails:
 
 Tell me how to install it, plainly: it goes in a folder as SKILL.md, zipped, and uploaded in Settings under Features — and that custom Skills need a paid plan, so if I am on the free tier I should just paste the block into a new conversation each time instead, which works fine.
 
-Then give me ONE thing to do tonight, before Friday, that takes under ten minutes and uses what you just built.
+Then tell me to install it and say four words to it — "build my mark" — and watch my own assistant build me a living version of my brand, on my colours, out of my objects. That is the one thing to do tonight.
 
 Start with Phase 1, question one. Nothing else first.`;
 }

@@ -36,6 +36,7 @@ export function ValReel({
   orb = "48vh",
   mode: override = null,
   busy = false,
+  beat,
 }: {
   /** The lines, in order. Each one is a full sentence — the orb is not
    *  labelling itself, it is telling somebody what they will be able to do. */
@@ -45,6 +46,9 @@ export function ValReel({
   /** When the desk is working, it owns the orb and the reel steps aside. */
   mode?: Mode;
   busy?: boolean;
+  /** Any number that changes marks a moment — the engine flashes the held
+   *  shape and swells for half a second. Fired when a reservation lands. */
+  beat?: number;
 }) {
   const [i, setI] = useState(0);
   const [spin, setSpin] = useState(1);
@@ -117,7 +121,7 @@ export function ValReel({
     >
       <ValAir className="air-mask pointer-events-none absolute inset-0 -z-10" />
       <div className="reel-orb">
-        <ValParticles className="absolute inset-0" mode={orbMode} spin={held ? 1 : spin} />
+        <ValParticles className="absolute inset-0" mode={orbMode} spin={held ? 1 : spin} beat={beat} />
         <div className="holo-scan pointer-events-none absolute inset-0" aria-hidden />
       </div>
       {!held && (

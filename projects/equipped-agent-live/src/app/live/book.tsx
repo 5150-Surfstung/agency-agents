@@ -51,6 +51,12 @@ export function Book() {
   const [bringing, setBringing] = useState("");
   const [onWall, setOnWall] = useState(false);
   const [wallSaved, setWallSaved] = useState(false);
+  // The show. `reveal` steps the confirmation in; `beat` is the pulse the orb
+  // gives when the row actually lands. Both describe real events — the data
+  // is already in hand and true before any of it is shown, so this is paced
+  // disclosure of a fact, never an animation standing in for one.
+  const [reveal, setReveal] = useState(0);
+  const [beat, setBeat] = useState(0);
 
   // The orb does what the block is doing, and nothing else.
   const mode: Mode = step === "working" ? "think" : step === "done" ? "speak" : "listen";
@@ -86,6 +92,16 @@ export function Book() {
         setRef(String(j.ref));
         setAt(String(j.at));
         setStep("done");
+        // It landed: hit the orb once, then let the ticket arrive in beats.
+        setBeat((n) => n + 1);
+        const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+        if (calm) {
+          setReveal(3);
+        } else {
+          setReveal(1);
+          window.setTimeout(() => setReveal(2), 420);
+          window.setTimeout(() => setReveal(3), 980);
+        }
       } catch {
         setTrouble("That did not save — nothing was recorded. Try again, or send the message below.");
         setStep("attend");
@@ -134,7 +150,7 @@ export function Book() {
 
   return (
     <section className="book" id="seat">
-      <ValReel facts={LEARNS} height="34vh" orb="28vh" mode={mode} busy />
+      <ValReel facts={LEARNS} height="34vh" orb="28vh" mode={mode} busy beat={beat} />
 
       {step !== "done" ? (
         <div className="book-talk">
@@ -203,7 +219,7 @@ export function Book() {
 
           {step === "working" && (
             <p className="book-say display" role="status">
-              Writing it down…
+              Sending it to Val…
             </p>
           )}
 
@@ -225,10 +241,10 @@ export function Book() {
               back, which is the whole point. */}
           <div className="stub">
             <p className="stub-ref">{ref}</p>
-            <p className="stub-at">recorded {saved}</p>
+            {reveal >= 2 && <p className="stub-at">recorded {saved}</p>}
           </div>
 
-          <dl className="dash-rows">
+          <dl className="dash-rows" data-in={reveal >= 3 ? "yes" : "no"}>
             <div>
               <dt>Name on the seat</dt>
               <dd>{name}</dd>
@@ -258,6 +274,12 @@ export function Book() {
           <div className="dash-go">
             <a href={`/api/ics?ref=${encodeURIComponent(ref)}&attend=${attend}`} download>
               Put it in my calendar
+            </a>
+            <a
+              href={`/api/howto?ref=${encodeURIComponent(ref)}&name=${encodeURIComponent(name)}`}
+              download
+            >
+              Every step, as a file
             </a>
             <a href="/api/vcard" download>
               Save Mike&rsquo;s contact
@@ -308,6 +330,14 @@ export function Book() {
               the fence is going to see your name and decide to come.
             </p>
           )}
+
+          <p className="dash-keep">
+            <b>Take the file.</b> It is every step in order — open Claude,
+            paste this, answer that, install it, say the four words — with the
+            whole prompt inside it, so there is nothing to come back here for.
+            Twenty minutes, and it says which parts need a paid plan and which
+            do not.
+          </p>
 
           <p className="dash-truth">
             Straight about what just happened: your reservation is a row in a
