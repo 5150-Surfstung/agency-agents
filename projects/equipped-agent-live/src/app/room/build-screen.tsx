@@ -6,6 +6,7 @@
 // makes it real) a lead inbox that fills with strangers.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { parseSheet } from "@/lib/sheet";
 import { Switchboard } from "@/app/switchboard";
 import { STUMP_FACTS, STUMP_NOTES } from "@/lib/deck";
 import type { Assistant, AssistantLead } from "@/lib/types";
@@ -27,6 +28,10 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
   // Where the leads land. Without this the assistant catches somebody at
   // eleven at night and has nowhere to put them.
   const [ownerEmail, setOwnerEmail] = useState("");
+  // What their own Val wrote. Pasting it fills the fields below, so the room
+  // step is "paste what you made" rather than five boxes under time pressure.
+  const [paste, setPaste] = useState("");
+  const [pasteNote, setPasteNote] = useState<string | null>(null);
   const [headline, setHeadline] = useState("");
   const [facts, setFacts] = useState("");
   const [notes, setNotes] = useState("");
@@ -235,6 +240,39 @@ export function BuildScreen({ onBuilt }: { onBuilt: () => void }) {
           className="w-full rounded-xl border border-rule bg-sheet-2 px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none"
         />
       </div>
+      {/* THEIR WRITING, NOT OUR FORM.
+          The interview runs on their own Claude account and hands them this
+          block — so what ends up on the sign is something they wrote and can
+          take anywhere, and the expensive part never touched our key. */}
+      <label className="mt-1 block">
+        <span className="mb-1 block text-xs uppercase tracking-wider text-faint">
+          Paste what your Val wrote
+        </span>
+        <textarea
+          value={paste}
+          onChange={(e) => {
+            const v = e.target.value;
+            setPaste(v);
+            if (!v.trim()) { setPasteNote(null); return; }
+            const sheet = parseSheet(v);
+            if (sheet.headline) setHeadline(sheet.headline);
+            if (sheet.facts) setFacts(sheet.facts);
+            if (sheet.notes) setNotes(sheet.notes);
+            setVoice(sheet.voice);
+            setPasteNote(
+              sheet.structured
+                ? "Read it — the address, the fact sheet, what to say freely and the voice are filled in below. Check them."
+                : "That did not look like the block, so all of it went in as your fact sheet. Nothing was lost — tidy it below."
+            );
+          }}
+          rows={3}
+          placeholder="The === LISTING ASSISTANT === block from your own Claude"
+          aria-label="Paste the listing block your assistant wrote"
+          className="w-full rounded-xl border border-rule bg-sheet-2 px-4 py-3 font-mono text-xs text-cream placeholder:text-faint focus:border-gold focus:outline-none"
+        />
+      </label>
+      {pasteNote && <p className="mt-1 text-xs leading-relaxed text-gold">{pasteNote}</p>}
+
       <input
         value={ownerEmail}
         onChange={(e) => setOwnerEmail(e.target.value)}

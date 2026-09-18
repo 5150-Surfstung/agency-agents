@@ -5,7 +5,7 @@ import { ValReel } from "@/app/live/val-reel";
 import { LEARNS } from "@/app/live/learns";
 import { SERIES, SURFSTUNG_WORK, MLS_ASKS } from "@/lib/kit";
 import { FIRST_MOVES, INSTALL, VAL_DOES, VAL_WONT } from "@/lib/val-kit";
-import { orbPrompt, starterPrompt } from "@/lib/prompts";
+import { listingPrompt, orbPrompt, starterPrompt } from "@/lib/prompts";
 import { HOST } from "@/lib/contact";
 import { EVENT } from "@/lib/event";
 import { getStore } from "@/lib/store";
@@ -47,6 +47,7 @@ export default async function KitPage({ params }: { params: Promise<{ ref: strin
 
   const audit = starterPrompt(who, ref);
   const orb = orbPrompt(who);
+  const listing = listingPrompt(who);
 
   return (
     <main className="stage pg">
@@ -167,8 +168,35 @@ export default async function KitPage({ params }: { params: Promise<{ ref: strin
         </ul>
       </section>
 
+      {/* The step that makes Friday short: they arrive with the sheet written,
+          on their own account, and the room only has to switch it on. */}
       <section className="pg-block">
         <p className="pg-n">Two</p>
+        <h2 className="display">Write your listing sheet before you come</h2>
+        <p>
+          This is the one to do the night before. Your assistant interviews you
+          about <b>one listing</b> &mdash; price, beds, the HOA, the roof, when
+          it can be shown, the objection you get every time &mdash; and hands
+          you back a finished block.
+        </p>
+        <p>
+          That block is what goes behind the QR code on your sign on Friday: a
+          page that answers buyers at eleven at night off your sheet, refuses
+          anything that is not on it, and emails you the second it catches a
+          name and a number. <b>The sheet is yours</b> &mdash; you wrote it, it
+          is a text file, and it works anywhere you ever want to put it.
+        </p>
+        <Copy text={listing} label="Copy the listing interview" kind="quiet" />
+        <Peek text={listing} />
+        <p className="pg-hit">
+          Bring it and we spend the hour putting it to work rather than setting
+          it up. Turn up without it and you will still leave with one &mdash;
+          you will just spend the first twenty minutes catching up.
+        </p>
+      </section>
+
+      <section className="pg-block">
+        <p className="pg-n">Three</p>
         <h2 className="display">Build your own mark</h2>
         <p>
           The thing turning above. Your colours, your objects, one HTML file
@@ -183,7 +211,7 @@ export default async function KitPage({ params }: { params: Promise<{ ref: strin
 
       {/* ---- the things that download ---- */}
       <section className="pg-block">
-        <p className="pg-n">Three</p>
+        <p className="pg-n">Four</p>
         <h2 className="display">Keep the rest</h2>
         <ul className="pg-files">
           <li>

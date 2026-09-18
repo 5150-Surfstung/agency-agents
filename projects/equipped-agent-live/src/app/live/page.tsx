@@ -157,7 +157,17 @@ export default function LivePage() {
             It drafts in your voice, runs the weekly jobs you hate, counts your
             contract deadlines, argues with you when you are wrong &mdash; and
             refuses to invent a number, claim it sent something, or answer a
-            fair housing question it has no business answering.
+            fair housing question it has no business answering. It also walks
+            you through connecting your own email and calendar, so it can go
+            find the follow-ups already buried in them.
+          </p>
+          <p className="hour-bring">
+            <b>Do it before the 2nd and bring it with you.</b> Come in with
+            yours already built and we spend the hour putting it to work
+            instead of setting it up &mdash; and what ends up behind the QR on
+            your sign is what you wrote, not something handed to you off a
+            shelf. Turn up empty-handed and you will still leave with one; you
+            will just have spent the first twenty minutes catching up.
           </p>
         </div>
       </section>

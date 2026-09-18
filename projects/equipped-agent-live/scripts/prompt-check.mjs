@@ -85,6 +85,14 @@ const checks = [
   ["audit: admits it cannot email or text them", /cannot email or text me/.test(audit)],
   ["audit: names the hosted after-hours assistant as a separate thing", /has to be RUNNING somewhere/.test(audit)],
   ["audit: hands that one off rather than faking it", /Do not oversell this and do not apologise for it/.test(audit)],
+  // Connectors are where a chat assistant stops being a toy: it reads the
+  // inbox and calendar the work is already buried in. The three example asks
+  // have to be theirs, and the drafting-not-sending rule must not loosen.
+  ["audit: teaches connectors", /look for Connectors in my claude\.ai settings/i.test(audit)],
+  ["audit: gives real things to say to a connected assistant", /THREE things to say to you once they are on/.test(audit)],
+  ["audit: keeps draft-not-send when connected", /You still do not send, file, or book/.test(audit)],
+  ["audit: no dead end when connectors are absent", /If I do not see Connectors/.test(audit)],
+  ["audit: tells them to bring it to class", /tell me to BRING YOU/.test(audit)],
 
   // --- the orb ---
   ["orb: the group rule is stated", /group rule/i.test(orb)],

@@ -57,6 +57,10 @@ export const VAL_DOES: [string, string][] = [
     "It drafts and it calculates. You send, you file, you book. It will never tell you a thing was sent, scheduled or submitted, because it cannot do those and pretending otherwise is how people end up trusting the wrong thing.",
   ],
   [
+    "Goes and looks, once you connect it",
+    "It walks you through switching on your own email and calendar in Claude, then finds what is already buried in them — everybody who asked you something three weeks ago and never got an answer, every showing next week with no follow-up after it. It reads and it drafts. It still does not send.",
+  ],
+  [
     "Builds you a living mark on command",
     "Say four words — build my mark — and it produces the turning wireframe in your colours, out of your objects, as one file you double-click. That is the thing on this page, made yours.",
   ],
