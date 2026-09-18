@@ -39,6 +39,7 @@ function body(fn) {
 }
 
 const audit = body("starterPrompt");
+const listing = body("listingPrompt");
 const orb = body("orbPrompt");
 
 const checks = [
@@ -93,6 +94,20 @@ const checks = [
   ["audit: keeps draft-not-send when connected", /You still do not send, file, or book/.test(audit)],
   ["audit: no dead end when connectors are absent", /If I do not see Connectors/.test(audit)],
   ["audit: tells them to bring it to class", /tell me to BRING YOU/.test(audit)],
+
+  // --- the listing interview, run on their account ---
+  ["listing: no angle-bracket placeholders", !/<[^>\n]{3,400}>/.test(listing)],
+  ["listing: one question per message", /ONE question per message/.test(listing)],
+  ["listing: refuses to fill a gap", /NEVER fill a gap/.test(listing)],
+  ["listing: separates recorded facts from colour", /RECORDED FACTS/.test(listing) && /WHAT I WANT SAID/.test(listing)],
+  ["listing: fair housing is not optional", /FAIR HOUSING — THIS IS NOT OPTIONAL/.test(listing)],
+  ["listing: never grades a school", /Schools get named, never graded/.test(listing)],
+  ["listing: emits the parseable block", /=== LISTING ASSISTANT ===/.test(listing) && /--- FACT SHEET ---/.test(listing)],
+  ["listing: checks its own block", /check your own block/i.test(listing)],
+  // An agent with no listing used to hit a wall here — the whole point is a
+  // front desk, and a newly licensed agent needs one more than anybody.
+  ["listing: handles having no listing yet", /newly licensed, between listings/.test(listing)],
+  ["listing: points it at them instead", /a front desk for my practice/.test(listing)],
 
   // --- the orb ---
   ["orb: the group rule is stated", /group rule/i.test(orb)],

@@ -291,7 +291,7 @@ export async function GET(req: NextRequest) {
   // and the permissive one is what a developer runs. A rule that lives in
   // only one backend is not a rule, so the step asserts it in whichever is
   // carrying this deployment.
-  await run("prebuild: a booking mints an assistant, a made-up reference does not", async () => {
+  await run("prebuild: mint, fix and read leads — all owner-only", async () => {
     // Uppercase, because every real reference is — the lookup normalises to
     // upper, so a lowercase test ref would miss its own booking and prove
     // nothing about the gate it is here to test.
@@ -326,6 +326,37 @@ export async function GET(req: NextRequest) {
       const mine = await store.assistantsByDevice(device);
       if (!mine.some((m) => m.code === sheet.code.toUpperCase())) {
         throw new Error("the booking cannot see what it built");
+      }
+
+      // FIXING IT, AND ONLY BY THE BOOKING THAT BUILT IT. Everybody gets the
+      // sheet wrong once; nobody else may rewrite what is behind somebody's
+      // printed QR.
+      const better = "A replacement fact sheet, long enough to stand on, proving the rewrite actually reached the row.";
+      if (!(await store.assistantUpdateByDevice(sheet.code, device, {
+        headline: "selftest listing, fixed", facts: better, notes: "", voice: "luxury",
+      }))) {
+        throw new Error("the owner could not fix their own assistant");
+      }
+      if ((await store.assistantGet(sheet.code))?.facts !== better) {
+        throw new Error("the fix did not reach the row");
+      }
+      if (await store.assistantUpdateByDevice(sheet.code, randomUUID(), {
+        headline: "hijacked", facts: better, notes: "", voice: "warm",
+      })) {
+        throw new Error("a stranger rewrote what is behind somebody's printed QR");
+      }
+
+      // And a lead on it is visible to the booking without a room session —
+      // which until the alert email is on is the only way they ever see it.
+      await store.assistantLeadAdd(sheet.code, "· selftest ·", "000", "a question", {
+        timeline: "", financing: "", hasAgent: "",
+      });
+      const seen = await store.assistantLeadsByDevice(device);
+      if (!seen.some((l) => l.code === sheet.code.toUpperCase())) {
+        throw new Error("the booking cannot see who its assistant caught");
+      }
+      if ((await store.assistantLeadsByDevice(randomUUID())).some((l) => l.code === sheet.code.toUpperCase())) {
+        throw new Error("somebody else's device can read these leads");
       }
     } finally {
       await store.rsvpSelftestClear(ref).catch(() => {});

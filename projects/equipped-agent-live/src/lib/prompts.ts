@@ -662,6 +662,16 @@ export function listingPrompt(name: string): string {
 
 Interview me, then hand me a finished block I can paste in. Do not write the block until the interview is done.
 
+════ FIRST — CHECK I HAVE ONE ════
+
+Open by asking whether I have a listing to put this on right now, or whether I am newly licensed, between listings, or mostly working with buyers.
+
+If I have one, go straight to the interview below.
+
+If I do NOT have one, do not send me away and do not invent a property. Say plainly that the same thing works pointed at ME instead of at a house, and build that: a front desk for my practice. Then run the interview below with the questions swapped for the ones that fit — the areas I actually work, the price bands I know, what I do for a buyer that the last agent did not, how somebody reaches me, what I want asked before I call somebody back, my real availability this week. The fact sheet becomes what is TRUE about how I work rather than what is true about a house, and everything else in this script stays exactly the same.
+
+Tell me why that is worth having: it goes on my card, my sign rider, my profile, the bottom of my emails — and it is the thing that answers at eleven at night when somebody is deciding which agent to call in the morning. When I do get a listing, I run this again and point one at that.
+
 ════ HOW TO ASK ════
 
 ONE question per message, then stop and wait. Never two questions in one message, never a numbered list of them. React to each answer in one short line that proves you were listening, then ask the next. This is a conversation about a house I know cold, not a form.

@@ -37,10 +37,74 @@ export async function GET(req: NextRequest) {
   const ref = (req.nextUrl.searchParams.get("ref") ?? "").toUpperCase();
   if (!REF.test(ref)) return NextResponse.json({ ok: false, error: "bad_ref" }, { status: 400 });
   try {
-    const mine = await getStore().assistantsByDevice(deviceForRef(ref));
-    return NextResponse.json({ ok: true, mine });
+    const store = getStore();
+    const device = deviceForRef(ref);
+    // The leads come back too. Until the alert email is switched on this is
+    // the only place an agent sees who their pre-built assistant caught, and
+    // it stays the list they work from afterwards.
+    const [mine, leads] = await Promise.all([
+      store.assistantsByDevice(device),
+      store.assistantLeadsByDevice(device).catch(() => []),
+    ]);
+    return NextResponse.json({ ok: true, mine, leads });
   } catch {
     return NextResponse.json({ ok: false, error: "store_error" }, { status: 502 });
+  }
+}
+
+/** FIX IT. Everybody gets the sheet wrong the first time. The code never
+ *  moves — it is on a printed QR by now — so this rewrites only what came out
+ *  of the sheet. */
+export async function PATCH(req: NextRequest) {
+  let ref = "";
+  let code = "";
+  let sheet = "";
+  let ownerEmail = "";
+  try {
+    const b = await req.json();
+    ref = String(b?.ref ?? "").trim().toUpperCase();
+    code = String(b?.code ?? "").trim().toUpperCase().slice(0, 12);
+    sheet = String(b?.sheet ?? "").slice(0, 12000);
+    ownerEmail = String(b?.ownerEmail ?? "").trim().slice(0, 160);
+  } catch {
+    return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
+  }
+  if (!REF.test(ref)) return NextResponse.json({ ok: false, error: "bad_ref" }, { status: 400 });
+  if (!code) return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
+
+  const device = deviceForRef(ref);
+  const store = getStore();
+
+  try {
+    let changed = false;
+    if (sheet.trim()) {
+      const parsed = parseSheet(sheet);
+      if (parsed.facts.trim().length < 40) {
+        return NextResponse.json({ ok: false, error: "need_facts" }, { status: 400 });
+      }
+      changed = await store.assistantUpdateByDevice(code, device, {
+        headline: parsed.headline || "this listing",
+        facts: parsed.facts,
+        notes: parsed.notes,
+        voice: parsed.voice,
+      });
+      if (!changed) return NextResponse.json({ ok: false, error: "not_yours" }, { status: 403 });
+    }
+    let alerts: boolean | null = null;
+    if (ownerEmail) {
+      if (!looksLikeEmail(ownerEmail)) {
+        return NextResponse.json({ ok: false, error: "bad_email" }, { status: 400 });
+      }
+      alerts = await store.assistantSetOwnerEmail(code, device, ownerEmail);
+      if (!alerts) return NextResponse.json({ ok: false, error: "not_yours" }, { status: 403 });
+    }
+    if (!changed && alerts === null) {
+      return NextResponse.json({ ok: false, error: "nothing_to_do" }, { status: 400 });
+    }
+    return NextResponse.json({ ok: true, changed, alerts });
+  } catch (e) {
+    const known = /need_facts/.test(String(e)) ? "need_facts" : "store_error";
+    return NextResponse.json({ ok: false, error: known }, { status: known === "need_facts" ? 400 : 502 });
   }
 }
 

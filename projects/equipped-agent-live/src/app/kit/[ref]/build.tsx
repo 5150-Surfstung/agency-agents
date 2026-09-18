@@ -16,8 +16,12 @@
 import { useCallback, useEffect, useState } from "react";
 
 type Mine = { code: string; headline: string; agentName: string; hasEmail: boolean };
+type Lead = { code: string; headline: string; name: string; cell: string; question: string; at: number };
 
 const TROUBLE: Record<string, string> = {
+  not_yours: "That code was not built on this booking, so it cannot be changed from here.",
+  bad_email: "That address does not look right — check it and try again.",
+  nothing_to_do: "Nothing was changed. Paste a new sheet, or put an address in.",
   no_booking: "That reference is not on the list. Use the link from your booking — it is the one with your reference in it.",
   too_many: "That booking has already built three. Bring one of those on Friday, or text Mike and he will clear one.",
   need_name: "Your name goes on this — put it in.",
@@ -29,6 +33,12 @@ const TROUBLE: Record<string, string> = {
 
 export function Build({ ref: bookingRef, name }: { ref: string; name: string }) {
   const [mine, setMine] = useState<Mine[] | null>(null);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  // Fixing one they already built. Everybody gets the sheet wrong once.
+  const [fixing, setFixing] = useState<string | null>(null);
+  const [fixSheet, setFixSheet] = useState("");
+  const [fixEmail, setFixEmail] = useState("");
+  const [fixed, setFixed] = useState<string | null>(null);
   const [agentName, setAgentName] = useState(name);
   const [brokerage, setBrokerage] = useState("");
   const [cell, setCell] = useState("");
@@ -43,6 +53,7 @@ export function Build({ ref: bookingRef, name }: { ref: string; name: string }) 
       const r = await fetch(`/api/prebuild?ref=${encodeURIComponent(bookingRef)}`, { cache: "no-store" });
       const j = await r.json();
       setMine(r.ok && j?.ok ? (j.mine as Mine[]) : []);
+      setLeads(r.ok && j?.ok && Array.isArray(j.leads) ? (j.leads as Lead[]) : []);
     } catch {
       setMine([]);
     }
@@ -66,6 +77,33 @@ export function Build({ ref: bookingRef, name }: { ref: string; name: string }) 
       if (r.ok && j?.ok) {
         setMade({ code: j.code, alerts: Boolean(j.alerts), structured: Boolean(j.structured) });
         setSheet("");
+        await load();
+      } else {
+        setErr(TROUBLE[j?.error] ?? TROUBLE.store_error);
+      }
+    } catch {
+      setErr(TROUBLE.store_error);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function fix(code: string) {
+    if (busy) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const r = await fetch("/api/prebuild", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ref: bookingRef, code, sheet: fixSheet, ownerEmail: fixEmail }),
+      });
+      const j = await r.json();
+      if (r.ok && j?.ok) {
+        setFixed(code);
+        setFixing(null);
+        setFixSheet("");
+        setFixEmail("");
         await load();
       } else {
         setErr(TROUBLE[j?.error] ?? TROUBLE.store_error);
@@ -168,10 +206,88 @@ export function Build({ ref: bookingRef, name }: { ref: string; name: string }) 
                 <a href={`/a/${m.code}`}>
                   <b>{m.code}</b> {m.headline || "your listing"}
                 </a>
-                <span>{m.hasEmail ? "leads emailed" : "no alert address yet"}</span>
+                <span>
+                  {m.hasEmail ? "leads emailed" : "no alert address yet"}
+                  {" · "}
+                  <button
+                    type="button"
+                    className="pb-fixlink"
+                    onClick={() => {
+                      setFixing(fixing === m.code ? null : m.code);
+                      setFixed(null);
+                      setErr(null);
+                    }}
+                  >
+                    {fixing === m.code ? "never mind" : "fix it"}
+                  </button>
+                </span>
+                {fixing === m.code && (
+                  <div className="pb-fix">
+                    <p>
+                      Paste a new sheet to replace what it knows, or just put an address in to
+                      start getting the leads. <b>The code stays {m.code}</b> &mdash; whatever you
+                      already printed keeps working.
+                    </p>
+                    <textarea
+                      value={fixSheet}
+                      onChange={(e) => setFixSheet(e.target.value)}
+                      rows={4}
+                      placeholder="A new === LISTING ASSISTANT === block — or leave this empty"
+                      aria-label="Replacement sheet"
+                    />
+                    <input
+                      value={fixEmail}
+                      onChange={(e) => setFixEmail(e.target.value)}
+                      placeholder="Where leads get emailed"
+                      aria-label="Where leads get emailed"
+                      type="email"
+                      inputMode="email"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fix(m.code)}
+                      disabled={busy || (!fixSheet.trim() && !fixEmail.trim())}
+                    >
+                      {busy ? "Saving…" : "Save it"}
+                    </button>
+                  </div>
+                )}
+                {fixed === m.code && <span className="pb-ok">Saved. It is live with that now.</span>}
               </li>
             ))}
           </ul>
+          {err && <p className="pb-err">{err}</p>}
+        </div>
+      )}
+
+      {/* WHO IT CAUGHT. Until the alert email is switched on this is the only
+          place these appear, and it stays the list they work from after. */}
+      {leads.length > 0 && (
+        <div className="pb-leads">
+          <p className="pb-mine-h">
+            {leads.length === 1 ? "One person" : `${leads.length} people`} your assistant has caught
+          </p>
+          <ul>
+            {leads.map((l, i) => (
+              <li key={`${l.code}-${i}`}>
+                <p className="pb-lead-who">
+                  <b>{l.name}</b> <a href={`tel:${l.cell.replace(/[^\d+]/g, "")}`}>{l.cell}</a>
+                </p>
+                {l.question && <p className="pb-lead-q">&ldquo;{l.question}&rdquo;</p>}
+                <p className="pb-lead-at">
+                  {l.headline || l.code} &middot;{" "}
+                  {new Date(l.at).toLocaleString(undefined, {
+                    weekday: "short", month: "short", day: "numeric",
+                    hour: "numeric", minute: "2-digit",
+                  })}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <p className="pb-note">
+            Nobody was answered on your behalf beyond what your sheet says. Call them back &mdash;
+            that is the whole edge.
+          </p>
         </div>
       )}
     </div>

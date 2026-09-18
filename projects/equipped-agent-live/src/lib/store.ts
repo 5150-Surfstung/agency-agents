@@ -126,6 +126,11 @@ export interface Store {
   assistantCreateByRef(ref: string, deviceId: string, a: Assistant & { cell: string }): Promise<void>;
   /** What this booking has already built, so the kit link shows it back. */
   assistantsByDevice(deviceId: string): Promise<{ code: string; headline: string; agentName: string; hasEmail: boolean }[]>;
+  /** Fix a pre-built assistant from the same booking link. Identity never
+   *  moves — the code is on a printed QR by now. */
+  assistantUpdateByDevice(code: string, deviceId: string, a: { headline: string; facts: string; notes: string; voice: string }): Promise<boolean>;
+  /** Who it caught, for a booking with no room session. */
+  assistantLeadsByDevice(deviceId: string): Promise<(AssistantLead & { code: string; headline: string })[]>;
   assistantOwnerEmail(code: string): Promise<string | null>;
   assistantSetOwnerEmail(code: string, deviceId: string, email: string): Promise<boolean>;
   assistantLeadsMine(key: string, deviceId: string): Promise<AssistantLead[]>;
@@ -470,6 +475,26 @@ class MemoryStore implements Store {
         agentName: a.agentName,
         hasEmail: Boolean(this.aEmail.get(a.code)),
       }));
+  }
+  async assistantUpdateByDevice(code: string, deviceId: string, a: { headline: string; facts: string; notes: string; voice: string }) {
+    if (a.facts.trim().length < 40) throw new Error("need_facts");
+    const row = this.assistants.get(code.toUpperCase());
+    if (!row || row.deviceId !== deviceId) return false;
+    row.headline = a.headline.slice(0, 80);
+    row.facts = a.facts.slice(0, 4000);
+    row.notes = a.notes.slice(0, 4000);
+    if (["warm", "luxury", "energy"].includes(a.voice)) row.voice = a.voice as Assistant["voice"];
+    return true;
+  }
+  async assistantLeadsByDevice(deviceId: string) {
+    const mine = new Map(
+      [...this.assistants.values()].filter((a) => a.deviceId === deviceId).map((a) => [a.code, a.headline])
+    );
+    return this.aLeads
+      .filter((l) => mine.has(l.code))
+      .sort((x, y) => y.at - x.at)
+      .slice(0, 50)
+      .map((l) => ({ ...l, headline: mine.get(l.code) ?? "" }));
   }
   private aEmail = new Map<string, string>();
   async assistantOwnerEmail(code: string) {
@@ -1004,6 +1029,23 @@ class RpcStore implements Store {
     );
     return (rows ?? []).map((r) => ({
       code: r.code, headline: r.headline ?? "", agentName: r.agent_name ?? "", hasEmail: Boolean(r.has_email),
+    }));
+  }
+  async assistantUpdateByDevice(code: string, deviceId: string, a: { headline: string; facts: string; notes: string; voice: string }) {
+    const ok = await this.call<boolean>("live_assistant_update_by_device", {
+      p_code: code, p_device: deviceId, p_headline: a.headline,
+      p_facts: a.facts, p_notes: a.notes, p_voice: a.voice,
+    });
+    return Boolean(ok);
+  }
+  async assistantLeadsByDevice(deviceId: string) {
+    const rows = await this.call<{ code: string; headline: string; name: string; cell: string; question: string; timeline: string; financing: string; has_agent: string; at: string }[]>(
+      "live_assistant_leads_by_device", { p_device: deviceId }
+    );
+    return (rows ?? []).map((r) => ({
+      code: r.code, headline: r.headline ?? "", name: r.name, cell: r.cell,
+      question: r.question ?? "", timeline: r.timeline ?? "", financing: r.financing ?? "",
+      hasAgent: r.has_agent ?? "", at: new Date(r.at).getTime(),
     }));
   }
   async assistantOwnerEmail(code: string) {
