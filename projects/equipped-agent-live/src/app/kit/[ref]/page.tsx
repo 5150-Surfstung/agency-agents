@@ -4,6 +4,7 @@ import { Copy, Peek } from "./copy";
 import { ValReel } from "@/app/live/val-reel";
 import { LEARNS } from "@/app/live/learns";
 import { SERIES, SURFSTUNG_WORK, MLS_ASKS } from "@/lib/kit";
+import { FIRST_MOVES, INSTALL, VAL_DOES, VAL_WONT } from "@/lib/val-kit";
 import { orbPrompt, starterPrompt } from "@/lib/prompts";
 import { HOST } from "@/lib/contact";
 import { EVENT } from "@/lib/event";
@@ -91,6 +92,79 @@ export default async function KitPage({ params }: { params: Promise<{ ref: strin
         </p>
         <Copy text={audit} label="Copy the interview" />
         <Peek text={audit} />
+
+        {/* THE FIRST THING EVERYBODY ASKS, ANSWERED BEFORE THEY ASK IT. */}
+        <p className="pg-hit">
+          <b>You do not need to know how to code.</b> The whole thing happens
+          in the chat box. What comes back is writing, not a program &mdash;
+          there is nothing to install and nothing to run. And it does not hand
+          you a file and stop: the moment it finishes, it starts working as
+          your assistant in that same conversation and does a piece of your
+          actual work before it says a word about where to keep it.
+        </p>
+      </section>
+
+      {/* ---- what the thing actually does ---- */}
+      <section className="pg-block">
+        <h2 className="display">What yours will do</h2>
+        <p>
+          Not a list of what an assistant could theoretically do &mdash; this
+          is what the interview actually writes into yours, aimed at the three
+          gaps it finds in how you work.
+        </p>
+        <dl className="pg-work">
+          {VAL_DOES.map(([t, d]) => (
+            <div key={t}>
+              <dt>{t}</dt>
+              <dd>{d}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <h3 className="display">And what it will not do</h3>
+        <p>
+          This half is the reason you can put it in front of a client. The
+          refusals are written into your file, in full, and you can read every
+          one of them before you trust it with anything.
+        </p>
+        <ul className="pg-wont">
+          {VAL_WONT.map((w) => (
+            <li key={w}>{w}</li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ---- where it goes ---- */}
+      <section className="pg-block">
+        <h2 className="display">Where to keep it</h2>
+        <p>
+          Three ways, easiest first. The first one is already done by the time
+          the interview ends, and only the last one touches a file &mdash;
+          that one is optional.
+        </p>
+        <ol className="pg-install">
+          {INSTALL.map((r) => (
+            <li key={r.name}>
+              <p className="pg-install-h">
+                <b>{r.name}</b>
+                <span>{r.time}</span>
+              </p>
+              <p>{r.how}</p>
+              <p className="pg-install-n">{r.note}</p>
+            </li>
+          ))}
+        </ol>
+
+        <h3 className="display">Say one of these to it first</h3>
+        <p>
+          An assistant that gets asked something real on day one gets used. One
+          that gets admired and closed does not.
+        </p>
+        <ul className="pg-first">
+          {FIRST_MOVES.map((m) => (
+            <li key={m}>{m}</li>
+          ))}
+        </ul>
       </section>
 
       <section className="pg-block">

@@ -2797,6 +2797,103 @@ body {
 .pg-files a { display: block; font-weight: 700; font-size: 1.0625rem; }
 .pg-files span { display: block; margin-top: 0.25rem; font-size: 0.875rem; line-height: 1.5; color: var(--color-faint); }
 
+/* ── what it does, what it refuses, where it goes ──────────────────────
+   The refusals get the same weight as the capabilities on purpose: that half
+   is the reason an agent can put this in front of a client, so it is not a
+   footnote in smaller grey type under the good news. */
+/* The one thing on the invite that is not a promise but a removal: the
+   reason people stay home is that they think this needs skills they do not
+   have. It sits inside the hour rather than as its own section, because it
+   is a caveat on the hour, not a fourth pillar. */
+.hour-calm {
+  margin-top: 1.6rem;
+  padding: 1.15rem 1.2rem 1.25rem;
+  border: 1px solid var(--color-rule-strong);
+  border-left: 2px solid var(--color-gold);
+  border-radius: 0 10px 10px 0;
+  background: var(--color-sheet-2);
+}
+.hour-calm p { margin: 0 0 0.7rem; font-size: 0.9375rem; line-height: 1.62; color: var(--color-soft); }
+.hour-calm p:last-child { margin-bottom: 0; }
+.hour-calm-h {
+  font-variation-settings: "wdth" 106;
+  font-weight: 700;
+  font-size: clamp(1.15rem, 4.4vw, 1.4rem);
+  letter-spacing: -0.024em;
+  line-height: 1.2;
+  color: var(--color-cream) !important;
+}
+.hour-calm-fine { font-size: 0.8125rem !important; color: var(--color-faint) !important; }
+
+.pg-wont { margin: 1.1rem 0 0; padding: 0; list-style: none; }
+.pg-wont li {
+  position: relative;
+  padding: 0.6rem 0 0.6rem 1.5rem;
+  border-bottom: 1px solid var(--color-rule);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--color-soft);
+}
+.pg-wont li:last-child { border-bottom: none; }
+.pg-wont li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1.15rem;
+  width: 0.7rem;
+  height: 2px;
+  background: var(--color-gold);
+}
+
+/* Numbered because the order is the information: easiest first, and only the
+   last one touches a file. */
+.pg-install { margin: 1.35rem 0 0; padding: 0; list-style: none; counter-reset: route; }
+.pg-install > li {
+  counter-increment: route;
+  position: relative;
+  padding: 1rem 0 1.1rem 2.6rem;
+  border-top: 1px solid var(--color-rule-strong);
+}
+.pg-install > li::before {
+  content: counter(route);
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--color-gold);
+}
+.pg-install p { margin: 0 0 0.5rem; }
+.pg-install-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+.pg-install-h b { font-size: 1.0625rem; }
+.pg-install-h span {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+.pg-install-n { margin: 0 !important; font-size: 0.8125rem; line-height: 1.55; color: var(--color-faint); }
+
+/* Things to type, so they read as things to type. */
+.pg-first { margin: 1.1rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.5rem; }
+.pg-first li {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 8px;
+  background: var(--color-sheet-2);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-cream);
+}
+
 .pg-series { margin: 1.35rem 0 0; padding: 0; list-style: none; border-top: 1px solid var(--color-rule-strong); }
 .pg-series li {
   display: flex;

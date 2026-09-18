@@ -133,6 +133,33 @@ export default function LivePage() {
           Then nobody gets rushed out. People put what they built on the screen
           and we stay in the office. That part is usually the best part.
         </p>
+
+        {/* The objection that keeps the most people home, answered on the
+            page rather than in the room they did not come to. */}
+        <div className="hour-calm">
+          <p className="hour-calm-h display">You do not need to be technical.</p>
+          <p>
+            All of it happens in a chat box. It interviews you about your own
+            business for twenty minutes — what you sell, where last Tuesday
+            went, what fell through — then tells you the three places your work
+            is leaking and builds you an assistant aimed at exactly those. What
+            it hands back is writing, not a program. Nothing to install,
+            nothing to run.
+          </p>
+          <p>
+            And it does not give you a file and stop. It starts working as your
+            assistant in that same conversation and does a piece of your real
+            work before it mentions where to keep it. Keeping it is a
+            copy-and-paste; there is one optional step that touches a file and
+            you can skip it and lose nothing.
+          </p>
+          <p className="hour-calm-fine">
+            It drafts in your voice, runs the weekly jobs you hate, counts your
+            contract deadlines, argues with you when you are wrong &mdash; and
+            refuses to invent a number, claim it sent something, or answer a
+            fair housing question it has no business answering.
+          </p>
+        </div>
       </section>
 
       {/* ---- 3. Who else is in the room. ---- */}

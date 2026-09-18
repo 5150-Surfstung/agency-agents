@@ -67,6 +67,17 @@ const checks = [
   ["audit: carries the mark method", /Building my mark/.test(audit)],
   ["audit: carries never-claim-an-action", /Never claim an action was taken/i.test(audit)],
   ["audit: says a paid plan is needed to install", /paid plan/i.test(audit)],
+  // THE FEAR EVERY TIME IS "I CANNOT CODE." The interview runs in a chat box
+  // and returns text, so the answer is no — but it has to be SAID, and the
+  // routes that need no file have to come before the one that does.
+  ["audit: says outright that none of it needs code", /NONE OF THIS NEEDS CODE/.test(audit)],
+  ["audit: offers a route with no files at all", /no files at all/i.test(audit)],
+  ["audit: names the Project route", /IN A PROJECT/.test(audit)],
+  ["audit: no route dead-ends on a missing menu", /if I do not see Projects/i.test(audit)],
+  // A file is homework; a piece of finished work is an assistant. It has to
+  // start operating before it starts explaining where to keep it.
+  ["audit: becomes the assistant in the same chat", /BECOME IT, NOW/.test(audit)],
+  ["audit: does a real job before explaining setup", /Real output, not an offer to help/.test(audit)],
 
   // --- the orb ---
   ["orb: the group rule is stated", /group rule/i.test(orb)],

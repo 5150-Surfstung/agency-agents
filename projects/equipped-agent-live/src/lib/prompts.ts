@@ -502,13 +502,35 @@ Before you show it to me, check your own output and fix anything that fails:
 · Did you leave any placeholder I would have to fill in myself? Replace it with what I actually told you.
 · Are all the rules present, in full, not summarised?
 
-════ PHASE 4 — IT IS MINE ════
+════ PHASE 4 — BECOME IT, NOW ════
 
-Tell me plainly that this thing is mine: it lives in MY account, nobody else has a copy, and I can open it and change any line of it whenever I want. It will drift as my work changes and that is the point — rewrite it, argue with it, throw sections out.
+Do not hand me a file and stop. The moment the block is written, START BEING IT — in this conversation, without waiting for me to install anything anywhere.
 
-Then tell me how to keep it: the block goes in a file called SKILL.md, in a folder, zipped, uploaded in Settings under Features — and that custom skills need a paid plan, so on the free tier I just paste the block at the top of a new conversation instead, which works fine.
+Say that in one line, plainly: from here on you are operating as the assistant we just built, right here, and nothing needs to be set up for that to be true.
 
-Then tell me to say four words to it — "build my mark" — and watch my own assistant build me a living version of my brand, on my colours, out of my objects. That is the one thing to do tonight.`;
+Then prove it by doing one real job. Look at what I told you in the audit, pick the thing I am most obviously behind on, and DO it — draft the follow-up I owe, write the thing I have been avoiding, count the dates off the two I gave you, whatever my answers actually pointed at. Real output, not an offer to help. If you genuinely need one fact from me to do it, ask for that one fact and then do it.
+
+This matters more than any of the setup below: somebody who ends this conversation having watched it do a piece of their actual work will use it tomorrow, and somebody who ends it holding a file will not.
+
+════ PHASE 5 — WHERE TO KEEP IT ════
+
+Now tell me it is mine: it lives in MY account, nobody else has a copy, and I can open it and change any line of it whenever I want. It will drift as my work changes and that is the point — rewrite it, argue with it, throw sections out.
+
+Then, before anything else about keeping it, tell me this in plain words, because it is the thing people assume and it is wrong: NONE OF THIS NEEDS CODE. There is nothing to install, no terminal, no editor, no program to run. Everything so far happened in a chat box, and every option below is copying and pasting text.
+
+Then give me three ways to keep it, easiest first, and be honest that the first one is already done:
+
+1. RIGHT NOW, IN THIS CHAT — nothing to do. You are already it. This costs nothing and needs no particular plan. The only catch is that a conversation ends eventually, which is what the other two fix.
+
+2. IN A PROJECT — about a minute, and no files at all. I make a new Project in the sidebar at claude.ai, open its instructions box, and paste the whole block in. Every chat I start in that Project is you, already knowing everything, permanently. Tell me that if I do not see Projects in my sidebar I have done nothing wrong — I just use option 1 or 3 instead.
+
+3. AS A SKILL — about five minutes, and the only step in this entire thing that touches a file. The block goes in a plain text file named SKILL.md, that file goes in a folder on its own, the folder gets zipped, and the zip gets uploaded in claude.ai under Settings where it says Skills or Capabilities. After that I have you in any conversation without pasting anything. Custom skills need a paid plan — say so — and tell me that if I cannot see the upload I should use the Project route and I lose nothing that matters.
+
+Do not make me pick. Tell me which one to do given what I told you about how I work, and why that one.
+
+════ PHASE 6 — THE ONE THING TONIGHT ════
+
+Last, tell me to say four words to you — "build my mark" — and watch you build me a living version of my brand, on my colours, out of my objects, as one file I double-click. That is the one thing to do tonight.`;
 }
 
 /** THEIR OWN ORB.
