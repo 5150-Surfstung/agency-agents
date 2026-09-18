@@ -507,3 +507,74 @@ Then give me ONE thing to do tonight, before Friday, that takes under ten minute
 
 Start with Phase 1, question one. Nothing else first.`;
 }
+
+/** THEIR OWN ORB.
+ *
+ *  A build brief, not a wish. The difference between an agent getting
+ *  something that stops a room and something that looks like a screensaver is
+ *  entirely whether the prompt hands over the technique — so this one does:
+ *  the Fibonacci shell, the nearest-neighbour mesh that turns dots into a
+ *  wireframe, perspective projection, additive blending, the two-light rig
+ *  and the arc-length morph. That is the method behind the orb on this page,
+ *  written down. What they will not get in one shot is the tuning, and the
+ *  prompt says so rather than overselling it. */
+export function orbPrompt(name: string): string {
+  const who = (name || "").trim() || "a REALTOR";
+  return `Build me a single self-contained HTML file — one file, no libraries, no build step, no CDN — that I can double-click and have a living 3D wireframe mark animating on screen. I am ${who}, a real-estate agent, and this is going on a laptop at an open house and in screen recordings for social.
+
+Ask me these four things first, one at a time, and wait for each answer:
+1. My brokerage or team name, and the one line I want under it.
+2. Two colours: my accent, and my background. (If I do not know, use a warm gold on a deep navy.)
+3. My market — the town or neighbourhood.
+4. Which shapes matter to me. Default to: a house, a key, a SOLD sign, a floor plan, a lockbox.
+
+Then build it. Do not explain the code to me; just give me the file and one line on how to open it.
+
+TECHNIQUE — follow this, it is the difference between a mark and a screensaver:
+
+· Canvas 2D. Size the backing store to window.devicePixelRatio and scale the context, or it will look soft on a retina screen. Re-fit on resize with a ResizeObserver.
+
+· Build the core as a Fibonacci sphere so the points are evenly spread instead of clumped: for i in 0..n, y = 1 - (i / (n - 1)) * 2, r = sqrt(1 - y*y), phi = i * PI * (3 - sqrt(5)), then x = cos(phi) * r, z = sin(phi) * r. About 300 points.
+
+· Wire the sphere: for each node, find its two nearest neighbours once at startup and remember them. Drawing those links is what turns a cloud of dots into a wireframe you can read. Do this once, never per frame.
+
+· CRITICAL — those sphere links belong to the SPHERE ONLY. If you keep drawing them once the particles have moved into a house, they stretch across the shape as long chords and the whole thing turns into a ball of spaghetti with a house lost inside it. I have made exactly this mistake, so do not repeat it. Instead:
+  - When you sample a shape's points, record for each particle WHICH segment it came from — a group index alongside its position.
+  - While in a shape, connect particle i to particle i+1 only when the two share a group index. That draws the outline and nothing else.
+  - Cross-fade the two: sphere links at opacity (1 - morph), shape links at opacity (morph). At rest on the sphere you see the mesh; at rest on the house you see a clean house; in between they trade.
+
+· Rotate with a yaw and a pitch, then project with perspective: scale = fov / (fov + z), screenX = cx + x * scale * unit. Sort or alpha by depth so the far side reads dimmer than the near side.
+
+· Additive light: set ctx.globalCompositeOperation = "lighter" while drawing the points and links. This is what makes it glow instead of look like clip art. Set it back to "source-over" for anything else.
+
+· Two lights, not one: pick two fixed direction vectors, one warm and one cool. For each point use its own position as a surface normal, dot it with each light, and tint that point by the result. A single flat colour looks dead; two lights give it a body.
+
+· A rim: points whose normal is perpendicular to the view direction get brightened. That edge glow is most of the perceived quality.
+
+· Trails: instead of clearing the canvas each frame, fill it with the background colour at about 0.18 alpha. The motion smears slightly and reads as light rather than as dots.
+
+· The shapes: define each one as a list of 3D line segments — a house is a box plus a roof, a key is a ring plus a shaft with teeth, a SOLD sign is a post and a panel. Then sample points along those segments BY ARC LENGTH, so an even spread of particles lands along the outline rather than bunching at corners.
+
+· The morph: hold a shape for about four seconds, then move every particle from its old target to its new one over about one and a half seconds with an ease-in-out. Give each particle a slightly different lag so the shape assembles rather than snapping. Between shapes, pull the particles briefly toward the centre and swirl them, so it reads as the thing being taken apart and rebuilt.
+
+· My brokerage line sits under the mark in a clean sans-serif, letter-spaced, quiet. The mark is the loud thing.
+
+SWAGGER — the technique above gets you a wireframe that spins. These four things are what make it stop a room, so do all of them:
+
+· A HUD ring. A thin circle around the mark, well outside it, with tiny monospace capitals set ON the curve and slowly rotating — my market, my ZIP, a node count, a word like ANSWERING. Set each character with ctx.rotate around the circle centre. Keep it dim. It should read as instrumentation, not decoration.
+
+· A readout. A short monospace line under the mark that changes with the shape: on the house it might say the market, on the SOLD sign the word CLOSED. Two or three words, never a sentence.
+
+· Vocabulary in flight. Words drifting in from the edges toward the mark and being thrown back out the other side, passing behind and in front of it — the words of my business: LISTINGS, REFERRALS, FOLLOW-UP, CLOSINGS, the name of my farm. Incoming ones cool and faint, outgoing ones in my accent colour and brighter, as though the thing ingested them and gave them back improved. Keep them well off the mark so they never collide with it.
+
+· Corner brackets. Four small right-angle brackets just inside the edges of the canvas, in the accent colour at low opacity. They frame it and make the whole thing read as a viewport into something rather than a picture of something.
+
+Restraint, because overdone is worse than plain: the mark is bright, everything else is dim. If a viewer's eye goes to the words before the mark, the words are too loud.
+
+MUST ALSO DO:
+· Pause the animation when document.hidden is true, so it does not cook a laptop battery in a listing presentation.
+· If the browser reports prefers-reduced-motion: reduce, render one still frame and stop.
+· Target 60fps on a five-year-old laptop. If the frame time goes above about 22ms, drop the point count and skip the trails until it recovers.
+
+Give me the whole file in one code block. Then tell me the three numbers I should change to make it feel like mine.`;
+}

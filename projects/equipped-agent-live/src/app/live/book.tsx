@@ -27,7 +27,7 @@ import { LEARNS } from "./learns";
 import { HOST } from "@/lib/contact";
 import { EVENT, eventLine } from "@/lib/event";
 import { RSVP_CC, RSVP_TO, rsvpMailto } from "@/lib/signup";
-import { starterPrompt } from "@/lib/prompts";
+import { orbPrompt, starterPrompt } from "@/lib/prompts";
 
 type Step = "name" | "cell" | "attend" | "working" | "done";
 type Attend = "in-person" | "zoom" | "either";
@@ -46,7 +46,7 @@ export function Book() {
   const [ref, setRef] = useState("");
   const [at, setAt] = useState("");
   const [trouble, setTrouble] = useState("");
-  const [gotIt, setGotIt] = useState(false);
+  const [took, setTook] = useState<"" | "audit" | "orb">("");
 
   // The orb does what the block is doing, and nothing else.
   const mode: Mode = step === "working" ? "think" : step === "done" ? "speak" : "listen";
@@ -92,16 +92,17 @@ export function Book() {
 
   // Handed over at the moment they are most likely to actually do it.
   const starter = useMemo(() => starterPrompt(name, ref || "pending"), [name, ref]);
-  const takeStarter = useCallback(async () => {
+  const orb = useMemo(() => orbPrompt(name), [name]);
+  const take = useCallback(async (which: "audit" | "orb", text: string) => {
     try {
-      await navigator.clipboard.writeText(starter);
-      setGotIt(true);
+      await navigator.clipboard.writeText(text);
+      setTook(which);
     } catch {
       // No clipboard permission: the text is right there and selectable, and
       // the button does not get to claim a copy that did not happen.
-      setGotIt(false);
+      setTook("");
     }
-  }, [starter]);
+  }, []);
 
   const saved = at
     ? new Date(at).toLocaleString(undefined, {
@@ -282,8 +283,8 @@ export function Book() {
             </p>
             <pre className="starter-text" aria-label="Your starter prompt">{starter}</pre>
             <div className="starter-go">
-              <button type="button" onClick={takeStarter}>
-                {gotIt ? "Copied — now paste it into Claude" : "Copy my starter"}
+              <button type="button" onClick={() => take("audit", starter)}>
+                {took === "audit" ? "Copied — now paste it into Claude" : "Copy my audit"}
               </button>
               <a href="https://claude.ai/new" target="_blank" rel="noreferrer">
                 Open Claude
@@ -295,6 +296,26 @@ export function Book() {
               move on. Bring what it builds you on Friday and we will make it
               sharper in the room.
             </p>
+
+            <div className="starter-orb">
+              <h4 className="display">And build the thing you have been staring at.</h4>
+              <p>
+                One more, for the fun of it. This one builds you your own
+                version of Val — the mark at the top of this page — as a single
+                file you double-click. Your colours, your market, your shapes.
+                It goes on a laptop at an open house, or in a screen recording
+                that does not look like everybody else&rsquo;s.
+              </p>
+              <p className="starter-real">
+                Straight with you: this hands over the method — the maths, the
+                lighting, the morph — not our finished engine. You will get
+                something good in one shot and something great after you push
+                it around. That pushing is what Friday is.
+              </p>
+              <button type="button" onClick={() => take("orb", orb)}>
+                {took === "orb" ? "Copied — paste it into Claude" : "Copy the orb build"}
+              </button>
+            </div>
 
             <div className="starter-alt">
               <p>

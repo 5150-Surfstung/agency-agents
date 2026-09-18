@@ -2235,3 +2235,43 @@ body {
   font-size: 0.9375rem;
   color: var(--color-cream);
 }
+
+.starter-orb {
+  margin-top: 1.35rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--color-rule);
+}
+.starter-orb h4 {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(1.1rem, 4.6vw, 1.4rem);
+  line-height: 1.12;
+  letter-spacing: -0.028em;
+  font-variation-settings: "wdth" 108;
+  color: var(--color-cream);
+}
+.starter-orb p {
+  margin: 0.6rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-soft);
+}
+.starter-real {
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--color-rule-strong);
+  color: var(--color-faint) !important;
+  font-size: 0.875rem !important;
+}
+.starter-orb button {
+  margin-top: 0.9rem;
+  padding: 0.8rem 1.2rem;
+  border: 1px solid var(--color-gold);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-gold);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+.starter-orb button:hover { background: color-mix(in srgb, var(--color-gold) 14%, transparent); }
