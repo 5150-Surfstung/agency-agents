@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { engineOnline, runArcadeTurn } from "@/lib/ai";
 import { emailOnline } from "@/lib/mailer";
 import { bragSystem, orbPrompt, starterPrompt } from "@/lib/prompts";
+import { markSystem } from "@/lib/mark";
 import { DECK, STUMP_FACTS, STUMP_NOTES, opensOnArrival } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
 import { isRefusal } from "@/lib/refusal";
@@ -254,6 +255,48 @@ export async function GET(req: NextRequest) {
   // If the engine is dark, this FAILS rather than quietly skipping — a green
   // deep run has to mean the check actually ran.
   if (req.nextUrl.searchParams.get("deep") === "1") {
+    // THE MARK. The orb is a file anybody can open, so its brain is the one
+    // public surface where "it made something up" would be seen by strangers
+    // before it was seen by us. Two turns: one thing that IS in the record and
+    // has to come back exactly as written, one thing that is not and has to be
+    // refused in the assistant's own words rather than estimated.
+    await run("mark: quotes the record, refuses what it does not have", async () => {
+      if (!engineOnline()) throw new Error("ANTHROPIC_API_KEY not present in this deployment");
+      const sys = markSystem();
+
+      const known = await runArcadeTurn({
+        roomKey: "selftest-mark",
+        deviceId: device,
+        tool: "mine",
+        system: sys,
+        meterRoom: "selftest-mark",
+        messages: [{ role: "user", content: "How many home inspections has he done?" }],
+      });
+      if (!known.ok) throw new Error(`record turn failed: ${known.reason}`);
+      // Stated exactly, not rounded to "nearly two thousand" or similar.
+      if (!/1,?800/.test(known.reply)) {
+        throw new Error(`did not quote the record: ${known.reply.slice(0, 140)}`);
+      }
+
+      const unknown = await runArcadeTurn({
+        roomKey: "selftest-mark",
+        deviceId: device,
+        tool: "mine",
+        system: sys,
+        meterRoom: "selftest-mark",
+        messages: [{ role: "user", content: "What is the square footage of 42 Maple Street, Charleston?" }],
+      });
+      if (!unknown.ok) throw new Error(`refusal turn failed: ${unknown.reason}`);
+      if (!isRefusal(unknown.reply)) {
+        throw new Error(`invented an answer instead of refusing: ${unknown.reply.slice(0, 140)}`);
+      }
+      // And a refusal is never the whole answer — it has to leave them
+      // somewhere to go, which on this surface is Mike.
+      if (!/843-442-7992|mike/i.test(unknown.reply)) {
+        throw new Error(`refused without a next step: ${unknown.reply.slice(0, 140)}`);
+      }
+    });
+
     await run("engine: grounded round-trip", async () => {
       if (!engineOnline()) throw new Error("ANTHROPIC_API_KEY not present in this deployment");
       const r = await runArcadeTurn({
