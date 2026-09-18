@@ -44,6 +44,8 @@ export interface Store {
   /** Val's reservation. Returns the row's real timestamp, which is what the
    *  confirmation on screen is allowed to show. */
   rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }): Promise<string>;
+  /** How many have actually booked. A count of rows, nothing about who. */
+  rsvpCount(): Promise<number>;
 
   meterLog(room: string, e: ToolEvent): Promise<void>;
   meterCount(room: string, deviceId: string, sinceMs: number): Promise<number>;
@@ -191,6 +193,7 @@ class MemoryStore implements Store {
     return this.events.reduce((s, e) => s + e.costUsd, 0);
   }
   private rsvps = new Map<string, string>();
+  async rsvpCount() { return this.rsvps.size; }
   async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
     if (!r.name.trim()) throw new Error("need_name");
     const had = this.rsvps.get(r.ref);
@@ -654,6 +657,10 @@ class RpcStore implements Store {
       p_seconds: Math.max(1, Math.round(sinceMs / 1000)),
     });
     return Number(n) || 0;
+  }
+  async rsvpCount() {
+    const n = await this.call<number>("live_rsvp_count", {});
+    return Number(n ?? 0);
   }
   async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
     const at = await this.call<string>("live_rsvp_add", {

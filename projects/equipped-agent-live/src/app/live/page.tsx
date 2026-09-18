@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Top } from "./top";
 import { Closer } from "./closer";
-import { Deadlines } from "./deadlines";
 import { MarketPanel } from "./market-panel";
+import { OrbGive } from "./orb-give";
+import { Seats } from "./seats";
 import { Profile } from "./profile";
 import { Book } from "./book";
 import { HOST } from "@/lib/contact";
@@ -117,6 +118,7 @@ export default function LivePage() {
               </dd>
             </div>
           </dl>
+            <Seats />
           </div>
         }
       />
@@ -124,11 +126,9 @@ export default function LivePage() {
       {/* Proof before argument. */}
       <MarketPanel />
 
-      {/* The second instrument. Pure arithmetic, so it costs nothing and
-          answers instantly — and an agent with a live file uses it tonight. */}
-      <section className="invite-band">
-        <Deadlines />
-      </section>
+      {/* Ungated on purpose — see orb-give.tsx. */}
+      <OrbGive />
+
 
       {/* ---- the one scarce thing. Everything else about AI is free. ---- */}
       <section className="invite-why">
@@ -186,10 +186,12 @@ export default function LivePage() {
           <li>
             <span className="runsheet-when">Last fifteen</span>
             <p>
-              We turn the MLS connection on and ask it about your farm, live, on
-              the screen — then you leave with{" "}
+              We turn the MLS connection on and ask it about your farm, live,
+              on the screen — then you leave with{" "}
               <Link href="/kit">the page of prompts</Link> that runs the rest of
-              your week. Free, no email, complete as written.
+              your week, and{" "}
+              <Link href="/t2k">the tool that counts a contract&rsquo;s
+              deadlines</Link> for you. Free, no email, complete as written.
             </p>
           </li>
           <li>
