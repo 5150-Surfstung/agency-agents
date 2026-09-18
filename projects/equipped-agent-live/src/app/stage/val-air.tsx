@@ -22,17 +22,24 @@ const GLYPHS = "0123456789ABCDEF·▸";
 // This lives on the full-bleed canvas rather than the orb's own: that one is
 // only as wide as the orb box, so a word had nowhere to travel and every one
 // of them landed on top of the shape.
+// Going in: the raw material of the job — the stuff an agent already has and
+// mostly cannot get to. Coming out: what it turns into, and the names of the
+// actual machinery, because the hour teaches one named tool rather than "AI"
+// and the words in the air should say so.
 const WORDS_IN = [
   "LEADS", "CRM", "REFERRALS", "YOUR DATABASE", "THE FARM", "PAST CLIENTS",
   "LISTING APPOINTMENTS", "OPEN HOUSES", "YOUR SPHERE", "COMPS",
   "SHOWING REQUESTS", "THE CONTRACT", "YOUR MLS", "FOLLOW-UP",
+  "THE 11PM TEXT", "THE INSPECTION", "THAT ONE DETAIL", "EVERY DEADLINE",
 ];
 const WORDS_OUT = [
+  "CLAUDE", "A SKILL OF YOUR OWN", "CONNECTORS", "YOUR MLS, IN ENGLISH",
+  "GROUNDED ANSWERS", "\u201CI DON\u2019T HAVE THAT\u201D", "BUILT ON YOUR ACCOUNT",
   "MENTORSHIP", "CONNECTIONS", "TRAINING", "LEADING AI TECHNOLOGY",
   "COLLABORATION", "THE OFFICE", "TRACK TO KEYS", "SPEED TO LEAD",
   "SMARTER TOOLS", "STRONGER AGENTS", "BIGGER OPPORTUNITIES", "REAL IMPACT",
   "PEOPLE · TOOLS · OPPORTUNITY", "AN ON-SITE DIRECTOR", "YOUR OWN FRONT DESK",
-  "A PLAN THAT FITS YOU", "THE AGENT CONNECTION",
+  "A PLAN THAT FITS YOU", "THE AGENT CONNECTION", "SURFSTUNG SYSTEMS",
 ];
 const COL = ["124,186,214", "246,244,238", "217,174,100"];
 

@@ -29,7 +29,7 @@ import { EVENT, eventLine } from "@/lib/event";
 import { RSVP_CC, RSVP_TO, rsvpMailto } from "@/lib/signup";
 import { orbPrompt, starterPrompt } from "@/lib/prompts";
 
-type Step = "name" | "cell" | "attend" | "working" | "done";
+type Step = "name" | "cell" | "email" | "attend" | "working" | "done";
 type Attend = "in-person" | "zoom" | "either";
 
 const ATTEND_SAYS: Record<Attend, string> = {
@@ -42,6 +42,9 @@ export function Book() {
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
   const [cell, setCell] = useState("");
+  const [email, setEmail] = useState("");
+  // What the server actually did. Never assumed, never optimistic.
+  const [emailed, setEmailed] = useState(false);
   const [attend, setAttend] = useState<Attend>("in-person");
   const [ref, setRef] = useState("");
   const [at, setAt] = useState("");
@@ -77,7 +80,7 @@ export function Book() {
           headers: { "content-type": "application/json" },
           // Sending the reference back on a retry is what stops a flaky
           // connection turning one person into three seats.
-          body: JSON.stringify({ name, cell, attend: chosen, ref: ref || undefined }),
+          body: JSON.stringify({ name, cell, email, attend: chosen, ref: ref || undefined }),
         });
         const j = await r.json().catch(() => null);
         if (!r.ok || !j?.ok) {
@@ -91,6 +94,7 @@ export function Book() {
         }
         setRef(String(j.ref));
         setAt(String(j.at));
+        setEmailed(Boolean(j.emailed));
         setStep("done");
         // It landed: hit the orb once, then let the ticket arrive in beats.
         setBeat((n) => n + 1);
@@ -186,7 +190,7 @@ export function Book() {
               </p>
               <form
                 className="book-row"
-                onSubmit={(e) => { e.preventDefault(); setStep("attend"); }}
+                onSubmit={(e) => { e.preventDefault(); setStep("email"); }}
               >
                 <input
                   inputMode="tel"
@@ -197,6 +201,33 @@ export function Book() {
                   aria-label="Your cell, optional"
                 />
                 <button type="submit">{cell.trim() ? "Use that" : "Skip it"}</button>
+              </form>
+            </>
+          )}
+
+          {step === "email" && (
+            <>
+              <p className="book-say display">
+                Where do I send your kit?
+              </p>
+              <p className="book-why">
+                Both prompts, every step written out, and your reference — one
+                email, no list, no newsletter, no second one unless you ask.
+              </p>
+              <form
+                className="book-row"
+                onSubmit={(e) => { e.preventDefault(); setStep("attend"); }}
+              >
+                <input
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value.slice(0, 160))}
+                  placeholder="you@wherever.com"
+                  aria-label="Your email"
+                />
+                <button type="submit">{email.trim() ? "Send it there" : "Skip it"}</button>
               </form>
             </>
           )}
@@ -331,13 +362,23 @@ export function Book() {
             </p>
           )}
 
-          <p className="dash-keep">
-            <b>Take the file.</b> It is every step in order — open Claude,
-            paste this, answer that, install it, say the four words — with the
-            whole prompt inside it, so there is nothing to come back here for.
-            Twenty minutes, and it says which parts need a paid plan and which
-            do not.
-          </p>
+          <div className="dash-kit">
+            <h3 className="display">Your kit is ready.</h3>
+            <p>
+              Both prompts with buttons that copy them, the files, the series
+              and what we do on the 2nd — one page, yours, bookmark it. The
+              prompts keep getting better and that link always has the current
+              ones.
+            </p>
+            <a className="dash-kit-go" href={`/kit/${encodeURIComponent(ref)}`}>
+              Open my kit
+            </a>
+            <p className="dash-kit-fine">
+              {emailed
+                ? `The link is also in your inbox at ${email} — check spam if it is not there in a minute.`
+                : "Bookmark it or send yourself the link — nothing was emailed, and this page will not pretend otherwise."}
+            </p>
+          </div>
 
           <p className="dash-truth">
             Straight about what just happened: your reservation is a row in a

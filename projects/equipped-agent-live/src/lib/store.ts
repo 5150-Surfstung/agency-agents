@@ -48,6 +48,9 @@ export interface Store {
   rsvpCount(): Promise<number>;
   /** Consent, given after the seat exists so it never gates the booking. */
   rsvpRoom(ref: string, show: boolean, brokerage: string, bringing: string): Promise<boolean>;
+  /** One reservation by its reference, for the personal kit page. First name
+   *  and attendance only — never the cell, the email or the full name. */
+  rsvpGet(ref: string): Promise<{ who: string; attend: string; at: string } | null>;
   /** The public wall: first name and brokerage of people who opted in. */
   rsvpWall(): Promise<{ who: string; brokerage: string; bringing: boolean }[]>;
 
@@ -208,6 +211,12 @@ class MemoryStore implements Store {
     return true;
   }
   async rsvpWall() { return [...this.room.values()].reverse(); }
+  async rsvpGet(ref: string) {
+    const at = this.rsvps.get(ref);
+    if (!at) return null;
+    const name = this.rsvpNames.get(ref) ?? "";
+    return { who: name.split(" ")[0] ?? "", attend: "in-person", at };
+  }
   async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
     if (!r.name.trim()) throw new Error("need_name");
     const had = this.rsvps.get(r.ref);
@@ -686,6 +695,11 @@ class RpcStore implements Store {
   async rsvpWall() {
     const rows = await this.call<{ who: string; brokerage: string; bringing: boolean }[]>("live_rsvp_wall", {});
     return Array.isArray(rows) ? rows : [];
+  }
+  async rsvpGet(ref: string) {
+    const rows = await this.call<{ who: string; attend: string; at: string }[]>("live_rsvp_get", { p_ref: ref });
+    const r = Array.isArray(rows) ? rows[0] : null;
+    return r ? { who: String(r.who ?? ""), attend: String(r.attend ?? "in-person"), at: String(r.at) } : null;
   }
   async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
     const at = await this.call<string>("live_rsvp_add", {

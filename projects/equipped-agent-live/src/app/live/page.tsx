@@ -143,48 +143,12 @@ export default function LivePage() {
           tier is genuinely enough for everything in this hour.
         </p>
 
-        <ol className="learn-list">
-          <li>
-            <span className="learn-n">Briefing it</span>
-            <p>
-              The whole difference between people who get nothing out of this
-              and people who run their week on it. Asking a question gets you
-              a search engine with better manners. Handing over your listing,
-              your terms, your voice and your constraints gets you a colleague
-              who already knows the file. You will do the second one, out
-              loud, and see the gap.
-            </p>
-          </li>
-          <li>
-            <span className="learn-n">Making it say &ldquo;I don&rsquo;t know&rdquo;</span>
-            <p>
-              The part nobody teaches and the only reason any of this is safe
-              in front of a client. You will ground it in a real fact sheet,
-              then ask it something nobody told it, and watch it refuse
-              instead of inventing. If you learn one thing on the 2nd, make it
-              this one.
-            </p>
-          </li>
-          <li>
-            <span className="learn-n">Connecting it to the MLS</span>
-            <p>
-              Claude reaches outside itself through connectors, and FlexMLS
-              publishes one. Switching it on is a settings screen and a key,
-              not a project — and then you ask about your own farm in English
-              and it answers from the record.
-            </p>
-          </li>
-          <li>
-            <span className="learn-n">Keeping it</span>
-            <p>
-              A Skill is a version of Claude that already knows your market,
-              your brokerage and how you talk, so you stop re-explaining
-              yourself every time you open a window. You leave with one. Skills
-              install on the paid plans; on the free tier you paste yours in
-              and it works the same, one conversation at a time.
-            </p>
-          </li>
-        </ol>
+        <ul className="learn-tight">
+          <li><b>Briefing it.</b> A question gets a search engine with better manners. Handing over the listing, the terms and your voice gets a colleague who knows the file.</li>
+          <li><b>Making it say &ldquo;I don&rsquo;t know&rdquo;.</b> The only reason this is safe in front of a client, and the part nobody teaches.</li>
+          <li><b>Connecting it to the MLS.</b> A settings screen and a key, not a project.</li>
+          <li><b>Keeping it.</b> A version that already knows your market and how you talk, so you stop re-explaining yourself.</li>
+        </ul>
 
         <p className="learn-cost">
           Plainly, on cost: free covers the hour and almost everything after
@@ -208,24 +172,11 @@ export default function LivePage() {
           keeps working after you leave.
         </p>
 
-        {/* The questions are the product. An agent reading this list is
-            already thinking of the one they would ask about their own farm,
-            and every one of these maps to something the connector actually
-            serves — days on market, inventory, absorption, price ratios,
-            listing search, and their own listings. */}
-        <ul className="asks">
-          <li>What are days on market doing in West Ashley this quarter versus last?</li>
-          <li>How much inventory is actually sitting in 29407 right now?</li>
-          <li>What is the absorption rate in my farm — how many months of supply?</li>
-          <li>List-to-sale price ratio in my neighborhood this year, by month.</li>
-          <li>Every three-bedroom under $500k that came on this week in my ZIP.</li>
-          <li>What did my own listings do last month?</li>
-        </ul>
         <p className="asks-note">
-          You type those. In English. It answers from the record, on the
-          screen, in front of the room — and when it does not have something,
-          it says so instead of guessing. Bring the question you have been
-          meaning to ask about your own farm; that is the one we will run.
+          You type the question. In English. It answers from the record, on
+          the screen — and when it does not have something, it says so instead
+          of guessing. Bring the one you have been meaning to ask about your
+          own farm; that is the one we run.
         </p>
 
         <ol className="runsheet">
@@ -253,9 +204,7 @@ export default function LivePage() {
               We turn the MLS connection on and ask it about your farm, live,
               on the screen — then you leave with{" "}
               <Link href="/kit">the page of prompts</Link> that runs the rest of
-              your week, and{" "}
-              <Link href="/t2k">the tool that counts a contract&rsquo;s
-              deadlines</Link> for you. Free, no email, complete as written.
+              your week. Free, no email, complete as written.
             </p>
           </li>
           <li>
@@ -337,36 +286,6 @@ export default function LivePage() {
         </p>
       </section>
 
-      {/* ---- the only ask on the page, and it is placed last on purpose: a
-              stranger who came for the tool has already been paid before
-              anybody says the word brokerage. ---- */}
-      <section className="invite-for">
-        <h2 className="display">
-          If where you are feels a step behind, sit in the back and watch.
-        </h2>
-        <ul className="who">
-          <li>
-            <b>A tech-driven team with old-school experience.</b> The tools are
-            new. Picking up the phone, knowing the street, and remembering what
-            somebody told you in March is not — and that part is still the job.
-          </li>
-          <li>
-            <b>Serve clients the way it used to be done.</b> Same follow-up,
-            same attention to the small thing they mentioned once, except now
-            something remembers it for you and nudges you on the right day.
-          </li>
-          <li>
-            <b>Nobody pitches you from the front of the room.</b> Come for the
-            hour, take the build home, and use it whether you ever move an inch.
-            The longer conversation only happens if you start it.
-          </li>
-        </ul>
-        <p className="invite-bring">
-          <b>And if you do want it:</b> we stay in the office afterwards. Ask
-          what the team actually is, what eXp does differently, what the first
-          ninety days look like. Coffee, no script, no closing.
-        </p>
-      </section>
 
       <Room />
 

@@ -14,6 +14,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
+import { emailOnline, looksLikeEmail, sendEmail } from "@/lib/mailer";
+import { kitHtml, kitText } from "@/lib/kit";
+import { HOST } from "@/lib/contact";
 
 /** Short, unambiguous, sayable down a phone: no O/0, no I/1. */
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -31,12 +34,14 @@ export async function POST(req: NextRequest) {
   let attend = "in-person";
   let note = "";
   let ref = "";
+  let email = "";
   try {
     const b = await req.json();
     name = String(b?.name ?? "").trim().slice(0, 80);
     cell = String(b?.cell ?? "").trim().slice(0, 32);
     attend = String(b?.attend ?? "in-person").trim();
     note = String(b?.note ?? "").trim().slice(0, 400);
+    email = String(b?.email ?? "").trim().slice(0, 160);
     // The browser may hand back a reference from a previous attempt, which is
     // what makes a retry idempotent instead of a second seat.
     ref = String(b?.ref ?? "").trim().slice(0, 24);
@@ -52,7 +57,22 @@ export async function POST(req: NextRequest) {
 
   try {
     const at = await getStore().rsvpAdd({ ref, name, cell, attend, note });
-    return NextResponse.json({ ok: true, ref, at });
+
+    // THE KIT. `emailed` is what the sender actually returned — the page
+    // branches on it and only says "check your inbox" when something really
+    // went. With no provider configured this is false and the page hands over
+    // the file instead, which is the honest fallback rather than a promise.
+    let emailed = false;
+    if (email && looksLikeEmail(email) && emailOnline()) {
+      emailed = await sendEmail({
+        to: email,
+        replyTo: HOST.email,
+        subject: `Your kit — The Equipped Agent (${ref})`,
+        text: kitText(name, ref),
+        html: kitHtml(name, ref),
+      });
+    }
+    return NextResponse.json({ ok: true, ref, at, emailed });
   } catch (e) {
     const msg = String(e);
     const known = /too_many/.test(msg) ? "too_many" : /need_name/.test(msg) ? "need_name" : "store_error";

@@ -71,6 +71,12 @@ export function OrbGive() {
           {took === "val" ? "Copied — paste it into Claude" : "Build mine, whatever I do"}
         </button>
 
+        <p className="give-kit">
+          Both of these, plus every step written out, land in your inbox when
+          you take a seat below. Or take them now — the buttons copy the real
+          thing, no signup.
+        </p>
+
         <p className="give-mike">
           And while you are here and not an agent: {HOST.first} sells houses.
           Twenty years, {HOST.brokerage}, Charleston. If you have been idly
