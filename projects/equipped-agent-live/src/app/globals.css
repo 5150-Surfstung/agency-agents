@@ -2530,3 +2530,32 @@ body {
   color: var(--color-soft);
 }
 .dash-keep b { color: var(--color-cream); }
+
+/* ── for everybody who is not an agent ─────────────────────────────────── */
+.give-anyone {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-rule);
+}
+.give-anyone h3 {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(1.35rem, 5.4vw, 1.8rem);
+  line-height: 1.08;
+  letter-spacing: -0.032em;
+  font-variation-settings: "wdth" 108;
+  color: var(--color-cream);
+}
+.give-yours {
+  padding-left: 1rem;
+  border-left: 2px solid var(--color-gold);
+  color: var(--color-cream) !important;
+}
+.give-yours b { color: var(--color-gold-bright); }
+.give-mike {
+  margin-top: 1.5rem !important;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-rule);
+  font-size: 0.9375rem !important;
+  color: var(--color-faint) !important;
+}

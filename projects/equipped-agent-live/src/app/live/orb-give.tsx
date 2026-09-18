@@ -13,16 +13,17 @@
 // screens down, and it asks for nothing — no name, no email, no booking.
 
 import { useCallback, useState } from "react";
-import { orbPrompt } from "@/lib/prompts";
+import { orbPrompt, starterPrompt } from "@/lib/prompts";
+import { HOST } from "@/lib/contact";
 
 export function OrbGive() {
-  const [took, setTook] = useState(false);
-  const take = useCallback(async () => {
+  const [took, setTook] = useState<"" | "orb" | "val">("");
+  const take = useCallback(async (which: "orb" | "val", text: string) => {
     try {
-      await navigator.clipboard.writeText(orbPrompt(""));
-      setTook(true);
+      await navigator.clipboard.writeText(text);
+      setTook(which);
     } catch {
-      setTook(false);
+      setTook("");
     }
   }, []);
 
@@ -45,9 +46,39 @@ export function OrbGive() {
         good in one pass and something great once you push it around. Nothing
         asked for in return. No email, no booking, no catch.
       </p>
-      <button type="button" onClick={take} className="give-go">
-        {took ? "Copied — paste it into Claude" : "Copy the orb build"}
+      <button type="button" onClick={() => take("orb", orbPrompt(""))} className="give-go">
+        {took === "orb" ? "Copied — paste it into Claude" : "Copy the orb build"}
       </button>
+
+      {/* This page is going on a personal feed, so most of the people who see
+          it do not sell houses. They get the same thing, pointed at whatever
+          they do. */}
+      <div className="give-anyone">
+        <h3 className="display">Not an agent? It does not care.</h3>
+        <p>
+          This one is the bigger of the two. It asks what you do for a living
+          first — lender, contractor, photographer, salon owner, teacher,
+          whatever it is — then interviews you about where your week actually
+          leaks, tells you the three biggest gaps, and writes you your own
+          assistant aimed at them. Then that assistant builds your mark.
+        </p>
+        <p className="give-yours">
+          And it is <b>yours</b>. It gets built inside your own account, it
+          lives there, nobody here gets a copy, and you can open it and rewrite
+          any line of it forever. We only get you started.
+        </p>
+        <button type="button" onClick={() => take("val", starterPrompt("", ""))} className="give-go">
+          {took === "val" ? "Copied — paste it into Claude" : "Build mine, whatever I do"}
+        </button>
+
+        <p className="give-mike">
+          And while you are here and not an agent: {HOST.first} sells houses.
+          Twenty years, {HOST.brokerage}, Charleston. If you have been idly
+          wondering what yours is worth, or you know somebody moving — that is
+          a text to {HOST.cell}, not a commitment. Worst case you find out and
+          go back to your day.
+        </p>
+      </div>
     </section>
   );
 }

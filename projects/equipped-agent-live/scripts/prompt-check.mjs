@@ -21,12 +21,21 @@ import { readFileSync } from "node:fs";
 const src = readFileSync(new URL("../src/lib/prompts.ts", import.meta.url), "utf8");
 const skill = readFileSync(new URL("../src/lib/val-skill.ts", import.meta.url), "utf8");
 
+// Take the RETURNED template literal, not the first one in the function.
+// starterPrompt builds an `intro` template above its return, and grabbing the
+// first backtick silently tested that 251-character string instead of the
+// 12,000-character prompt — every assertion below would have been measuring
+// the wrong text.
 function body(fn) {
   const i = src.indexOf(`export function ${fn}`);
   if (i < 0) throw new Error(`${fn} is gone from prompts.ts`);
-  const s = src.indexOf("`", i);
+  const r = src.indexOf("return `", i);
+  if (r < 0) throw new Error(`${fn} has no returned template literal`);
+  const s = r + "return `".length;
   const e = src.indexOf("`;", s);
-  return src.slice(s + 1, e);
+  const t = src.slice(s, e);
+  if (t.length < 1000) throw new Error(`${fn} extracted only ${t.length} chars — the extractor is wrong, not the prompt`);
+  return t;
 }
 
 const audit = body("starterPrompt");
@@ -47,7 +56,15 @@ const checks = [
   ["audit: states the 1024 limit", /1024 characters or fewer/.test(audit)],
   ["audit: carries fair housing into the skill", /Fair housing is absolute/i.test(audit)],
   ["audit: carries never-rule-on-the-contract", /Never rule on the contract/i.test(audit)],
-  ["audit: carries never-invent-a-property-fact", /Never invent a fact about a property/i.test(audit)],
+  ["audit: carries never-invent-a-fact", /Never invent a fact\./i.test(audit)],
+  ["audit: carries never-promise-an-outcome", /Never promise an outcome/i.test(audit)],
+  ["audit: carries no-regulated-advice", /regulated advice/i.test(audit)],
+  // It goes on a personal feed, so most readers are not agents.
+  ["audit: asks the trade before assuming one", /PHASE 0 — WHO AM I/.test(audit)],
+  ["audit: names non-real-estate trades", /lender, a contractor/i.test(audit)],
+  ["audit: keeps fair housing conditional on real estate", /If I am in real estate/.test(audit)],
+  ["audit: says the skill is theirs, in their account", /lives in MY account/.test(audit)],
+  ["audit: carries the mark method", /Building my mark/.test(audit)],
   ["audit: carries never-claim-an-action", /Never claim an action was taken/i.test(audit)],
   ["audit: says a paid plan is needed to install", /paid plan/i.test(audit)],
 

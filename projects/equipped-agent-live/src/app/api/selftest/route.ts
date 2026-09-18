@@ -6,7 +6,7 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { engineOnline, runArcadeTurn } from "@/lib/ai";
-import { afterHoursSystem, bragSystem } from "@/lib/prompts";
+import { afterHoursSystem, bragSystem, orbPrompt, starterPrompt } from "@/lib/prompts";
 import { DECK, STUMP_FACTS, STUMP_NOTES, opensOnArrival } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
 import { isRefusal } from "@/lib/refusal";
@@ -290,6 +290,61 @@ export async function GET(req: NextRequest) {
       const offersSources =
         /school|district|crime|county|sheriff|police|report card|data|statistics|census|records|numbers|map|walk|visit|drive/i;
       if (!offersSources.test(send)) throw new Error(`redirected nowhere useful: ${send.slice(0, 200)}`);
+    });
+
+    // THE TWO PROMPTS WE HAND TO STRANGERS, PUT IN FRONT OF A REAL MODEL.
+    //
+    // scripts/prompt-check.mjs asserts what the text says; these assert how a
+    // model behaves when it reads it, which is the part that actually decides
+    // whether an agent gets something good or gets garbage. One turn each,
+    // capped at 400 output tokens — about a cent for the pair, which is the
+    // cheapest insurance on this whole page.
+    //
+    // Both are USER turns, because that is how they are handed over: pasted
+    // into a fresh conversation.
+    await run("audit prompt: opens with one question, not a form", async () => {
+      if (!engineOnline()) throw new Error("ANTHROPIC_API_KEY not present in this deployment");
+      const r = await runArcadeTurn({
+        roomKey: key,
+        meterRoom: "prompt-check",
+        tool: "sparring",
+        deviceId: device,
+        system: "Follow the user's message exactly as written.",
+        messages: [{ role: "user", content: starterPrompt("", "") }],
+      });
+      if (!r.ok) throw new Error(`engine ${r.reason}`);
+      // Phase 0 asks what they do. If it instead dumps the interview, the
+      // whole thing reads as a form and people bail.
+      if (!/\bwork\b|\bdo\b|\bjob\b|living/i.test(r.reply)) {
+        throw new Error(`did not open by asking what they do: ${r.reply.slice(0, 160)}`);
+      }
+      if (/^\s*(Q?1[.)]|·|-)\s.*\n.*(Q?2[.)]|·|-)\s/m.test(r.reply)) {
+        throw new Error(`dumped a list of questions instead of asking one: ${r.reply.slice(0, 200)}`);
+      }
+      if (r.reply.trim().length > 700) {
+        throw new Error(`opened with a wall of text (${r.reply.length} chars), not one question`);
+      }
+    });
+
+    await run("orb prompt: asks before it builds", async () => {
+      if (!engineOnline()) throw new Error("ANTHROPIC_API_KEY not present in this deployment");
+      const r = await runArcadeTurn({
+        roomKey: key,
+        meterRoom: "prompt-check",
+        tool: "sparring",
+        deviceId: device,
+        system: "Follow the user's message exactly as written.",
+        messages: [{ role: "user", content: orbPrompt("") }],
+      });
+      if (!r.ok) throw new Error(`engine ${r.reason}`);
+      // It is told to ask four things first. Skipping straight to code means
+      // somebody gets a generic mark in somebody else's colours.
+      if (/<!doctype|<canvas|<html/i.test(r.reply)) {
+        throw new Error(`started building before asking: ${r.reply.slice(0, 160)}`);
+      }
+      if (!r.reply.includes("?")) {
+        throw new Error(`asked nothing: ${r.reply.slice(0, 160)}`);
+      }
     });
   }
 
