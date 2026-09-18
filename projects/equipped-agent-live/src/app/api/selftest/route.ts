@@ -6,6 +6,7 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { engineOnline, runArcadeTurn } from "@/lib/ai";
+import { emailOnline } from "@/lib/mailer";
 import { afterHoursSystem, bragSystem, orbPrompt, starterPrompt } from "@/lib/prompts";
 import { DECK, STUMP_FACTS, STUMP_NOTES, opensOnArrival } from "@/lib/deck";
 import { listingAssistantSystem } from "@/lib/prompts";
@@ -350,7 +351,16 @@ export async function GET(req: NextRequest) {
 
   const allOk = results.every((r) => r.ok);
   return NextResponse.json(
-    { ok: allOk, backend: store.backend(), engineOnline: engineOnline(), results },
+    {
+      ok: allOk,
+      backend: store.backend(),
+      engineOnline: engineOnline(),
+      // Whether this deployment can actually send the kit. Reported so the
+      // question "is the mailer configured?" is answered by the deployment
+      // rather than by somebody's memory of which env vars they pasted where.
+      emailOnline: emailOnline(),
+      results,
+    },
     { status: allOk ? 200 : 500 }
   );
 }
