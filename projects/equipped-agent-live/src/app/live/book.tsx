@@ -23,6 +23,7 @@
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { ValReel, type Mode } from "./val-reel";
+import { Console } from "./console";
 import { LEARNS } from "./learns";
 import { HOST } from "@/lib/contact";
 import { EVENT, eventLine } from "@/lib/event";
@@ -152,10 +153,28 @@ export function Book() {
       })
     : "";
 
+  // The record as it stands. A field is here only once its value exists —
+  // that is what makes this a demonstration rather than a mock-up.
+  const rows = [
+    ...(name.trim() ? [{ k: "Name", v: name.trim(), hot: step === "name" }] : []),
+    ...(cell.trim() ? [{ k: "Cell", v: cell.trim(), hot: step === "cell" }] : []),
+    ...(email.trim() ? [{ k: "Email", v: email.trim(), hot: step === "email" }] : []),
+    ...(step === "done" ? [{ k: "Attending", v: ATTEND_SAYS[attend] }] : []),
+    ...(ref ? [{ k: "Reference", v: ref, hot: true }] : []),
+    ...(saved ? [{ k: "Logged", v: saved }] : []),
+  ];
+  const consStatus = step === "working" ? "writing" : step === "done" ? "saved" : "listening";
+  const consNote =
+    step === "done"
+      ? "That row is in a database now. On your own build this is where the phone buzzes."
+      : "This is the other side. When somebody books with you, this is what you would be looking at.";
+
+
   return (
     <section className="book" id="seat">
       <ValReel facts={LEARNS} height="34vh" orb="28vh" mode={mode} busy beat={beat} />
 
+      <div className="book-stage">
       {step !== "done" ? (
         <div className="book-talk">
           {step === "name" && (
@@ -474,6 +493,9 @@ export function Book() {
           </p>
         </div>
       )}
+
+        <Console rows={rows} status={consStatus} note={consNote} />
+      </div>
     </section>
   );
 }

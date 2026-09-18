@@ -2898,3 +2898,111 @@ body {
   line-height: 1.6;
   color: var(--color-cream);
 }
+
+/* ── the booking as a two-sided demo ───────────────────────────────────── */
+.book-stage { display: grid; gap: 1.5rem; margin-top: 0.5rem; }
+@media (min-width: 56rem) {
+  .book-stage { grid-template-columns: 1.1fr 0.9fr; gap: 2rem; align-items: start; }
+}
+
+.cons {
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 10px;
+  background: var(--color-sheet-2);
+  overflow: hidden;
+}
+.cons-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--color-rule);
+  background: var(--color-sheet);
+}
+.cons-who {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+/* The status word carries its own meaning, so the dot is reinforcement and
+   never the only signal — the same rule the charts follow. */
+.cons-led {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-soft);
+}
+.cons-led::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.cons-led.listening { color: var(--color-faint); }
+.cons-led.writing { color: var(--color-gold); animation: cons-pulse 900ms ease-in-out infinite; }
+.cons-led.saved { color: var(--color-moss); }
+@keyframes cons-pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.45 } }
+
+.cons-body { padding: 0.5rem 0.9rem 0.9rem; min-height: 8.5rem; }
+.cons-idle {
+  margin: 1.4rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--color-faint);
+}
+.cons-rows { margin: 0; }
+.cons-rows > div {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0 0.75rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--color-rule);
+  /* Each field arrives when its value does. */
+  animation: cons-in 420ms cubic-bezier(0.16, 0.9, 0.3, 1) both;
+}
+.cons-rows > div:last-child { border-bottom: none; }
+.cons-rows dt {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+  padding-top: 0.15rem;
+}
+.cons-rows dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--color-cream);
+  overflow-wrap: anywhere;
+}
+.cons-rows .hot dd { color: var(--color-gold-bright); }
+@keyframes cons-in {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.cons-note {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-top: 1px solid var(--color-rule);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--color-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cons-rows > div { animation: none; }
+  .cons-led.writing { animation: none; }
+}
