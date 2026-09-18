@@ -37,6 +37,8 @@ export function ValReel({
   mode: override = null,
   busy = false,
   beat,
+  spell = "",
+  spellAccent,
 }: {
   /** The lines, in order. Each one is a full sentence — the orb is not
    *  labelling itself, it is telling somebody what they will be able to do. */
@@ -49,6 +51,10 @@ export function ValReel({
   /** Any number that changes marks a moment — the engine flashes the held
    *  shape and swells for half a second. Fired when a reservation lands. */
   beat?: number;
+  /** A word for the mark to spell in its own wireframe. The booking hands it
+   *  the name somebody just typed, then the reference the database returned. */
+  spell?: string;
+  spellAccent?: [number, number, number];
 }) {
   const [i, setI] = useState(0);
   const [spin, setSpin] = useState(1);
@@ -57,7 +63,7 @@ export function ValReel({
   const t0 = useRef(0);
   const shown = useRef(0);
 
-  const held = busy || override !== null;
+  const held = busy || override !== null || spell.trim().length > 0;
 
   useEffect(() => {
     const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
@@ -117,11 +123,19 @@ export function ValReel({
   return (
     <div
       className="reel"
+      data-spell={spell.trim() ? "yes" : "no"}
       style={{ height, ["--orb" as string]: orb }}
     >
       <ValAir className="air-mask pointer-events-none absolute inset-0 -z-10" />
       <div className="reel-orb">
-        <ValParticles className="absolute inset-0" mode={orbMode} spin={held ? 1 : spin} beat={beat} />
+        <ValParticles
+          className="absolute inset-0"
+          mode={orbMode}
+          spin={held ? 1 : spin}
+          beat={beat}
+          spell={spell}
+          spellAccent={spellAccent}
+        />
         <div className="holo-scan pointer-events-none absolute inset-0" aria-hidden />
       </div>
       {!held && (

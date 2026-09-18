@@ -219,11 +219,27 @@ export function ValAir({ className = "" }: { className?: string }) {
           // than parked on top of the shape.
           const near = Math.min(1, Math.max(0, (rr - 0.12) / 0.26));
           const edge = Math.min(1, (1 - rr) / 0.12);
-          const A = near * edge * 0.92;
+          // GONE BEFORE IT IS CUT. These travel 0.62 of the long side out from
+          // the middle, which on a wide, short band puts the far end of the
+          // trip outside the canvas — so a word was being sliced in half by
+          // the edge at nearly full opacity and left sitting there, reading as
+          // a stray label rather than something Val threw. Fade each one on
+          // how close its own box is to the wall, measured, so a long phrase
+          // starts dissolving earlier than a short one.
+          const sc2 = 0.55 + rr * 0.55;
+          const halfW = (ctx.measureText(wd.text).width * sc2) / 2;
+          const halfH = (fs * sc2) / 2;
+          const outX = Math.max(0, Math.abs(x - w / 2) + halfW - (w / 2 - 4));
+          const outY = Math.max(0, Math.abs(y - h / 2) + halfH - (h / 2 - 4));
+          const room = Math.min(
+            outX > 0 ? Math.max(0, 1 - outX / (fs * 1.5)) : 1,
+            outY > 0 ? Math.max(0, 1 - outY / (fs * 1.2)) : 1
+          );
+          const A = near * edge * room * 0.92;
           if (A <= 0.02) continue;
           ctx.save();
           ctx.translate(x, y);
-          ctx.scale(0.55 + rr * 0.55, 0.55 + rr * 0.55);
+          ctx.scale(sc2, sc2);
           // What comes out of Val is gold; what goes in is the cool side.
           ctx.fillStyle = wd.out ? `rgba(226,190,124,${A})` : `rgba(150,186,212,${A * 0.8})`;
           ctx.fillText(wd.text, 0, 0);

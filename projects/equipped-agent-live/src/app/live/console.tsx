@@ -21,16 +21,21 @@ export function Console({
   rows,
   status,
   note,
+  hit = false,
 }: {
   rows: Row[];
   status: "listening" | "writing" | "saved";
   note: string;
+  /** True for the moment the big version of the name collapses into here, so
+   *  the panel visibly catches it. Presentation only — the row it lands on was
+   *  already written from real state before this ever goes true. */
+  hit?: boolean;
 }) {
   const light =
     status === "saved" ? "Saved" : status === "writing" ? "Writing" : "Listening";
 
   return (
-    <aside className="cons" aria-label="What the business owner sees">
+    <aside className="cons" data-hit={hit ? "yes" : "no"} aria-label="What the business owner sees">
       <div className="cons-bar">
         <span className="cons-who">val · intake</span>
         <span className={`cons-led ${status}`}>{light}</span>

@@ -61,9 +61,40 @@ export function Book() {
   // disclosure of a fact, never an animation standing in for one.
   const [reveal, setReveal] = useState(0);
   const [beat, setBeat] = useState(0);
+  // THE NAME LANDS BIG. `boom` is the word on screen at full size; `flung` is
+  // the second half of the same move, where it collapses into the record on
+  // the right. Both are pure presentation of something already true — she is
+  // not pretending to save anything here, the row beside it is the save.
+  const [boom, setBoom] = useState("");
+  const [flung, setFlung] = useState(false);
 
   // The orb does what the block is doing, and nothing else.
   const mode: Mode = step === "working" ? "think" : step === "done" ? "speak" : "listen";
+
+  // WHAT THE MARK IS HOLDING. Once they have given a name, Val stops cycling
+  // through her thirteen objects and holds THEIR name, spelled in the same
+  // wireframe — she is holding their seat, so she holds their name. When the
+  // database hands back a reference she switches to that, in cream rather than
+  // gold, because at that point the thing she is holding is a receipt. Every
+  // character of both came from outside this component: one they typed, one
+  // Postgres returned.
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const first = parts[0] ?? "";
+  // She can hold about eight letters legibly at the size the mark runs on a
+  // phone. A longer first name becomes a monogram rather than a word cut off
+  // mid-letter — "BARTHOLOM" reads as a bug, "BK" reads as a decision. The
+  // line underneath then says which one it is, so the claim stays true.
+  const initials = (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : first.slice(0, 1)).toUpperCase();
+  const token = first.length <= 8 ? first : initials;
+  const asInitials = token !== first;
+  // She keeps holding the NAME, not the reference. A nine-character reference
+  // spelled across the mark is a jumble at the size it actually runs — and an
+  // illegible receipt is worse than no receipt. The reference is already the
+  // largest thing on the stub, in monospace, where a number belongs. What
+  // changes here is the colour: gold while she is taking it, cream once it is
+  // saved, which is the same shift the key and the sold sign use.
+  const spell = step !== "name" ? token : "";
+  const spellAccent: [number, number, number] = ref ? [242, 239, 231] : [217, 174, 100];
 
   const when = eventLine();
   const mailto = useMemo(
@@ -172,7 +203,43 @@ export function Book() {
 
   return (
     <section className="book" id="seat">
-      <ValReel facts={LEARNS} height="34vh" orb="28vh" mode={mode} busy beat={beat} />
+      <ValReel
+        facts={LEARNS}
+        height="34vh"
+        orb="28vh"
+        mode={mode}
+        busy
+        beat={beat}
+        spell={spell}
+        spellAccent={spellAccent}
+      />
+
+      {spell && (
+        <p className="book-holding" aria-live="polite">
+          {ref ? (
+            <>
+              Val is still holding <b>{first}</b>&rsquo;s seat. The reference on the
+              ticket, <b>{ref}</b>, is the row in the database &mdash; not a number
+              this page made up to look finished.
+            </>
+          ) : asInitials ? (
+            <>Val is holding <b>{first}</b>&rsquo;s seat &mdash; those are {first}&rsquo;s initials up there, not a font.</>
+          ) : (
+            <>Val is holding <b>{first}</b>&rsquo;s seat &mdash; and that is {first}&rsquo;s name up there, not a font.</>
+          )}
+        </p>
+      )}
+
+      {boom && (
+        <div
+          className="boom"
+          data-flung={flung ? "yes" : "no"}
+          style={{ ["--chars" as string]: boom.length }}
+          aria-hidden
+        >
+          <span className="boom-word display">{boom}</span>
+        </div>
+      )}
 
       <div className="book-stage">
       {step !== "done" ? (
@@ -184,7 +251,16 @@ export function Book() {
                 className="book-row"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (name.trim().length >= 2) setStep("cell");
+                  if (name.trim().length < 2) return;
+                  setStep("cell");
+                  // The mark takes their name either way; the big version of
+                  // it is the part that gets skipped when motion is unwelcome.
+                  const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+                  if (calm) return;
+                  setBoom(name.trim().split(/\s+/)[0] ?? "");
+                  setFlung(false);
+                  window.setTimeout(() => setFlung(true), 880);
+                  window.setTimeout(() => setBoom(""), 1620);
                 }}
               >
                 <input
@@ -494,7 +570,12 @@ export function Book() {
         </div>
       )}
 
-        <Console rows={rows} status={consStatus} note={consNote} />
+        <Console
+          rows={rows}
+          status={consStatus}
+          note={consNote}
+          hit={Boolean(boom) && flung}
+        />
       </div>
     </section>
   );

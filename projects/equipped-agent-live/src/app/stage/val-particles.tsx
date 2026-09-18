@@ -130,6 +130,65 @@ const GLYPH: Record<string, [number, number][][]> = {
   D: [[[0.14, 0.96], [0.14, 0.02], [0.55, 0.06], [0.88, 0.34], [0.88, 0.64], [0.55, 0.92], [0.14, 0.96]]],
 };
 
+/** THE REST OF THE ALPHABET — so the mark can spell a person's name.
+ *  Same 0..1 box, same y-down convention, same single-stroke construction as
+ *  the four above. Drawn as polylines rather than outlines because that is
+ *  what the sampler eats: it walks a path by arc length and drops builders
+ *  along it, so a letter is a route, not a region. Geometric and slightly
+ *  condensed to sit beside Archivo without arguing with it. */
+const ALPHA: Record<string, [number, number][][]> = {
+  A: [[[0.05, 1], [0.5, 0], [0.95, 1]], [[0.21, 0.66], [0.79, 0.66]]],
+  B: [[[0.13, 0], [0.13, 1]], [[0.13, 0], [0.62, 0.05], [0.8, 0.26], [0.58, 0.48], [0.13, 0.5]],
+      [[0.13, 0.5], [0.66, 0.55], [0.86, 0.76], [0.62, 0.97], [0.13, 1]]],
+  C: [[[0.92, 0.17], [0.6, 0.01], [0.2, 0.15], [0.08, 0.5], [0.2, 0.85], [0.6, 0.99], [0.92, 0.83]]],
+  E: [[[0.9, 0.02], [0.14, 0.02], [0.14, 0.98], [0.9, 0.98]], [[0.14, 0.5], [0.72, 0.5]]],
+  F: [[[0.9, 0.02], [0.14, 0.02], [0.14, 1]], [[0.14, 0.5], [0.7, 0.5]]],
+  G: [[[0.92, 0.17], [0.6, 0.01], [0.2, 0.15], [0.08, 0.5], [0.2, 0.85], [0.6, 0.99], [0.9, 0.81], [0.9, 0.55], [0.56, 0.55]]],
+  H: [[[0.14, 0], [0.14, 1]], [[0.86, 0], [0.86, 1]], [[0.14, 0.5], [0.86, 0.5]]],
+  I: [[[0.5, 0.02], [0.5, 0.98]], [[0.24, 0.02], [0.76, 0.02]], [[0.24, 0.98], [0.76, 0.98]]],
+  J: [[[0.74, 0.02], [0.74, 0.74], [0.57, 0.97], [0.27, 0.97], [0.12, 0.75]]],
+  K: [[[0.14, 0], [0.14, 1]], [[0.88, 0.02], [0.14, 0.55]], [[0.37, 0.38], [0.9, 1]]],
+  M: [[[0.08, 1], [0.08, 0.02], [0.5, 0.63], [0.92, 0.02], [0.92, 1]]],
+  N: [[[0.14, 1], [0.14, 0.02], [0.86, 0.98], [0.86, 0]]],
+  P: [[[0.14, 1], [0.14, 0.02], [0.64, 0.06], [0.84, 0.27], [0.62, 0.5], [0.14, 0.52]]],
+  Q: [Array.from({ length: 21 }, (_, i) => {
+        const a = (i / 20) * Math.PI * 2;
+        return [0.5 + Math.cos(a) * 0.42, 0.5 + Math.sin(a) * 0.48] as [number, number];
+      }), [[0.62, 0.72], [0.96, 1.02]]],
+  R: [[[0.14, 1], [0.14, 0.02], [0.64, 0.06], [0.84, 0.27], [0.62, 0.5], [0.14, 0.52]], [[0.45, 0.52], [0.9, 1]]],
+  T: [[[0.05, 0.02], [0.95, 0.02]], [[0.5, 0.02], [0.5, 1]]],
+  U: [[[0.12, 0], [0.12, 0.72], [0.3, 0.96], [0.7, 0.96], [0.88, 0.72], [0.88, 0]]],
+  V: [[[0.05, 0], [0.5, 1], [0.95, 0]]],
+  W: [[[0.03, 0], [0.24, 1], [0.5, 0.35], [0.76, 1], [0.97, 0]]],
+  X: [[[0.08, 0], [0.92, 1]], [[0.92, 0], [0.08, 1]]],
+  Y: [[[0.07, 0.02], [0.5, 0.5], [0.93, 0.02]], [[0.5, 0.5], [0.5, 1]]],
+  Z: [[[0.1, 0.02], [0.9, 0.02], [0.1, 0.98], [0.9, 0.98]]],
+  "0": [Array.from({ length: 21 }, (_, i) => {
+          const a = (i / 20) * Math.PI * 2;
+          return [0.5 + Math.cos(a) * 0.4, 0.5 + Math.sin(a) * 0.48] as [number, number];
+        })],
+  "1": [[[0.26, 0.18], [0.52, 0.02], [0.52, 0.98]], [[0.24, 0.98], [0.8, 0.98]]],
+  "2": [[[0.12, 0.2], [0.42, 0.02], [0.78, 0.1], [0.82, 0.34], [0.13, 0.98], [0.9, 0.98]]],
+  "3": [[[0.13, 0.11], [0.5, 0.01], [0.84, 0.19], [0.55, 0.45]], [[0.48, 0.45], [0.86, 0.66], [0.66, 0.97], [0.16, 0.9]]],
+  "4": [[[0.7, 1], [0.7, 0.02], [0.08, 0.73], [0.94, 0.73]]],
+  "5": [[[0.86, 0.02], [0.22, 0.02], [0.16, 0.44], [0.56, 0.37], [0.86, 0.58], [0.72, 0.94], [0.2, 0.96]]],
+  "6": [[[0.82, 0.06], [0.44, 0.02], [0.16, 0.35], [0.14, 0.78], [0.44, 0.98], [0.76, 0.85], [0.78, 0.6], [0.42, 0.5], [0.16, 0.65]]],
+  "7": [[[0.08, 0.02], [0.92, 0.02], [0.42, 1]]],
+  "8": [Array.from({ length: 15 }, (_, i) => {
+          const a = (i / 14) * Math.PI * 2;
+          return [0.5 + Math.cos(a) * 0.32, 0.27 + Math.sin(a) * 0.26] as [number, number];
+        }),
+        Array.from({ length: 17 }, (_, i) => {
+          const a = (i / 16) * Math.PI * 2;
+          return [0.5 + Math.cos(a) * 0.38, 0.73 + Math.sin(a) * 0.26] as [number, number];
+        })],
+  "9": [[[0.18, 0.94], [0.56, 0.98], [0.84, 0.65], [0.86, 0.22], [0.56, 0.02], [0.24, 0.15], [0.22, 0.4], [0.58, 0.5], [0.84, 0.35]]],
+  "-": [[[0.16, 0.5], [0.84, 0.5]]],
+  "'": [[[0.5, 0.04], [0.42, 0.3]]],
+  ".": [[[0.44, 0.92], [0.56, 0.92], [0.56, 1], [0.44, 1], [0.44, 0.92]]],
+};
+for (const [k, v] of Object.entries(ALPHA)) if (!GLYPH[k]) GLYPH[k] = v;
+
 function letter(ch: string, x0: number, y0: number, w: number, h: number): [number, number][][] {
   return (GLYPH[ch] ?? []).map((path) => path.map(([x, y]) => [x0 + x * w, y0 + y * h] as [number, number]));
 }
@@ -753,6 +812,84 @@ const FORMS = SHAPES.map((s) => {
 
 export const VAL_SYMBOLS = SHAPES.map((s) => s.id);
 
+type Form = (typeof FORMS)[number];
+
+/** Everything a form needs, from a set of lines — so a shape built at runtime
+ *  is the same kind of object as the thirteen built at module load, and the
+ *  morph machinery cannot tell them apart. */
+function makeForm(id: string, accent: [number, number, number], lines: Line3[]): Form {
+  const big = sample(lines, BUILDERS);
+  const small = sample(lines, SMALL);
+  return {
+    id, says: [], accent, tags: undefined,
+    grp: big.grp, grpS: small.grp,
+    pts: big.pts, link: big.link, corner: big.corner,
+    ptsS: small.pts, linkS: small.link, cornerS: small.corner,
+  };
+}
+
+/** THE MARK SPELLS SOMETHING. Val holds thirteen objects an agent recognises;
+ *  this lets her hold one more — a word that did not exist until somebody
+ *  typed it. Used for the name on a reservation and for the reference the
+ *  database hands back, which is the difference between an animation and a
+ *  receipt: both of those strings are facts before a single particle moves.
+ *
+ *  Extruded on two planes and pinned at the stroke ends, the same way the sold
+ *  sign carries its letters, so the two-light rig has something to catch and
+ *  the word reads as an object turning rather than a decal. */
+const SPELL_CACHE = new Map<string, Form>();
+export function spellForm(text: string, accent: [number, number, number] = [217, 174, 100]): Form | null {
+  const clean = [...text.toUpperCase()]
+    .filter((c) => GLYPH[c] || c === " ")
+    .join("")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 9);
+  if (!clean) return null;
+  const key = `${clean}|${accent.join(",")}`;
+  const hit = SPELL_CACHE.get(key);
+  if (hit) return hit;
+
+  const n = clean.length;
+  // Fit the word to the same box the other shapes live in, so a three-letter
+  // name and an eight-letter one both arrive at a readable size instead of one
+  // filling the frame and the other floating in the middle of it.
+  const SPAN = 1.86;
+  const gap = n > 1 ? Math.min(0.1, 0.34 / n) : 0;
+  const w = (SPAN - (n - 1) * gap) / n;
+  const h = Math.min(0.58, w * 1.6);
+  const D = Math.min(0.06, w * 0.22);
+
+  const flat: [number, number][][] = [];
+  let x = -SPAN / 2;
+  for (const ch of clean) {
+    if (ch !== " ") flat.push(...letter(ch, x, -h / 2, w, h));
+    x += w + gap;
+  }
+  if (!flat.length) return null;
+
+  // Depth: both faces, plus a strut at each stroke's ends. Joining every point
+  // would double the line count for no readability — the ends are what give
+  // the letters thickness when the word turns edge-on.
+  const ends: [number, number][] = [];
+  for (const path of flat) {
+    ends.push(path[0]);
+    if (path.length > 1) ends.push(path[path.length - 1]);
+  }
+  const lines: Line3[] = [
+    ...flat.map((g) => at(g, D)),
+    ...flat.map((g) => at(g, -D)),
+    ...joins(ends, D, -D),
+  ];
+
+  const form = makeForm(`spell:${clean}`, accent, lines);
+  // A handful of names is all one visit produces; the cap is only here so a
+  // pathological caller cannot grow this without bound.
+  if (SPELL_CACHE.size > 24) SPELL_CACHE.clear();
+  SPELL_CACHE.set(key, form);
+  return form;
+}
+
 // Slow on purpose. An earlier pass had the particles SNAP into place with an
 // overshoot, which was exciting for half a second and then over. Forming and
 // dissolving slowly is the thing people can't look away from — and the room is
@@ -787,6 +924,8 @@ export function ValParticles({
   beat,
   mode = null,
   spin: spinIn = 1,
+  spell = "",
+  spellAccent,
 }: {
   className?: string;
   /** Any number that changes when the room does something — votes landing,
@@ -810,6 +949,15 @@ export function ValParticles({
    *  slowing-down is what delivers the line underneath. Read through a ref, so
    *  changing it never restarts the engine. */
   spin?: number;
+  /** A word for the mark to HOLD, spelled in its own wireframe — a person's
+   *  name as they type it, then the reference the database hands back. Set it
+   *  and she morphs out of whatever she was holding and into the word; clear
+   *  it and she morphs back into her own cycle. Read live through a ref, so a
+   *  new word never restarts the engine and the particles travel there from
+   *  exactly where they are. */
+  spell?: string;
+  /** Colour for the spelled word: gold for a name, cream for a reference. */
+  spellAccent?: [number, number, number];
   /** Fires with the held shape while it is assembled, null while drifting, so
    *  the copy underneath can SELL what Val just made rather than label it. */
   onForm?: (shape: { id: string; says: string[]; closing: boolean } | null) => void;
@@ -822,6 +970,10 @@ export function ValParticles({
   modeRef.current = mode;
   const spinRef = useRef(spinIn);
   spinRef.current = spinIn;
+  const spellRef = useRef(spell);
+  spellRef.current = spell;
+  const spellHue = useRef(spellAccent);
+  spellHue.current = spellAccent;
   const beatAt = useRef(-1e9);
   const beatSeen = useRef(beat);
   if (beat !== beatSeen.current) {
@@ -1076,6 +1228,19 @@ export function ValParticles({
     let modeWas: string | null = null;
     const tableIdx = Math.max(0, FORMS.findIndex((f) => f.id === "table"));
     let announced: string | null | undefined;
+    // The word she is holding, the word she is letting go of, and whatever is
+    // on screen right now — `shown` is what a new word flies out of, so the
+    // letters always assemble from the object that was actually there.
+    let spelling: { text: string; form: Form; from: Form | null; at: number } | null = null;
+    let released: { form: Form; at: number } | null = null;
+    let shown: Form | null = null;
+    // The HUD bracket, smoothed. It locks onto the object's bounds, and those
+    // bounds move every frame as the thing turns — under the trail fade that
+    // dragged the readout across the canvas and left a legible ghost of the
+    // previous frame's text beside the current one. Easing the box makes it
+    // settle instead of chasing, which is also how a real target lock behaves.
+    let hud0 = [0, 0, 0, 0];
+    let hudSet = false;
     let yaw = 0;
     let last = 0;
     let lockAt = -1;
@@ -1098,27 +1263,64 @@ export function ValParticles({
 
       // Which shape we are on, and the one we are coming out of.
       const slot = Math.floor(t / PHASE);
-      const form = pinned >= 0 ? FORMS[pinned] : (FORMS[slot % FORMS.length] ?? FORMS[0]);
-      const prevForm = pinned >= 0
-        ? form
-        : (FORMS[(slot + FORMS.length - 1) % FORMS.length] ?? form);
-      const pts = quiet ? form.ptsS : form.pts;
       const p = t % PHASE;
 
-      // `mix` is how far this shape has arrived: 0 as the last one starts to
-      // let go, 1 once this one has landed. A gentle back-ease gives it the
-      // pull-away and the settle without a splice.
-      let mix = 1;
-      if (pinned < 0 && !calm && p < MORPH) {
-        const u = p / MORPH;
+      // A gentle back-ease: the pull-away and the settle, without a splice.
+      const arrive = (u: number) => {
         const C = 0.6;
-        mix = u < 0.5
+        return u < 0.5
           ? (Math.pow(2 * u, 2) * ((C + 1) * 2 * u - C)) / 2
           : (Math.pow(2 * u - 2, 2) * ((C + 1) * (2 * u - 2) + C) + 2) / 2;
+      };
+
+      // ---- a word, if the page has given her one ----
+      // The word takes over the cycle rather than replacing the engine: it
+      // becomes `form`, and whatever was on screen when it arrived becomes
+      // `prevForm`, so the particles fly from the object they were in to the
+      // letters of somebody's name. Letting go is the same trip backwards.
+      const want = spellRef.current.trim();
+      if (want && want !== spelling?.text) {
+        const built = spellForm(want, spellHue.current ?? [217, 174, 100]);
+        if (built) spelling = { text: want, form: built, from: shown, at: t };
+      } else if (!want && spelling) {
+        released = { form: spelling.form, at: t };
+        spelling = null;
       }
+
+      let form: Form;
+      let prevForm: Form;
+      let mix = 1;
+      // How far through a morph we are, whichever morph is running — the
+      // cycle's, a word arriving, or a word being let go. The flare, the
+      // streaks and the spin-up all read from this, so a word gets the same
+      // energy behind it as any other change of shape.
+      let morphU = 1;
+      if (spelling) {
+        form = spelling.form;
+        prevForm = spelling.from ?? form;
+        if (!calm) {
+          morphU = Math.min(1, (t - spelling.at) / MORPH);
+          mix = arrive(morphU);
+        }
+      } else {
+        form = pinned >= 0 ? FORMS[pinned] : (FORMS[slot % FORMS.length] ?? FORMS[0]);
+        prevForm = pinned >= 0
+          ? form
+          : (FORMS[(slot + FORMS.length - 1) % FORMS.length] ?? form);
+        if (pinned < 0 && !calm && p < MORPH) { morphU = p / MORPH; mix = arrive(morphU); }
+        // Coming back out of a word: hold it as the source for one morph so
+        // the letters dissolve into the next object instead of cutting.
+        if (released && !calm) {
+          const u = (t - released.at) / MORPH;
+          if (u < 1) { morphU = Math.max(0, u); prevForm = released.form; mix = arrive(morphU); }
+          else released = null;
+        }
+      }
+      shown = mix >= 0.5 ? form : prevForm;
+      const pts = quiet ? form.ptsS : form.pts;
       const morphing = mix < 1;
       // Energy of the change: nothing at either end, everything in the middle.
-      const flux = morphing ? Math.sin(Math.PI * Math.min(1, Math.max(0, p / MORPH))) : 0;
+      const flux = morphing ? Math.sin(Math.PI * Math.min(1, Math.max(0, morphU))) : 0;
 
       // ---- the room's state, if the room has one ----
       const md = quiet ? null : modeRef.current;
@@ -1126,7 +1328,13 @@ export function ValParticles({
         modeWas = md;
         modeSince = t;
       }
-      modeAmt += ((md ? 1 : 0) - modeAmt) * Math.min(1, dt * 2.4);
+      // A WORD OUTRANKS A MOOD. `listen` parks every builder on the open shell
+      // and `speak` parks them on the table, either of which would quietly
+      // overwrite a shape being held — which is exactly what happened the
+      // first time the booking asked her to spell a name and got a sphere.
+      // While she is holding a word, the mode stands down; the page still has
+      // the status light and the copy to say what is going on.
+      modeAmt += ((md && !spelling ? 1 : 0) - modeAmt) * Math.min(1, dt * 2.4);
       const modeAge = (t - modeSince) / 1000;
       // Thinking spins; listening turns slowly and openly; answering settles.
       const modeSpin = md === "think" ? 3.4 : md === "listen" ? 0.55 : 1;
@@ -1168,8 +1376,22 @@ export function ValParticles({
       // through the edge. Every angle still gets shown, but the readable ones
       // are the ones it lingers on.
       if (!calm) {
-        const edgeOn = Math.abs(Math.sin(yaw));
-        yaw += dt * (1.25 - 0.5 * pull) * spin * (0.34 + 1.66 * edgeOn);
+        if (spelling) {
+          // A WORD HAS A FRONT. Everything else she holds is an object and
+          // reads from any angle, so it turns all the way round; a name spun
+          // through 180° is somebody's name printed backwards, which is the
+          // one thing this moment cannot afford. So while she holds a word she
+          // sways instead of turning — enough parallax to keep it a solid
+          // thing in space, never enough to show its back.
+          // yaw is normalised first: coming out of a spin it can be tens of
+          // radians, and easing that toward zero would unwind like a rewind.
+          const norm = Math.atan2(Math.sin(yaw), Math.cos(yaw));
+          const face = Math.sin((t / 1000) * 0.6) * 0.34;
+          yaw = norm + (face - norm) * Math.min(1, dt * 2.4);
+        } else {
+          const edgeOn = Math.abs(Math.sin(yaw));
+          yaw += dt * (1.25 - 0.5 * pull) * spin * (0.34 + 1.66 * edgeOn);
+        }
       }
       const pitch = calm ? -0.1 : Math.sin(t / 1000 * 0.29) * 0.36 - 0.1;
       const cy_ = Math.cos(yaw), sy = Math.sin(yaw);
@@ -1940,6 +2162,15 @@ export function ValParticles({
         }
         const padX = (maxX - minX) * 0.06 + 4, padY = (maxY - minY) * 0.06 + 4;
         minX -= padX; maxX += padX; minY -= padY; maxY += padY;
+        if (!hudSet) { hud0 = [minX, maxX, minY, maxY]; hudSet = true; }
+        const k3 = Math.min(1, dt * 3.2);
+        hud0 = [
+          hud0[0] + (minX - hud0[0]) * k3,
+          hud0[1] + (maxX - hud0[1]) * k3,
+          hud0[2] + (minY - hud0[2]) * k3,
+          hud0[3] + (maxY - hud0[3]) * k3,
+        ];
+        minX = hud0[0]; maxX = hud0[1]; minY = hud0[2]; maxY = hud0[3];
         const on = vis * st;
         const L = Math.min(unit * 0.07, (maxX - minX) * 0.2);
         ctx.lineWidth = 1.2;
@@ -1959,19 +2190,44 @@ export function ValParticles({
         ctx.textBaseline = "alphabetic";
         ctx.textAlign = "left";
         ctx.fillStyle = `rgba(217,174,100,${0.9 * on})`;
+        // The right-hand word is the state, so it never gets dropped; the
+        // left-hand readout gives up its node count and then itself rather
+        // than run into it. A narrow object — a key seen edge-on, a spelled
+        // word on a phone — used to print the two straight through each other.
+        const state = spelling
+          ? "HOLDING"
+          : md === "listen" ? "LISTENING" : md === "think" ? "THINKING" : md === "speak" ? "ANSWERING"
+            : closing ? "RELEASING" : "LOCKED";
         const fi = FORMS.indexOf(form);
-        ctx.fillText(`▸ RENDER ${String(fi + 1).padStart(2, "0")}/${FORMS.length} · ${builders.length} NODES`, minX, minY - fs * 0.9);
+        // A spelled word is not one of the thirteen, so it has no index — and
+        // printing "RENDER ··/13" for it says nothing. It reports the only
+        // number this file can vouch for instead.
+        const hudPad = Math.max(6, unit * 0.05);
+        const span = w - hudPad * 2;
+        const stateW = ctx.measureText(state).width;
+        const full = fi >= 0
+          ? `▸ RENDER ${String(fi + 1).padStart(2, "0")}/${FORMS.length} · ${builders.length} NODES`
+          : `▸ ${builders.length} NODES`;
+        const short = fi >= 0 ? `▸ ${String(fi + 1).padStart(2, "0")}/${FORMS.length}` : `▸ ${builders.length}`;
+        const left = ctx.measureText(full).width + stateW + fs < span
+          ? full
+          : ctx.measureText(short).width + stateW + fs < span
+            ? short
+            : "";
+        // PINNED TO THE FRAME, NOT THE OBJECT. The brackets track the thing
+        // as it turns, but the labels do not: text redrawn a fraction of a
+        // pixel off its last position leaves a legible ghost of the previous
+        // frame under the trail fade, and the object's bounds move every
+        // frame. Anything redrawn in exactly the same place settles cleanly.
+        // A real HUD works this way too — reticle on the world, chrome on the
+        // glass.
+        const ty = Math.round(hudPad + fs);
+        if (left) ctx.fillText(left, Math.round(hudPad), ty);
         ctx.textAlign = "right";
-        ctx.fillText(
-          md === "listen" ? "LISTENING" : md === "think" ? "THINKING" : md === "speak" ? "ANSWERING"
-            : closing ? "RELEASING" : "LOCKED",
-          maxX, minY - fs * 0.9
-        );
-        const bw = Math.min(unit * 0.3, maxX - minX);
-        ctx.fillStyle = `rgba(217,174,100,${0.2 * on})`;
-        ctx.fillRect(minX, minY - fs * 0.45, bw, 2);
+        ctx.fillText(state, Math.round(w - hudPad), ty);
+        const bw = Math.min(unit * 0.3, span);
         ctx.fillStyle = `rgba(217,174,100,${0.85 * on})`;
-        ctx.fillRect(minX, minY - fs * 0.45, bw, 2);
+        ctx.fillRect(Math.round(hudPad), ty + Math.round(fs * 0.45), bw, 2);
       }
 
       // ---- LISTENING: a ring leaving the core, every second and a half ----
