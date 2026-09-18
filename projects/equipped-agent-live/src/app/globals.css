@@ -2834,6 +2834,102 @@ body {
 }
 .hour-bring b { color: var(--color-gold-bright); }
 
+/* ── build it before you come ──────────────────────────────────────────
+   The one place on a take-home page that writes to a database, so it looks
+   like an instrument rather than a form: the result is a code, a live link
+   and a QR, and each line under it states only what the server did. */
+.pb { margin: 1.35rem 0 0; }
+.pb-grid { display: grid; gap: 0.6rem; }
+@media (min-width: 34rem) { .pb-grid { grid-template-columns: 1fr 1fr; } }
+.pb input, .pb textarea {
+  width: 100%;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 10px;
+  background: var(--color-sheet-2);
+  padding: 0.75rem 0.9rem;
+  color: var(--color-cream);
+  font: inherit;
+  font-size: 0.9375rem;
+}
+.pb textarea {
+  margin-top: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+.pb input::placeholder, .pb textarea::placeholder { color: var(--color-faint); }
+.pb input:focus, .pb textarea:focus { outline: none; border-color: var(--color-gold-bright); }
+.pb button {
+  margin-top: 0.7rem;
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: var(--color-gold-bright);
+  color: #10243a;
+  padding: 0.85rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pb button:disabled { background: var(--color-sheet-3); color: var(--color-faint); cursor: default; }
+.pb-err {
+  margin: 0.7rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-gold-bright);
+}
+
+.pb-done { text-align: center; padding: 0.5rem 0 0; }
+.pb-code {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(2rem, 9vw, 2.75rem);
+  letter-spacing: 0.06em;
+  color: var(--color-gold-bright);
+}
+.pb-live { margin: 0.5rem 0 1rem; font-size: 0.9375rem; }
+.pb-qr {
+  display: block;
+  margin: 0 auto;
+  width: min(220px, 62vw);
+  height: auto;
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px;
+}
+.pb-note {
+  margin: 0.9rem auto 0;
+  max-width: 34rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--color-faint);
+}
+
+.pb-mine { margin-top: 1.4rem; border-top: 1px solid var(--color-rule); padding-top: 0.9rem; }
+.pb-mine-h {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+.pb-mine ul { margin: 0; padding: 0; list-style: none; }
+.pb-mine li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+.pb-mine li:last-child { border-bottom: none; }
+.pb-mine b { font-family: var(--font-mono); color: var(--color-gold-bright); }
+.pb-mine span { font-size: 0.75rem; color: var(--color-faint); }
+
 .pg-wont { margin: 1.1rem 0 0; padding: 0; list-style: none; }
 .pg-wont li {
   position: relative;

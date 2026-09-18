@@ -284,6 +284,54 @@ export async function GET(req: NextRequest) {
     }
   });
 
+  // BUILD IT BEFORE YOU COME. This mints a PUBLIC page from a take-home link,
+  // so its gate is the only thing between a booking reference and a live URL
+  // on our budget. The first run of this found a made-up reference minting a
+  // page: the database enforced the booking and the memory backend did not,
+  // and the permissive one is what a developer runs. A rule that lives in
+  // only one backend is not a rule, so the step asserts it in whichever is
+  // carrying this deployment.
+  await run("prebuild: a booking mints an assistant, a made-up reference does not", async () => {
+    // Uppercase, because every real reference is — the lookup normalises to
+    // upper, so a lowercase test ref would miss its own booking and prove
+    // nothing about the gate it is here to test.
+    const ref = `${SELFTEST_REF}${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
+    const device = randomUUID();
+    const sheet = {
+      code: `ST${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+      agentName: "· selftest ·",
+      brokerage: "",
+      cell: "000",
+      headline: "selftest listing",
+      facts: "A fact sheet long enough to stand on, written only so this step has something to deploy.",
+      notes: "",
+      voice: "warm" as const,
+    };
+    try {
+      // A reference nobody booked must not produce a live public page.
+      let refused = false;
+      try {
+        await store.assistantCreateByRef(`${SELFTEST_REF}NOBOOKING`, randomUUID(), { ...sheet, code: "STNOPE" });
+      } catch {
+        refused = true;
+      }
+      if (!refused) throw new Error("a reference with no booking minted a live assistant");
+
+      // A real seat may.
+      await store.rsvpAdd({ ref, name: "· selftest ·", cell: "000", attend: "zoom", note: "selftest" });
+      await store.assistantCreateByRef(ref, device, sheet);
+      const got = await store.assistantGet(sheet.code);
+      if (!got) throw new Error("the assistant did not read back after a valid build");
+
+      const mine = await store.assistantsByDevice(device);
+      if (!mine.some((m) => m.code === sheet.code.toUpperCase())) {
+        throw new Error("the booking cannot see what it built");
+      }
+    } finally {
+      await store.rsvpSelftestClear(ref).catch(() => {});
+    }
+  });
+
   // ?deep=1 — one real grounded model round-trip: must state a sheet fact and
   // refuse an off-sheet one. Costs a fraction of a cent; the pre-room proof.
   // If the engine is dark, this FAILS rather than quietly skipping — a green

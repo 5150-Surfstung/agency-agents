@@ -455,7 +455,7 @@ export const DECK: Slide[] = [
         "A deal that tracks itself to keys",
       ],
     },
-    cue: "Reveal, then: 'Good news — you're about to watch all four, and you're building the second one yourself in about ninety seconds.'",
+    cue: "Reveal, then: 'Good news — you're about to watch all four, and the second one you're building yourself in about ninety seconds. Some of you already did it this week — hold that, we're coming to you.'",
   },
   {
     id: "demo-assistant",
@@ -476,14 +476,14 @@ export const DECK: Slide[] = [
     valSymbol: "house",
     kind: "build",
     eyebrow: "Phones out · five minutes · this is yours",
-    heading: "Now build YOUR listing's assistant.",
+    heading: "Switch yours on. Or build one right now.",
     lines: [
-      "Paste a real fact sheet — your listing, your pocket listing, or the demo one on screen.",
-      "Add what you WANT it to say: the neighborhood, the showing windows, what makes it special.",
-      "Pick your voice. Tap Deploy. You get a live web page and a QR code that is yours.",
+      "Brought one? It is already live. Open your kit link, read your code off it, and we are putting it on the screen.",
+      "Didn't? Paste a fact sheet — your listing, your pocket listing, or the demo one on screen — and you are ninety seconds behind them.",
+      "Either way: your voice, your number, a live page and a QR code that is yours.",
       "Put it on a rider tomorrow morning. It answers at 11pm and it never invents a fact.",
     ],
-    cue: "THE TROPHY MOMENT — give it five full minutes and WALK THE ROOM. This is not a prompt they could have typed at home: it is a deployed page with their name on it and a QR they can print tonight. Watch the built counter climb on this screen. When the first one lands, put their QR on the projector and scan it yourself from the stage.",
+    cue: "THE TROPHY MOMENT — five full minutes, and WALK THE ROOM. Open by asking who built one before today and get those hands UP: they are the proof, and the room sees that the people who did the homework are already finished. Put ONE of theirs on the projector first and scan it yourself from the stage — a page somebody made at their kitchen table on Tuesday lands harder than one you made. Then give the rest the five minutes, and pair anybody stuck with somebody who already has one. Watch the built counter climb on this screen.",
   },
   {
     id: "switchboard",

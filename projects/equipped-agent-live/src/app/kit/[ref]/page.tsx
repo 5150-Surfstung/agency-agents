@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Build } from "./build";
 import { Copy, Peek } from "./copy";
 import { ValReel } from "@/app/live/val-reel";
 import { LEARNS } from "@/app/live/learns";
@@ -188,6 +189,15 @@ export default async function KitPage({ params }: { params: Promise<{ ref: strin
         </p>
         <Copy text={listing} label="Copy the listing interview" kind="quiet" />
         <Peek text={listing} />
+
+        <h3 className="display">Then put it live, right now</h3>
+        <p>
+          Paste what it wrote and this mints your page and your QR code on the
+          spot &mdash; before Friday, from wherever you are. Print the code,
+          put it on the rider, and bring it on the 2nd. We will point the MLS
+          at it and put it in front of the room.
+        </p>
+        <Build ref={ref} name={who} />
         <p className="pg-hit">
           Bring it and we spend the hour putting it to work rather than setting
           it up. Turn up without it and you will still leave with one &mdash;

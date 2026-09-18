@@ -121,6 +121,11 @@ export interface Store {
   /** Where this assistant's leads should land in writing. Email needs no
    *  carrier, no number and no per-message fee, so it is the default alert
    *  channel and the text is the upgrade. */
+  /** Built from a booking reference rather than a room key — the seat is the
+   *  gate, so somebody can arrive with theirs already live. */
+  assistantCreateByRef(ref: string, deviceId: string, a: Assistant & { cell: string }): Promise<void>;
+  /** What this booking has already built, so the kit link shows it back. */
+  assistantsByDevice(deviceId: string): Promise<{ code: string; headline: string; agentName: string; hasEmail: boolean }[]>;
   assistantOwnerEmail(code: string): Promise<string | null>;
   assistantSetOwnerEmail(code: string, deviceId: string, email: string): Promise<boolean>;
   assistantLeadsMine(key: string, deviceId: string): Promise<AssistantLead[]>;
@@ -442,6 +447,29 @@ class MemoryStore implements Store {
       timeline: q?.timeline ?? "", financing: q?.financing ?? "", hasAgent: q?.hasAgent ?? "",
       at: Date.now(),
     });
+  }
+  async assistantCreateByRef(ref: string, deviceId: string, a: Assistant & { cell: string }) {
+    // THE SAME GATE THE DATABASE ENFORCES. This started out checking only the
+    // count, and a made-up reference minted a live public page on the first
+    // test run — the two backends disagreed about a security rule, and the
+    // permissive one is the one a developer runs. A rule that exists in only
+    // one of them is not a rule.
+    if (!this.rsvps.has(ref.toUpperCase())) throw new Error("no_booking");
+    const mine = [...this.assistants.values()].filter((x) => x.deviceId === deviceId);
+    if (mine.length >= 3) throw new Error("too_many");
+    this.assistants.set(a.code.toUpperCase(), { ...a, code: a.code.toUpperCase(), deviceId, at: Date.now() });
+  }
+  async assistantsByDevice(deviceId: string) {
+    return [...this.assistants.values()]
+      .filter((a) => a.deviceId === deviceId)
+      .sort((x, y) => y.at - x.at)
+      .slice(0, 5)
+      .map((a) => ({
+        code: a.code,
+        headline: a.headline,
+        agentName: a.agentName,
+        hasEmail: Boolean(this.aEmail.get(a.code)),
+      }));
   }
   private aEmail = new Map<string, string>();
   async assistantOwnerEmail(code: string) {
@@ -962,6 +990,21 @@ class RpcStore implements Store {
   async assistantOwnerCell(code: string) {
     const v = await this.call<string | null>("live_assistant_owner_cell", { p_code: code });
     return typeof v === "string" && v ? v : null;
+  }
+  async assistantCreateByRef(ref: string, deviceId: string, a: Assistant & { cell: string }) {
+    await this.call("live_assistant_create_by_ref", {
+      p_ref: ref, p_device: deviceId, p_code: a.code, p_name: a.agentName,
+      p_brokerage: a.brokerage, p_cell: a.cell, p_headline: a.headline,
+      p_facts: a.facts, p_voice: a.voice, p_notes: a.notes,
+    });
+  }
+  async assistantsByDevice(deviceId: string) {
+    const rows = await this.call<{ code: string; headline: string; agent_name: string; has_email: boolean }[]>(
+      "live_assistant_by_device", { p_device: deviceId }
+    );
+    return (rows ?? []).map((r) => ({
+      code: r.code, headline: r.headline ?? "", agentName: r.agent_name ?? "", hasEmail: Boolean(r.has_email),
+    }));
   }
   async assistantOwnerEmail(code: string) {
     const v = await this.call<string | null>("live_assistant_owner_email", { p_code: code });
