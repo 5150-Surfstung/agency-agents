@@ -3872,3 +3872,24 @@ body {
   .levelup-line { animation: none; }
   .levelup-rack span { transition: none; }
 }
+
+/* ── the close, actually readable ───────────────────────────────────────────
+   `.invite a` colours every link on the page gold, and it is more specific
+   than `.invite-cta`, so the one button on the invite was gold type on a gold
+   face — a seat-saving button with nothing legible in it, at the top of a page
+   behind paid traffic. Specific enough to win, and stated on every link state
+   so a visited or hovered button cannot drift back. */
+.invite a.invite-cta,
+.invite a.invite-cta:link,
+.invite a.invite-cta:visited,
+.invite a.invite-cta:hover,
+.invite a.invite-cta:focus {
+  color: var(--color-sheet);
+  background: var(--color-gold);
+  text-decoration: none;
+  -webkit-text-fill-color: var(--color-sheet);
+}
+.invite a.invite-cta:hover,
+.invite a.invite-cta:focus-visible {
+  background: var(--color-gold-bright);
+}
