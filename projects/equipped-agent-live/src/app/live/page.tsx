@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Top } from "./top";
@@ -6,6 +7,8 @@ import { Room } from "./room";
 import { Book } from "./book";
 import { Reveal } from "./reveal";
 import { ClaudeMark } from "./claude-mark";
+import { Share } from "./share";
+import { FromBanner } from "./from-banner";
 import { Closer } from "./closer";
 import { Seats } from "./seats";
 import { HOST } from "@/lib/contact";
@@ -45,6 +48,9 @@ export default function LivePage() {
   return (
     <main className="stage invite">
       <Reveal />
+      <Suspense fallback={null}>
+        <FromBanner />
+      </Suspense>
       <div className="rail">
         <span className="rail-mark">
           <i aria-hidden />
@@ -64,7 +70,7 @@ export default function LivePage() {
             </h1>
             <p className="invite-kicker" data-reveal>
               <ClaudeMark size={30} className="kicker-mark" />
-              Charleston&rsquo;s Claude community for tech-forward agents.
+              Charleston&rsquo;s Claude community &mdash; for agents already building, and agents starting from zero.
             </p>
             <p className="invite-lede" data-reveal>
               <b>Not keeping up with AI? You are already behind.</b>{" "}
@@ -72,7 +78,10 @@ export default function LivePage() {
               account and walk out with it running.
             </p>
             <p className="invite-lede-fine" data-reveal>No pitch. Nothing to buy.</p>
-            <a className="invite-cta" href="#seat" data-reveal>Save my seat</a>
+            <div className="invite-actions" data-reveal>
+              <a className="invite-cta" href="#seat">Save my seat</a>
+              <Share compact />
+            </div>
           </header>
         }
         details={
@@ -185,6 +194,10 @@ export default function LivePage() {
       <Book />
 
       <Closer />
+
+      <section className="share-block" data-reveal>
+        <Share label="Know an agent who should be in the room?" />
+      </section>
 
       <div className="claude-band" data-reveal>
         <ClaudeMark size={62} />

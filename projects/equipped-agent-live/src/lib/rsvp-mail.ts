@@ -55,7 +55,7 @@ export function seatText(name: string, ref: string, attend: Attend): string {
     `${first}, your seat at The Equipped Agent is booked and we cannot wait to`,
     `see you.`,
     ``,
-    `THE EQUIPPED AGENT — a Claude meetup for tech-forward agents`,
+    `THE EQUIPPED AGENT — a Claude meetup for Charleston agents`,
     `${eventLine()}`,
     `${placeFor(attend)}`,
     `Reference ${ref}`,
@@ -117,7 +117,7 @@ export function seatHtml(name: string, ref: string, attend: Attend): string {
 
   <h1 style="margin:0 0 14px;font-size:40px;line-height:1.02;font-weight:800;letter-spacing:-.02em;color:${CREAM}">${first}, you&rsquo;re in.</h1>
   <p style="margin:0 0 6px;font-size:17px;line-height:1.5;color:${CREAM}">Your seat is booked and we cannot wait to see you.</p>
-  <p style="margin:0 0 30px;font-size:15px;font-weight:700;color:${GOLD}">The Equipped Agent &mdash; a Claude meetup for tech-forward agents.</p>
+  <p style="margin:0 0 30px;font-size:15px;font-weight:700;color:${GOLD}">The Equipped Agent &mdash; a Claude meetup for Charleston agents, any level.</p>
 
   <table role="presentation" style="width:100%;border-collapse:separate;border-spacing:0;background:rgba(242,239,231,.04);border:1px solid rgba(217,174,100,.3);border-radius:16px;overflow:hidden">
     <tr><td style="padding:16px 18px">

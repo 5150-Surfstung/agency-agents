@@ -85,7 +85,7 @@ export default function OgCard() {
             every other AI panel in the feed. ONE line: a second one ran under
             the credit block and came out sliced behind the photo. */}
         <p className="mt-[16px] text-[20px] font-bold leading-snug text-cream">
-          Charleston&rsquo;s Claude community for tech-forward agents.
+          Charleston&rsquo;s Claude community. Any level.
         </p>
 
       </div>

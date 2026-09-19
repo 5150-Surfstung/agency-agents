@@ -1,19 +1,18 @@
 // THE CLAUDE ASTERISK.
 //
-// Drawn rather than fetched: eleven tapered spokes on a shared centre, which
-// is the shape people recognise instantly and the fastest way to tell an agent
-// scrolling a feed that this hour is about Claude specifically and not "AI" in
-// general. As an inline SVG it costs no request, scales to any size without
-// going soft, and carries the one colour on the page that is not Mike's navy
-// or his gold — which is exactly why it reads as a signal rather than as
-// decoration.
+// First attempt drew each ray as a filled lens, which at 30px came out as a
+// thin spiky star — a sparkle, not the mark. The real thing is CHUNKY: eleven
+// rounded strokes radiating from a tight centre, each one gently tapered, the
+// negative space between them as much a part of the shape as the rays. So it
+// is drawn as strokes with round caps and a taper built from two overlapping
+// passes, which is what gives the ends their weight without going spiky.
 //
-// It spins slowly, and it stops for anybody who asked for less motion.
+// Inline SVG: no request, no soft edges at any size, and one colour that is
+// neither Mike's navy nor his gold — which is the entire job. An agent
+// scrolling a feed full of "AI" should know in half a second that this hour is
+// about Claude specifically.
 
 const SPOKES = 11;
-const OUTER = 46;
-const INNER = 11;
-const BULGE = 4.1;
 
 export function ClaudeMark({
   size = 44,
@@ -24,6 +23,7 @@ export function ClaudeMark({
   spin?: boolean;
   className?: string;
 }) {
+  const rays = Array.from({ length: SPOKES }, (_, i) => (360 / SPOKES) * i);
   return (
     <svg
       viewBox="0 0 100 100"
@@ -33,14 +33,35 @@ export function ClaudeMark({
       focusable="false"
       className={`claude-mark${spin ? " is-spinning" : ""} ${className}`.trim()}
     >
-      <g fill="currentColor">
-        {Array.from({ length: SPOKES }, (_, i) => (
-          <path
-            key={i}
-            transform={`rotate(${(360 / SPOKES) * i} 50 50)`}
-            d={`M 50 ${50 - OUTER}
-                Q ${50 + BULGE} ${50 - (OUTER + INNER) / 2} 50 ${50 - INNER}
-                Q ${50 - BULGE} ${50 - (OUTER + INNER) / 2} 50 ${50 - OUTER} Z`}
+      <g
+        stroke="currentColor"
+        strokeLinecap="round"
+        fill="none"
+        transform="translate(50 50)"
+      >
+        {/* The body of each ray: thick, reaching almost to the edge. */}
+        {rays.map((a) => (
+          <line
+            key={`b${a}`}
+            x1="0"
+            y1="-4"
+            x2="0"
+            y2="-41"
+            strokeWidth="9.4"
+            transform={`rotate(${a})`}
+          />
+        ))}
+        {/* A second, narrower pass a little further out. Where it overhangs the
+            first it makes the tip read as tapered rather than clipped flat. */}
+        {rays.map((a) => (
+          <line
+            key={`t${a}`}
+            x1="0"
+            y1="-30"
+            x2="0"
+            y2="-45.5"
+            strokeWidth="6.2"
+            transform={`rotate(${a})`}
           />
         ))}
       </g>

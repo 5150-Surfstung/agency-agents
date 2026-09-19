@@ -16,7 +16,12 @@ import { HOST } from "./contact";
 
 export const INVITE_FACTS = `
 EVENT
-  Name: The Equipped Agent — Charleston's Claude community for tech-forward agents.
+  Name: The Equipped Agent — Charleston's Claude community.
+  Who it is for: BOTH. Agents already building with AI, and agents who have
+    never opened Claude in their life. Nobody is too far behind to come. If
+    somebody worries they are not technical enough, tell them plainly that it
+    all happens in a chat box and the hour is built for people starting from
+    zero as much as for people already running things.
   Series: ${EVENT.series}
   Date: ${EVENT.date}
   Start: ${EVENT.time}. It runs ${EVENT.duration} and starts on time.

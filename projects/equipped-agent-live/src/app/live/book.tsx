@@ -24,6 +24,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ValReel, type Mode } from "./val-reel";
 import { ClaudeMark } from "./claude-mark";
+import { Share } from "./share";
 import { Console } from "./console";
 import { LEARNS } from "./learns";
 import { HOST } from "@/lib/contact";
@@ -500,6 +501,13 @@ export function Book() {
             </a>
             <a href={mailto}>Send it to his inbox too</a>
           </div>
+
+          {/* ---- BRING SOMEONE. The cheapest seat in the room is the one
+              somebody already coming brings with them, and the moment to ask
+              is now — thirty seconds after a yes, not in an email next week.
+              Everything here carries their first name so what a friend opens
+              is an invitation rather than a link. ---- */}
+          <Share from={name} />
 
           {/* ---- ASK VAL. The hour, demonstrated on the way in the door. ----
               A page can claim an assistant will refuse to make things up. This

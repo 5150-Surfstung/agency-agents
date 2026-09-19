@@ -3957,3 +3957,85 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .claude-mark.is-spinning { animation: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BRING SOMEONE — share, as an invitation rather than a link
+   ══════════════════════════════════════════════════════════════════════════ */
+.share-block { margin-top: 2.25rem; }
+.share {
+  padding: 1.35rem 1.2rem 1.4rem;
+  border: 1px solid var(--color-rule-strong);
+  border-top: 2px solid var(--color-gold);
+  border-radius: 4px 4px 16px 16px;
+  background:
+    radial-gradient(130% 110% at 50% -10%, rgba(217, 174, 100, 0.1), transparent 62%),
+    var(--color-sheet-2);
+}
+.share--compact { padding: 0; border: none; background: none; }
+.share-h {
+  margin: 0 0 0.4rem;
+  font-variation-settings: "wdth" 108;
+  font-weight: 800;
+  font-size: clamp(1.25rem, 5.2vw, 1.55rem);
+  letter-spacing: -0.026em;
+  line-height: 1.12;
+  color: var(--color-cream);
+}
+.share-p { margin: 0 0 1.05rem; font-size: 0.90625rem; line-height: 1.55; color: var(--color-soft); }
+.share-go { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* Both faces are solid. Nothing on this page is gold type on a dark panel. */
+.invite .share-primary,
+.invite a.share-primary {
+  padding: 0.85rem 1.35rem;
+  border: 1px solid var(--color-gold);
+  border-radius: 999px;
+  background: var(--color-gold);
+  color: var(--color-sheet);
+  -webkit-text-fill-color: var(--color-sheet);
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.96875rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.invite .share-secondary,
+.invite a.share-secondary {
+  padding: 0.85rem 1.2rem;
+  border: 1px solid rgba(217, 174, 100, 0.6);
+  border-radius: 999px;
+  background: rgba(217, 174, 100, 0.18);
+  color: var(--color-cream);
+  -webkit-text-fill-color: var(--color-cream);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.90625rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.invite .share-secondary:hover,
+.invite a.share-secondary:hover,
+.invite .share-primary:hover {
+  background: var(--color-gold-bright);
+  color: var(--color-sheet);
+  -webkit-text-fill-color: var(--color-sheet);
+}
+.share-note { margin: 0.9rem 0 0; font-size: 0.75rem; color: var(--color-faint); }
+.share-note code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--color-gold-bright); }
+
+.invite-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-top: 1.5rem; }
+.invite-actions .invite-cta { margin-top: 0; }
+
+/* ── the invitation banner ─────────────────────────────────────────────── */
+.frombanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(217, 119, 87, 0.45);
+  border-radius: 14px;
+  background: rgba(217, 119, 87, 0.1);
+}
+.frombanner p { margin: 0; font-size: 0.90625rem; line-height: 1.45; color: var(--color-soft); }
+.frombanner b { color: var(--color-cream); }
