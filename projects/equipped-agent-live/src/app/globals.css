@@ -4265,3 +4265,19 @@ body {
   color: var(--color-gold-bright);
   box-shadow: none;
 }
+
+/* ── VAL's nameplate, actually under the orb ────────────────────────────────
+   `.reel` is a centring flex ROW, so the nameplate came in as a sibling of the
+   orb and sat beside it. It belongs directly beneath the mark: absolutely
+   placed from the centre line, offset by half the orb, so it tracks the orb at
+   every viewport size instead of being guessed at one. */
+.reel-name {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + min(var(--orb), 80vw) / 2 - 0.35rem);
+  transform: translateX(-50%);
+  margin: 0;
+  white-space: nowrap;
+  z-index: 2;
+}
+.reel[data-spell="yes"] .reel-name { opacity: 0.55; }
