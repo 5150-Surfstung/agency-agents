@@ -121,7 +121,7 @@ export default function LivePage() {
           <li>
             <span>Last fifteen</span>
             <p>
-              <b>The new flexmls MCP.</b> We hook Claude straight into the MLS,
+              <b>The new flexmls MCP.</b>{" "}We hook Claude straight into the MLS,
               live on the screen, and ask it about a farm in plain English.
               Almost nobody in this market has done it &mdash; you will leave
               knowing how.
