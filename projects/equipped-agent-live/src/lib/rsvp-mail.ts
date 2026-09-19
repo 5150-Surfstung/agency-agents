@@ -15,6 +15,7 @@
 
 import { EVENT, eventLine } from "./event";
 import { HOST } from "./contact";
+import { INSTALL } from "./install";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://the-equipped-agent.vercel.app";
 
@@ -65,8 +66,9 @@ export function seatText(name: string, ref: string, attend: Attend): string {
     `────────────────────────────────────────`,
     `1. ** HAVE CLAUDE INSTALLED ON YOUR PHONE AND YOUR LAPTOP **`,
     `   ** BEFORE YOU COME. ** Bring both devices.`,
-    `   Phone: the Claude app, App Store or Google Play.`,
-    `   Laptop: claude.ai in a browser, signed in and working.`,
+    `   iPhone:  ${INSTALL.ios}`,
+    `   Android: ${INSTALL.android}`,
+    `   Laptop:  ${INSTALL.web}  (sign in, that is all)`,
     `   The free tier is fine. Do it before you come — we are not`,
     `   spending this hour on setup.`,
     ``,
@@ -141,8 +143,12 @@ export function seatHtml(name: string, ref: string, attend: Attend): string {
   <div style="margin:34px 0 0;padding:22px 20px;background:rgba(242,239,231,.035);border-radius:16px;border:1px solid rgba(242,239,231,.09)">
     ${kicker("Bring — two things")}
     <p style="margin:0 0 10px;font-size:18px;font-weight:800;line-height:1.35;color:${CREAM}">1 &nbsp;<span style="color:${GOLD}">Have Claude installed on your phone and your laptop before you come.</span> Bring both devices.</p>
-    <p style="margin:0 0 3px;font-size:14px;line-height:1.55;color:${SOFT}">&middot; <b style="color:${CREAM}">Phone</b> &mdash; the Claude app, App Store or Google Play.</p>
-    <p style="margin:0 0 3px;font-size:14px;line-height:1.55;color:${SOFT}">&middot; <b style="color:${CREAM}">Laptop</b> &mdash; claude.ai in a browser, signed in and working.</p>
+    <p style="margin:0 0 10px;font-size:14px;line-height:1.55;color:${SOFT}">Tap to install &mdash; it takes a minute:</p>
+    <p style="margin:0 0 8px">
+      <a href="${INSTALL.ios}" style="display:inline-block;margin:0 6px 6px 0;padding:10px 14px;border:1px solid ${GOLD};border-radius:10px;background:rgba(217,174,100,.16);color:${CREAM};text-decoration:none;font-size:13px;font-weight:700">iPhone &mdash; App Store</a>
+      <a href="${INSTALL.android}" style="display:inline-block;margin:0 6px 6px 0;padding:10px 14px;border:1px solid ${GOLD};border-radius:10px;background:rgba(217,174,100,.16);color:${CREAM};text-decoration:none;font-size:13px;font-weight:700">Android &mdash; Google Play</a>
+      <a href="${INSTALL.web}" style="display:inline-block;margin:0 6px 6px 0;padding:10px 14px;border:1px solid ${GOLD};border-radius:10px;background:rgba(217,174,100,.16);color:${CREAM};text-decoration:none;font-size:13px;font-weight:700">Laptop &mdash; claude.ai</a>
+    </p>
     <p style="margin:0 0 18px;font-size:14px;line-height:1.55;color:${SOFT}">The free tier is fine. Install it before you come &mdash; we are not spending this hour on setup.</p>
 
     <p style="margin:0 0 6px;font-size:17px;font-weight:800;color:${CREAM}">2 &nbsp;Your ideas, and anything you have already built.</p>

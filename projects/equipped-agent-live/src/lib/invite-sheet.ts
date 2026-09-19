@@ -13,6 +13,7 @@
 
 import { EVENT } from "./event";
 import { HOST } from "./contact";
+import { INSTALL } from "./install";
 
 export const INVITE_FACTS = `
 EVENT
@@ -30,8 +31,9 @@ EVENT
 
 BRING — the only preparation there is
   A laptop AND a phone, with Claude installed on both BEFORE arriving.
-  Phone: the Claude app from the App Store or Google Play.
-  Laptop: claude.ai in a browser, signed in and working.
+  Phone: the Claude app. iPhone: ${INSTALL.ios} · Android: ${INSTALL.android}
+  Laptop: ${INSTALL.web} in a browser, signed in and working.
+  If anybody asks where to get Claude, give them those links.
   The free tier of Claude is fine.
   Also bring your own ideas and anything you have already built. Half finished counts.
   There is no other homework. Nothing to read, nothing to build beforehand.

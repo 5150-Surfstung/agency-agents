@@ -4039,3 +4039,32 @@ body {
 }
 .frombanner p { margin: 0; font-size: 0.90625rem; line-height: 1.45; color: var(--color-soft); }
 .frombanner b { color: var(--color-cream); }
+
+/* ── the install row ────────────────────────────────────────────────────── */
+.install {
+  margin-top: 1.1rem;
+  padding: 1.05rem 1.1rem 1.15rem;
+  border: 1px dashed rgba(217, 174, 100, 0.55);
+  border-radius: 12px;
+  background: rgba(217, 174, 100, 0.07);
+}
+.install-h { margin: 0 0 0.85rem; font-size: 0.96875rem; line-height: 1.55; color: var(--color-soft); }
+.install-h b { color: var(--color-gold-bright); }
+.install-go { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.invite .install-go a {
+  padding: 0.72rem 1rem;
+  border: 1px solid var(--color-gold);
+  border-radius: 999px;
+  background: rgba(217, 174, 100, 0.2);
+  color: var(--color-cream);
+  -webkit-text-fill-color: var(--color-cream);
+  font-size: 0.875rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+.invite .install-go a:hover {
+  background: var(--color-gold);
+  color: var(--color-sheet);
+  -webkit-text-fill-color: var(--color-sheet);
+}
+.install-fine { margin: 0.85rem 0 0; font-size: 0.8125rem; line-height: 1.5; color: var(--color-faint); }

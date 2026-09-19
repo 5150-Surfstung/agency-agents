@@ -8,6 +8,7 @@ import { Book } from "./book";
 import { Reveal } from "./reveal";
 import { ClaudeMark } from "./claude-mark";
 import { Share } from "./share";
+import { INSTALL } from "@/lib/install";
 import { FromBanner } from "./from-banner";
 import { Closer } from "./closer";
 import { Seats } from "./seats";
@@ -143,10 +144,28 @@ export default function LivePage() {
             </p>
           </li>
         </ol>
-        <p className="hour-after" data-reveal>
-          <b>Have Claude installed on your phone and your laptop before you
-          come.</b> That is the only homework.
-        </p>
+        <div className="install" data-reveal>
+          <p className="install-h">
+            <b>Have Claude installed on your phone and your laptop before you
+            come.</b> That is the only homework — and here it is.
+          </p>
+          <div className="install-go">
+            <a href={INSTALL.ios} target="_blank" rel="noopener noreferrer">
+              iPhone &mdash; App Store
+            </a>
+            <a href={INSTALL.android} target="_blank" rel="noopener noreferrer">
+              Android &mdash; Google Play
+            </a>
+            <a href={INSTALL.web} target="_blank" rel="noopener noreferrer">
+              Laptop &mdash; claude.ai
+            </a>
+          </div>
+          <p className="install-fine">
+            The free tier is fine. Sign in on both before the 2nd and you will
+            build for the whole hour instead of setting up for the first twenty
+            minutes.
+          </p>
+        </div>
 
         {/* The objection that keeps the most people home, answered on the
             page rather than in the room they did not come to — and answered
