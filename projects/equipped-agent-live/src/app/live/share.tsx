@@ -18,6 +18,7 @@
 
 import { useCallback, useState } from "react";
 import { EVENT } from "@/lib/event";
+import { ClaudeMark } from "./claude-mark";
 
 const BASE = "https://the-equipped-agent.vercel.app/live";
 
@@ -43,6 +44,11 @@ export function Share({
   compact?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
+  // WHAT WE ARE ALLOWED TO SAY HAPPENED. We hand somebody's own app the
+  // message; we never learn whether they pressed send. So the celebration
+  // says the invite is open and waiting on them, which is true, rather than
+  // "sent", which we cannot know.
+  const [handed, setHanded] = useState<"" | "sheet" | "app" | "clip">("");
   const [sheetFailed, setSheetFailed] = useState(false);
   const url = shareLink(from);
   const text = shareText(from);
@@ -56,6 +62,7 @@ export function Share({
     }
     try {
       await navigator.share({ title: "The Equipped Agent", text, url });
+      setHanded("sheet");
     } catch {
       // A cancelled share is not a failure and must not look like one.
     }
@@ -65,6 +72,7 @@ export function Share({
     try {
       await navigator.clipboard.writeText(`${text}\n\n${url}`);
       setCopied(true);
+      setHanded("clip");
       window.setTimeout(() => setCopied(false), 2400);
     } catch {
       setCopied(false);
@@ -83,8 +91,9 @@ export function Share({
       {!compact && <p className="share-h display">{label}</p>}
       {!compact && (
         <p className="share-p">
-          They open it with your name on it. One hour, one seat, no pitch —
-          easier to say yes to when somebody they know is already going.
+          They open it with your name on it — one hour, one seat, and they
+          leave with something working. Easier to say yes to when somebody
+          they know is already going.
         </p>
       )}
 
@@ -94,16 +103,36 @@ export function Share({
             Share the invite
           </button>
         )}
-        <a className="share-secondary" href={sms}>
+        <a className="share-secondary" href={sms} onClick={() => setHanded("app")}>
           Text it
         </a>
-        <a className="share-secondary" href={mail}>
+        <a className="share-secondary" href={mail} onClick={() => setHanded("app")}>
           Email it
         </a>
         <button type="button" className="share-secondary" onClick={copy}>
           {copied ? "Link copied" : "Copy link"}
         </button>
       </div>
+
+      {handed && (
+        <div className="share-done" role="status">
+          <ClaudeMark size={34} className="share-done-mark" />
+          <div>
+            <p className="share-done-h">
+              {handed === "clip"
+                ? "Copied. Paste it to somebody."
+                : handed === "app"
+                  ? "It is open in your app — hit send."
+                  : "Handed to your share sheet."}
+            </p>
+            <p className="share-done-p">
+              {from
+                ? `It opens with your name on it. ${from.trim().split(/\s+/)[0]} sent this, and a seat next to somebody you know is an easier yes than a seat on your own.`
+                : "It opens with a real invitation on the other end, not a link."}
+            </p>
+          </div>
+        </div>
+      )}
 
       {!compact && from && (
         <p className="share-note">

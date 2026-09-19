@@ -27,7 +27,7 @@ export function FromBanner() {
       <ClaudeMark size={26} />
       <p>
         <b>{who} is going to this</b> — and saved you the link. One hour, one
-        seat, nothing to buy.
+        seat, and you leave with something working.
       </p>
     </div>
   );

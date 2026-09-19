@@ -4068,3 +4068,200 @@ body {
   -webkit-text-fill-color: var(--color-sheet);
 }
 .install-fine { margin: 0.85rem 0 0; font-size: 0.8125rem; line-height: 1.5; color: var(--color-faint); }
+
+/* ── VAL's nameplate ────────────────────────────────────────────────────── */
+.reel-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0.15rem 0 0;
+}
+.reel-name-word {
+  font-variation-settings: "wdth" 116;
+  font-weight: 800;
+  font-size: 0.9375rem;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  color: var(--color-cream);
+}
+.reel-name-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+.reel-name-state i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  animation: val-pulse 1.9s ease-in-out infinite;
+}
+.reel-name-state.is-think { color: var(--color-gold-bright); }
+.reel-name-state.is-speak { color: #d97757; }
+@keyframes val-pulse { 0%,100% { opacity: 0.35; } 50% { opacity: 1; } }
+
+/* ── the moment somebody brings a friend ────────────────────────────────── */
+.share-done {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(217, 119, 87, 0.5);
+  border-radius: 14px;
+  background: rgba(217, 119, 87, 0.11);
+  animation: share-pop 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.share-done-mark { animation: claude-spin 3.4s linear infinite; }
+.share-done-h { margin: 0 0 0.25rem; font-size: 1rem; font-weight: 800; color: var(--color-cream); }
+.share-done-p { margin: 0; font-size: 0.84375rem; line-height: 1.5; color: var(--color-soft); }
+@keyframes share-pop {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.97); }
+  100% { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reel-name-state i { animation: none; }
+  .share-done { animation: none; }
+  .share-done-mark { animation: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SURFACE — why everything was blending together
+   ──────────────────────────────────────────────────────────────────────────
+   Every panel on the invite sat on the same navy at the same value, edged with
+   the same hairline, so the eye had nothing to step down. Boxes alone do not
+   make hierarchy; LEVELS do. Three surfaces now, each one a measurable step
+   lighter than the one behind it, each with a one-pixel highlight along its
+   top edge and a shadow under it.
+   That highlight is the whole trick in dark interfaces: it is the difference
+   between a rectangle drawn on a page and a panel sitting on one. No glow, no
+   glass, no neon — the page still has to look like a document a working agent
+   would trust.
+   ════════════════════════════════════════════════════════════════════════ */
+:root {
+  --lift-1: inset 0 1px 0 rgba(242, 239, 231, 0.07), 0 14px 34px -22px rgba(0, 0, 0, 0.95);
+  --lift-2: inset 0 1px 0 rgba(242, 239, 231, 0.09), 0 20px 46px -26px rgba(0, 0, 0, 1);
+  --surface-2: #101f30;
+  --surface-3: #16283c;
+}
+
+.hour,
+.invite-who,
+.share,
+.askval,
+.claude-band {
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(217, 174, 100, 0.085), transparent 60%),
+    linear-gradient(180deg, var(--surface-2), #0b1a29);
+  box-shadow: var(--lift-2);
+}
+.share--compact { background: none; box-shadow: none; }
+
+/* Cards INSIDE a module step up again, or they vanish into it. */
+.hour-list li,
+.hour-calm,
+.hour-stay,
+.install,
+.stamp {
+  background: linear-gradient(180deg, var(--surface-3), #101f30);
+  box-shadow: var(--lift-1);
+}
+.hour-stay {
+  background: linear-gradient(180deg, rgba(217, 174, 100, 0.14), var(--surface-3) 58%);
+}
+.install {
+  background: linear-gradient(180deg, rgba(217, 174, 100, 0.13), var(--surface-3) 62%);
+  border-style: solid;
+  border-color: rgba(217, 174, 100, 0.4);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PILLS THAT FEEL LIKE HARDWARE
+   ──────────────────────────────────────────────────────────────────────────
+   Flat fills read as placeholders. A real control has a light side and a dark
+   side: a top-to-bottom gradient, a hairline of light along the top edge, a
+   shadow beneath, and a press that actually moves. Applied once, to every
+   tappable pill on the invite, so they are unmistakably the same family.
+   ════════════════════════════════════════════════════════════════════════ */
+.invite a.invite-cta,
+.invite .share-primary,
+.invite .askval-form button,
+.invite .book-pick button,
+.invite .share-secondary,
+.invite a.share-secondary,
+.invite .askval-seeds button,
+.invite .install-go a {
+  position: relative;
+  transition: transform 140ms ease, box-shadow 200ms ease, background 200ms ease;
+}
+.invite a.invite-cta:active,
+.invite .share-primary:active,
+.invite .askval-form button:active,
+.invite .book-pick button:active,
+.invite .share-secondary:active,
+.invite a.share-secondary:active,
+.invite .askval-seeds button:active,
+.invite .install-go a:active {
+  transform: translateY(1px);
+}
+
+/* THE one primary action on the page. Nothing else gets a solid gold face. */
+.invite a.invite-cta,
+.invite a.invite-cta:link,
+.invite a.invite-cta:visited,
+.invite .share-primary {
+  background: linear-gradient(180deg, #e5bc72, #c2924a);
+  border: 1px solid #e8c583;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22),
+    0 10px 26px -12px rgba(208, 160, 80, 0.72);
+}
+.invite a.invite-cta:hover,
+.invite .share-primary:hover {
+  background: linear-gradient(180deg, #f0c882, #cf9e55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 14px 32px -12px rgba(208, 160, 80, 0.9);
+}
+
+/* Everything secondary: a raised dark face with a gold rim and cream type. */
+.invite .share-secondary,
+.invite a.share-secondary,
+.invite .askval-seeds button,
+.invite .install-go a,
+.invite .book-pick button {
+  background: linear-gradient(180deg, rgba(217, 174, 100, 0.26), rgba(217, 174, 100, 0.1));
+  border: 1px solid rgba(232, 197, 131, 0.55);
+  color: var(--color-cream);
+  -webkit-text-fill-color: var(--color-cream);
+  box-shadow:
+    inset 0 1px 0 rgba(242, 239, 231, 0.16),
+    0 6px 16px -10px rgba(0, 0, 0, 0.9);
+}
+.invite .share-secondary:hover,
+.invite a.share-secondary:hover,
+.invite .askval-seeds button:hover:not(:disabled),
+.invite .install-go a:hover,
+.invite .book-pick button:hover {
+  background: linear-gradient(180deg, #e5bc72, #c2924a);
+  color: var(--color-sheet);
+  -webkit-text-fill-color: var(--color-sheet);
+  border-color: #e8c583;
+}
+
+/* The label pills on the three beats are not buttons, so they stay flat and
+   quiet — if everything pops, nothing does. */
+.hour-list li span {
+  background: rgba(217, 174, 100, 0.16);
+  border-color: rgba(217, 174, 100, 0.42);
+  color: var(--color-gold-bright);
+  box-shadow: none;
+}

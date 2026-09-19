@@ -81,7 +81,7 @@ export function seatText(name: string, ref: string, attend: Attend): string {
     `────────────────────────────────────────`,
     `No slideshow about AI. You build something on your own account`,
     `that answers a real buyer at eleven at night, and you take it`,
-    `home working. No pitch, no upsell, nothing to buy.`,
+    `home working. Nothing to buy, nothing to sign up for.`,
     ``,
     `────────────────────────────────────────`,
     `AND THEN STAY`,
@@ -157,7 +157,7 @@ export function seatHtml(name: string, ref: string, attend: Attend): string {
 
   <div style="margin:26px 0 0;padding:0 2px">
     ${kicker("The hour")}
-    <p style="margin:0 0 22px;font-size:16px;line-height:1.6;color:${SOFT}">No slideshow about AI. You build something on your own account that answers a real buyer at eleven at night, and you take it home working. <b style="color:${CREAM}">No pitch, no upsell, nothing to buy.</b></p>
+    <p style="margin:0 0 22px;font-size:16px;line-height:1.6;color:${SOFT}">No slideshow about AI. You build something on your own account that answers a real buyer at eleven at night, and you take it home working. <b style="color:${CREAM}">Nothing to buy, nothing to sign up for.</b></p>
 
     ${kicker("And then stay")}
     <p style="margin:0;font-size:16px;line-height:1.6;color:${SOFT}">Nobody gets rushed out. Linger, connect, and talk Claude and real estate with people who are actually building. That part is usually the best part of the whole thing.</p>

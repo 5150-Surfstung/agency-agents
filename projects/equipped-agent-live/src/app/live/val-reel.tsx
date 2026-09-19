@@ -138,6 +138,19 @@ export function ValReel({
         />
         <div className="holo-scan pointer-events-none absolute inset-0" aria-hidden />
       </div>
+
+      {/* THE NAMEPLATE. The orb was doing all the talking anonymously — people
+          watched a shape say clever things and had no idea what they were
+          looking at. It has a name, and the state under it is the orb's real
+          state rather than a decoration: the same value that drives the
+          animation drives the word. */}
+      <p className="reel-name">
+        <span className="reel-name-word">VAL</span>
+        <span className={`reel-name-state is-${orbMode}`}>
+          <i aria-hidden />
+          {orbMode === "think" ? "thinking" : orbMode === "listen" ? "listening" : "answering"}
+        </span>
+      </p>
       {!held && (
         <p className="reel-say display" key={i} aria-live="off">
           {facts[i]}

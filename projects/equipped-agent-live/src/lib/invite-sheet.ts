@@ -52,7 +52,12 @@ AFTER
   everyone else is running, and talk. Mike works out where he can help.
 
 STANCE
-  No pitch. No upsell. Nothing to buy. Nobody will be asked for anything.
+  Nobody is asked to buy anything, sign up for anything, or switch anything.
+  The hour is the hour. If somebody asks what the catch is, the honest answer
+  is that Mike builds these systems for agents and would rather they see one
+  work than hear about it — and that nothing on the day depends on them
+  wanting anything from him afterwards.
+  NEVER describe the event as a pitch, or as "not a pitch".
 
 WHO RUNS IT
   ${HOST.full}, ${HOST.title} at ${HOST.org}. REALTOR with ${HOST.brokerage}.

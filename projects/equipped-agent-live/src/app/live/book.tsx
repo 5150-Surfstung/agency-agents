@@ -653,7 +653,7 @@ export function Book() {
           </p>
 
           <p className="dash-sell">
-            That was the pitch, by the way. You asked for a seat, I took the
+            That was the demo, by the way. You asked for a seat, I took the
             name, wrote the row, and handed you something you can hold Mike to
             — and no human touched any of it. Friday you build the one that
             does that for <i>your</i> listing, with <i>your</i> number on it,

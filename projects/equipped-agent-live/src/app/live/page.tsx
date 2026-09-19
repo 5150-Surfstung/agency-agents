@@ -78,7 +78,7 @@ export default function LivePage() {
               One hour. You build a working assistant on your own Claude
               account and walk out with it running.
             </p>
-            <p className="invite-lede-fine" data-reveal>No pitch. Nothing to buy.</p>
+            <p className="invite-lede-fine" data-reveal>You leave with it working, and it is yours.</p>
             <div className="invite-actions" data-reveal>
               <a className="invite-cta" href="#seat">Save my seat</a>
               <Share compact />
