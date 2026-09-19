@@ -63,7 +63,8 @@ export function seatText(name: string, ref: string, attend: Attend): string {
     `────────────────────────────────────────`,
     `BRING`,
     `────────────────────────────────────────`,
-    `1. A laptop AND a phone, with Claude installed on both.`,
+    `1. ** HAVE CLAUDE INSTALLED ON YOUR PHONE AND YOUR LAPTOP **`,
+    `   ** BEFORE YOU COME. ** Bring both devices.`,
     `   Phone: the Claude app, App Store or Google Play.`,
     `   Laptop: claude.ai in a browser, signed in and working.`,
     `   The free tier is fine. Do it before you come — we are not`,
@@ -139,7 +140,7 @@ export function seatHtml(name: string, ref: string, attend: Attend): string {
 
   <div style="margin:34px 0 0;padding:22px 20px;background:rgba(242,239,231,.035);border-radius:16px;border:1px solid rgba(242,239,231,.09)">
     ${kicker("Bring — two things")}
-    <p style="margin:0 0 6px;font-size:17px;font-weight:800;color:${CREAM}">1 &nbsp;A laptop and a phone, Claude installed on both.</p>
+    <p style="margin:0 0 10px;font-size:18px;font-weight:800;line-height:1.35;color:${CREAM}">1 &nbsp;<span style="color:${GOLD}">Have Claude installed on your phone and your laptop before you come.</span> Bring both devices.</p>
     <p style="margin:0 0 3px;font-size:14px;line-height:1.55;color:${SOFT}">&middot; <b style="color:${CREAM}">Phone</b> &mdash; the Claude app, App Store or Google Play.</p>
     <p style="margin:0 0 3px;font-size:14px;line-height:1.55;color:${SOFT}">&middot; <b style="color:${CREAM}">Laptop</b> &mdash; claude.ai in a browser, signed in and working.</p>
     <p style="margin:0 0 18px;font-size:14px;line-height:1.55;color:${SOFT}">The free tier is fine. Install it before you come &mdash; we are not spending this hour on setup.</p>

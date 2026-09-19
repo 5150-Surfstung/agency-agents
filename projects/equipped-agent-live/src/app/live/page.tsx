@@ -61,9 +61,10 @@ export default function LivePage() {
             </h1>
             <p className="invite-kicker">Charleston&rsquo;s Claude community for tech-forward agents.</p>
             <p className="invite-lede">
-              One hour in our West Ashley office. No slideshow about AI — you
-              build something on your own Claude account that answers a real
-              buyer at eleven at night, and you take it home working.
+              <b>If you are not keeping up with AI, you are falling behind.</b>{" "}
+              One hour in our West Ashley office. You build something on your
+              own Claude account that answers a real buyer at eleven at night,
+              and you take it home working.
             </p>
             <p className="invite-lede-fine">
               No pitch. No upsell. Nothing to buy.
@@ -90,8 +91,8 @@ export default function LivePage() {
               <div>
                 <dt>Bring</dt>
                 <dd>
-                  <b>A laptop and a phone, Claude installed on both.</b>
-                  <span>Free tier is fine. Plus your ideas and anything you have already built — half-finished counts.</span>
+                  <b>Install Claude on your phone and your laptop before you come.</b>
+                  <span>Bring both devices. Free tier is fine. Plus your best ideas and anything you have already built — half finished counts.</span>
                 </dd>
               </div>
             </dl>
@@ -108,10 +109,9 @@ export default function LivePage() {
             <span>First fifteen</span>
             <p>
               Claude on the work you already do — the follow-up you forgot, the
-              listing description, the deadlines on a live contract. Then you
-              watch one listing answer its own phone, and refuse to invent an
-              answer nobody gave it. That refusal is why this is safe in front
-              of a client.
+              listing description, the dates on a live contract. Then a listing
+              answers its own phone, and refuses to invent an answer nobody
+              gave it. That refusal is why this is safe in front of a client.
             </p>
           </li>
           <li>
@@ -125,16 +125,16 @@ export default function LivePage() {
           <li>
             <span>Last fifteen</span>
             <p>
-              MCP — how Claude plugs into the tools you already pay for. We
-              connect a flexmls seat live on the screen and ask it about a farm
-              area in plain English. Almost nobody in this market has done it.
+              MCP — how Claude plugs into the tools you already pay for. A
+              flexmls seat connected live on the screen, asked about a farm
+              area in plain English. Almost nobody here has done it.
             </p>
           </li>
         </ol>
         <p className="hour-after">
-          You leave knowing three things: how to put Claude on your everyday
-          work, how to build an agent that runs without you, and how MCP hooks
-          it to your own tools — flexmls included, on your own login.
+          You leave knowing three things: Claude on your everyday work, how to
+          build an agent that runs without you, and how MCP hooks it to your
+          own tools — flexmls included, on your own login.
         </p>
 
         {/* The objection that keeps the most people home, answered on the
@@ -142,26 +142,35 @@ export default function LivePage() {
             SHORT. This block used to run four long paragraphs and cost more
             seats than it saved. Somebody deciding in a feed reads two. */}
         <div className="hour-calm">
-          <p className="hour-calm-h display">You do not need to be technical.</p>
+          <p className="hour-calm-h display">Watching everyone else pull ahead?</p>
           <p>
-            All of it happens in a chat box. It interviews you about your own
-            business, tells you the three places your work is leaking, and
-            builds you an assistant aimed at exactly those. What it hands back
-            is writing, not a program — nothing to install, nothing to run.
+            Most agents are not behind because they are not working hard
+            enough. They are behind because nobody handed them the tools. If
+            where you hang your licence gives you a login and a Zoom link and
+            calls that support, come see what the other side looks like and
+            decide for yourself. Nobody will ask you anything.
+          </p>
+          <p>
+            And you do not need to be technical. All of it happens in a chat
+            box. What it hands back is writing, not a program — nothing to
+            install, nothing to run.
           </p>
           <p className="hour-bring">
-            <b>There is no homework.</b> Install Claude on your laptop and your
-            phone, turn up, and we do the whole thing together in the hour.
+            <b>There is no homework — but do this one thing: have Claude
+            installed on your phone and your laptop before you come.</b> Then
+            turn up, and we do the whole thing together in the hour.
           </p>
         </div>
 
         {/* The part people actually come back for. */}
         <div className="hour-stay">
-          <p className="hour-calm-h display">Then stay.</p>
+          <p className="hour-calm-h display">Then stay and show off.</p>
           <p>
-            Nobody gets rushed out. Linger, connect, and talk Claude and real
-            estate with people who are actually building. That part is usually
-            the best part of the whole thing.
+            Bring your best ideas and anything you have already built — half
+            finished counts, broken counts. Afterwards we sit down, put builds
+            on the screen, see what everyone else is running, and work out
+            where I can help. That part is usually the best part of the whole
+            thing.
           </p>
         </div>
       </section>
