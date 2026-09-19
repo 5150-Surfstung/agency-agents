@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   if (!/^EA-[A-Z0-9]{6}$/.test(ref)) ref = makeRef();
 
   try {
-    const at = await getStore().rsvpAdd({ ref, name, cell, attend, note });
+    const at = await getStore().rsvpAdd({ ref, name, cell, attend, note, email });
 
     // TWO SENDS, AND BOTH REPORT WHAT ACTUALLY HAPPENED.
     //

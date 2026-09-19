@@ -800,6 +800,23 @@ body {
   line-height: 1.25;
   color: var(--color-gold-bright);
 }
+/* THE CLOSE, ABOVE THE FOLD. The only button used to be most of a page away,
+   which asks somebody who has already decided to scroll past the argument that
+   convinced them. */
+.invite-cta {
+  display: inline-block;
+  margin: 1.5rem 0 0;
+  padding: 0.95rem 1.9rem;
+  border-radius: 999px;
+  background: var(--color-gold);
+  color: var(--color-sheet);
+  font-weight: 800;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+.invite-cta:hover { background: var(--color-gold-bright); }
+
 /* The three words that answer the question everybody is silently asking. */
 .invite-lede-fine {
   margin: 0.7rem 0 0;
@@ -3433,4 +3450,128 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .cons-rows > div { animation: none; }
   .cons-led.writing { animation: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE INVITE, AS MODULES
+   ──────────────────────────────────────────────────────────────────────────
+   The page was hairlines and air: every section separated by a 1px rule, every
+   list item another rule under the last. Honest, and completely flat — nothing
+   on it looked like it had been BUILT, which is a strange thing to put in front
+   of somebody you are inviting to come and build something.
+
+   So the page becomes what the product is: boxed modules on a dark sheet, each
+   one framed, each one carrying a gold edge where the eye enters. The orb and
+   the HUD are untouched — they were already right, and the boxes are drawn to
+   sit under them rather than compete.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── the module frame ───────────────────────────────────────────────────── */
+.hour,
+.invite-who {
+  margin-top: 2.25rem;
+  padding: 1.5rem 1.25rem 1.6rem;
+  border: 1px solid var(--color-rule-strong);
+  border-top: 2px solid var(--color-gold);
+  border-radius: 4px 4px 16px 16px;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(217, 174, 100, 0.09), transparent 62%),
+    var(--color-sheet-2);
+  box-shadow: 0 18px 44px -28px rgba(0, 0, 0, 0.9);
+}
+.hour > h2.display,
+.invite-who > h2.display {
+  margin: 0 0 0.25rem;
+  font-variation-settings: "wdth" 110;
+  font-weight: 800;
+  font-size: clamp(1.5rem, 6.2vw, 2rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  color: var(--color-cream);
+}
+
+/* ── the three beats, as cards with a ghost number ──────────────────────── */
+.hour-list { margin: 1.35rem 0 0; display: grid; gap: 0.7rem; }
+.hour-list li {
+  position: relative;
+  display: block;
+  padding: 1.05rem 1.05rem 1.1rem;
+  border: 1px solid var(--color-rule);
+  border-left: 3px solid var(--color-gold);
+  border-radius: 0 12px 12px 0;
+  background: rgba(242, 239, 231, 0.035);
+  overflow: hidden;
+}
+.hour-list li::after {
+  content: "";
+  position: absolute;
+  inset: auto -1px -1px auto;
+  width: 46px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(217, 174, 100, 0.65));
+}
+.hour-list li span {
+  display: inline-block;
+  margin: 0 0 0.45rem;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(217, 174, 100, 0.14);
+  border: 1px solid rgba(217, 174, 100, 0.34);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold-bright);
+}
+.hour-list li p {
+  margin: 0;
+  font-size: 0.96875rem;
+  line-height: 1.58;
+  color: var(--color-soft);
+}
+.hour-list li p b { color: var(--color-cream); }
+
+/* ── the one instruction, as a stamped strip ────────────────────────────── */
+.hour-after {
+  margin: 1.1rem 0 0 !important;
+  padding: 0.95rem 1.05rem;
+  border: 1px dashed rgba(217, 174, 100, 0.5);
+  border-radius: 12px;
+  background: rgba(217, 174, 100, 0.07);
+  font-size: 0.96875rem !important;
+  line-height: 1.55;
+  color: var(--color-soft) !important;
+}
+.hour-after b { color: var(--color-gold-bright); }
+
+/* ── the two talking blocks sit inside the module, not beside it ────────── */
+.hour-calm,
+.hour-stay { border-radius: 0 12px 12px 0; }
+
+/* ── the stamp gets a frame so the facts read as a record ───────────────── */
+.stamp {
+  border: 1px solid var(--color-rule-strong);
+  border-top: 2px solid var(--color-gold);
+  border-radius: 4px 4px 14px 14px;
+  padding: 0.25rem 1rem 0.4rem;
+  background: rgba(242, 239, 231, 0.03);
+}
+.stamp > div + div { border-top: 1px solid var(--color-rule); }
+
+/* ── who is running it: the card and the line, boxed together ───────────── */
+.invite-who > p {
+  margin: 1rem 0 0;
+  padding: 0.9rem 1rem;
+  border-left: 3px solid var(--color-rule-strong);
+  font-size: 0.96875rem;
+  line-height: 1.6;
+  color: var(--color-soft);
+}
+
+/* ── desktop: the beats become a real row ───────────────────────────────── */
+@media (min-width: 820px) {
+  .hour,
+  .invite-who { padding: 2rem 1.9rem 2.1rem; }
+  .hour-list { grid-template-columns: repeat(3, 1fr); gap: 0.9rem; }
+  .hour-list li { border-left: 1px solid var(--color-rule); border-top: 3px solid var(--color-gold); border-radius: 0 0 12px 12px; }
 }

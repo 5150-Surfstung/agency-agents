@@ -50,7 +50,7 @@ export interface Store {
    *  stranger; these partition by an explicit room label instead. */
   /** Val's reservation. Returns the row's real timestamp, which is what the
    *  confirmation on screen is allowed to show. */
-  rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }): Promise<string>;
+  rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string; email: string }): Promise<string>;
   /** How many have actually booked. A count of rows, nothing about who. */
   rsvpCount(): Promise<number>;
   /** Consent, given after the seat exists so it never gates the booking. */
@@ -232,7 +232,7 @@ class MemoryStore implements Store {
   // visitor the opposite of what they picked. The booking selftest caught it
   // the first time it ran. Fields that must agree live in one object.
   private rsvps = new Map<string, {
-    name: string; cell: string; attend: string; note: string; at: string;
+    name: string; cell: string; attend: string; note: string; email: string; at: string;
     show: boolean; brokerage: string; bringing: boolean;
   }>();
 
@@ -265,7 +265,7 @@ class MemoryStore implements Store {
     // a password, so this may never hand back a cell or a full legal name.
     return { who: row.name.trim().split(" ")[0] ?? "", attend: row.attend, at: row.at };
   }
-  async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
+  async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string; email: string }) {
     if (!r.name.trim()) throw new Error("need_name");
     const had = this.rsvps.get(r.ref);
     if (had) return had.at;
@@ -275,6 +275,7 @@ class MemoryStore implements Store {
       cell: r.cell,
       attend: ["in-person", "zoom", "either"].includes(r.attend) ? r.attend : "in-person",
       note: r.note,
+      email: r.email,
       at,
       show: false,
       brokerage: "",
@@ -815,13 +816,20 @@ class RpcStore implements Store {
     const n = await this.call<number>("live_rsvp_selftest_clear", { p_ref: ref });
     return Number(n ?? 0);
   }
-  async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string }) {
+  async rsvpAdd(r: { ref: string; name: string; cell: string; attend: string; note: string; email: string }) {
+    // SIX NAMED ARGUMENTS, DELIBERATELY. The five-argument version of this
+    // function still exists in the database so an older deployment keeps
+    // working mid-rollout; the six-argument one has no default, which is what
+    // keeps the two from ever being ambiguous. The email is the whole point:
+    // without it a booking leaves only a cell number, and the next meetup has
+    // nobody to invite.
     const at = await this.call<string>("live_rsvp_add", {
       p_ref: r.ref,
       p_name: r.name,
       p_cell: r.cell,
       p_attend: r.attend,
       p_note: r.note,
+      p_email: r.email,
     });
     return String(at);
   }

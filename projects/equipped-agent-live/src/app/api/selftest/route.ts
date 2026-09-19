@@ -205,6 +205,7 @@ export async function GET(req: NextRequest) {
     try {
       const at = await store.rsvpAdd({
         ref, name: "· selftest ·", cell: "000", attend: "zoom", note: "selftest",
+        email: "selftest@example.invalid",
       });
       if (!at) throw new Error("no timestamp came back from the write");
 
@@ -219,6 +220,7 @@ export async function GET(req: NextRequest) {
       // Idempotent: a retry from a flaky phone is the same seat, not a second.
       const again = await store.rsvpAdd({
         ref, name: "· selftest ·", cell: "000", attend: "zoom", note: "selftest",
+        email: "selftest@example.invalid",
       });
       if (again !== at) throw new Error("a retry on the same reference minted a second seat");
 
@@ -318,7 +320,7 @@ export async function GET(req: NextRequest) {
       if (!refused) throw new Error("a reference with no booking minted a live assistant");
 
       // A real seat may.
-      await store.rsvpAdd({ ref, name: "· selftest ·", cell: "000", attend: "zoom", note: "selftest" });
+      await store.rsvpAdd({ ref, name: "· selftest ·", cell: "000", attend: "zoom", note: "selftest", email: "selftest@example.invalid" });
       await store.assistantCreateByRef(ref, device, sheet);
       const got = await store.assistantGet(sheet.code);
       if (!got) throw new Error("the assistant did not read back after a valid build");
