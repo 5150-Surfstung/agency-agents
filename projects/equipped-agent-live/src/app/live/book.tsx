@@ -437,7 +437,7 @@ export function Book() {
           ) : asInitials ? (
             <>Val is holding <b>{first}</b>&rsquo;s seat &mdash; those are {first}&rsquo;s initials up there, not a font.</>
           ) : (
-            <>Val is holding <b>{first}</b>&rsquo;s seat &mdash; and that is {first}&rsquo;s name up there, not a font.</>
+            <>Val is holding <b>{first}</b>&rsquo;s seat &mdash; and that is {first}&rsquo;s name, held by Val, not a font.</>
           )}
         </p>
       )}
@@ -460,9 +460,8 @@ export function Book() {
             <>
               <p className="book-say display">Hold your seat and watch your assistant go to work.</p>
               <p className="book-sub">
-                Everything you type flies into the mark, and everything that
-                comes back out is real &mdash; the reference, the row, the
-                send.
+                Everything you type flies into Val, and everything that comes
+                back out is real &mdash; the reference, the row, the send.
               </p>
               <form
                 className="book-row"
@@ -847,7 +846,7 @@ export function Book() {
               <h4 className="display">And build the thing you have been staring at.</h4>
               <p>
                 One more, for the fun of it. This one builds you your own
-                version of Val — the mark at the top of this page — as a single
+                version of Val — the one at the top of this page — as a single
                 file you double-click. Your colours, your market, your shapes.
                 It goes on a laptop at an open house, or in a screen recording
                 that does not look like everybody else&rsquo;s.
