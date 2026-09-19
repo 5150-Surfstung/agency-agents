@@ -4495,3 +4495,26 @@ body {
   }
   .desk-caption { justify-content: flex-start; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE SAYING UNDER VAL WAS 147 PIXELS OFF THE LEFT EDGE
+   ──────────────────────────────────────────────────────────────────────────
+   Not a centring bug in the layout — the layout was right. The entrance
+   animation was written when the line was absolutely positioned and pinned by
+   `left: 50%`, so every keyframe carried `translateX(-50%)` to pull it back.
+   The line is a flow item now, and it centres itself; that -50% is a second
+   correction applied to something already correct, which drags it half its own
+   width to the left. `animation-fill-mode: both` then holds it there after the
+   animation ends, so it never comes back.
+   Measured before and after rather than eyeballed: left -147 / right 175 on a
+   390px phone, against a 322px line that should sit at 14 on both sides.
+   ════════════════════════════════════════════════════════════════════════ */
+@keyframes reel-in {
+  from { opacity: 0; filter: blur(9px); transform: translateY(14px) scale(0.965); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
+}
+.reel-say {
+  align-self: center;
+  text-align: center;
+}
