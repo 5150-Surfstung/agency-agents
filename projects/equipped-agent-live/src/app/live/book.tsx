@@ -216,6 +216,28 @@ export function Book() {
   // gold, because at that point the thing she is holding is a receipt. Every
   // character of both came from outside this component: one they typed, one
   // Postgres returned.
+  // THE MARK PICKS THE NAME UP WHILE THEY ARE STILL TYPING IT.
+  //
+  // It used to wait for the name step to be committed, which meant the one
+  // moment somebody is actually staring at the orb — typing their own name
+  // into the box underneath it — was the one moment it was holding nothing.
+  // Now it takes the name live.
+  //
+  // Debounced rather than per-keystroke on purpose: every change rebuilds the
+  // letter geometry the wireframe is sampled from, and doing that on the
+  // twelfth character of "Christopher" while somebody is mid-word is how a
+  // phone drops frames. A third of a second after they stop, the mark has it.
+  const [typed, setTyped] = useState("");
+  useEffect(() => {
+    const t = name.trim();
+    if (!t) {
+      setTyped("");
+      return;
+    }
+    const id = window.setTimeout(() => setTyped(t), 340);
+    return () => window.clearTimeout(id);
+  }, [name]);
+
   const parts = name.trim().split(/\s+/).filter(Boolean);
   const first = parts[0] ?? "";
   // She can hold about eight letters legibly at the size the mark runs on a
@@ -231,7 +253,15 @@ export function Book() {
   // largest thing on the stub, in monospace, where a number belongs. What
   // changes here is the colour: gold while she is taking it, cream once it is
   // saved, which is the same shift the key and the sold sign use.
-  const spell = step !== "name" ? token : "";
+  // Live while they type (two letters is enough to know it is a name and not
+  // a stray keystroke), and it keeps holding it through every step after.
+  const typedParts = typed.split(/\s+/).filter(Boolean);
+  const typedFirst = typedParts[0] ?? "";
+  const typedInitials = (
+    typedParts.length > 1 ? typedParts[0][0] + typedParts[typedParts.length - 1][0] : typedFirst.slice(0, 1)
+  ).toUpperCase();
+  const typedToken = typedFirst.length <= 8 ? typedFirst : typedInitials;
+  const spell = step !== "name" ? token : typedFirst.length >= 2 ? typedToken : "";
   const spellAccent: [number, number, number] = ref ? [242, 239, 231] : [217, 174, 100];
 
   const when = eventLine();
