@@ -4894,3 +4894,31 @@ html {
 .invite-foot p { color: #b9cbdb; }
 .book-fineprint, .desk-caption { color: #9db2c6; }
 .invite-lede-fine { color: #bccddd; }
+
+/* ── the real mark ──────────────────────────────────────────────────────── */
+.rail-logo {
+  height: 2.15rem;
+  width: auto;
+  display: block;
+  flex: 0 0 auto;
+}
+.valhero-logo {
+  display: block;
+  width: min(19rem, 72%);
+  height: auto;
+  margin: 0 0 1.25rem;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.55));
+}
+
+/* The footer link was a 16px tap target — under half the 44px minimum, on the
+   one link that leaves this page for the company behind it. */
+.foot-go { margin-top: 1rem !important; }
+.invite .foot-go a.share-secondary {
+  display: inline-block;
+  min-height: 44px;
+  line-height: 1.6;
+}
+@media (min-width: 720px) {
+  .rail-logo { height: 2.6rem; }
+  .valhero-logo { width: min(22rem, 60%); }
+}

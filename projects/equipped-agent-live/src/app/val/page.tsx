@@ -96,9 +96,17 @@ export default function ValPage() {
       <section className="valhero">
         <OrbLazy className="valhero-orb pointer-events-none" />
         <div className="valhero-said">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/surfstung-logo.png"
+            alt="Surfstung Systems"
+            width={748}
+            height={536}
+            className="valhero-logo"
+          />
           <p className="valhero-kicker">
             <ClaudeMark size={26} />
-            Surfstung Systems · Charleston, SC
+            Custom software &middot; Charleston, SC
           </p>
           <h1 className="display valhero-h">
             Meet Val &amp;

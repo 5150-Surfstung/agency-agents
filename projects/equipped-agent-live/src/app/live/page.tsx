@@ -65,10 +65,17 @@ export default function LivePage() {
         <FromBanner />
       </Suspense>
       <div className="rail">
-        <span className="rail-mark">
-          <i aria-hidden />
-          Surfstung Systems
-        </span>
+        {/* The real mark, not a typeset stand-in. eslint-disable-next-line
+            @next/next/no-img-element — a plain img keeps this a static file
+            with no loader in front of it. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/surfstung-logo.png"
+          alt="Surfstung Systems"
+          width={748}
+          height={536}
+          className="rail-logo"
+        />
         <span className="rail-and">with</span>
         <span className="rail-tac">The AGENT Connection</span>
       </div>
@@ -242,9 +249,13 @@ export default function LivePage() {
 
       <footer className="invite-foot">
         <p>
-          <Link href="/val">Meet Val &amp; Surfstung Systems</Link> &mdash; Mike
-          Olson&rsquo;s tech company, and everything already built and running
-          for agents. The prompts are yours the moment you take a seat.
+          Mike Olson&rsquo;s tech company, and everything already built and
+          running for agents.
+        </p>
+        <p className="foot-go">
+          <Link href="/val" className="share-secondary">
+            Meet Val &amp; Surfstung Systems
+          </Link>
         </p>
         <p className="invite-sponsor">
           Hosted by {HOST.org}. Built and sponsored by Surfstung Systems.
