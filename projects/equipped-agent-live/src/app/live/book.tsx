@@ -114,7 +114,35 @@ export function Book() {
   // for effect, which is what makes watching the machinery worth more than
   // watching an animation of it.
   const [packets, setPackets] = useState<Packet[]>([]);
+  // THE DESK, RUNNING. Once the seat exists the mark stops idling and starts
+  // showing the job list — the actual things this assistant does, streaming
+  // in and out of it. Every label is a capability built in the hour on the
+  // 2nd, and the panel says so on screen, because a chip reading "POSTED TO
+  // INSTAGRAM" on a page selling an hour about assistants that refuse to
+  // invent would be read by a stranger as a thing that just happened to their
+  // account. What it is instead is a live preview of their own desk, which is
+  // the same spectacle and survives being looked at closely.
+  const [deskOn, setDeskOn] = useState(false);
   const pktId = useRef(0);
+  const DESK_WORK: [string, "in" | "out"][] = [
+    ["BUYER ASKS AT 11PM", "in"],
+    ["ANSWERED FROM THE SHEET", "out"],
+    ["LISTING POST", "out"],
+    ["OPEN HOUSE RECAP", "out"],
+    ["DAY 3 FOLLOW-UP DUE", "in"],
+    ["DRAFTED IN YOUR VOICE", "out"],
+    ["CONTRACT RATIFIED", "in"],
+    ["DATES COUNTED", "out"],
+    ["INSPECTION IN 4 DAYS", "out"],
+    ["ASK THE MLS", "in"],
+    ["FARM ANSWERED", "out"],
+    ["SELLER UPDATE", "out"],
+    ["PRICE QUESTION", "in"],
+    ["SENT TO YOU TO SEND", "out"],
+    ["NOT ON THE SHEET", "out"],
+    ["REFUSED TO INVENT", "out"],
+  ];
+
   const fly = useCallback((label: string, dir: "in" | "out") => {
     pktId.current += 1;
     const id = pktId.current;
@@ -148,6 +176,35 @@ export function Book() {
     else if (was === "attend") fly(attend === "zoom" ? "ZOOM" : "IN PERSON", "in");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
+
+  // THE DESK STARTS WHEN THEY START. Waiting for the write meant the mark sat
+  // idle through the only part of this somebody is actually looking at. Two
+  // characters into a name is enough to know a person is engaged rather than
+  // scrolling past, and from that moment the orb is visibly working.
+  useEffect(() => {
+    if (deskOn) return;
+    const engaged = name.trim().length >= 2 || step !== "name";
+    if (!engaged) return;
+    const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (calm) return;
+    const start = window.setTimeout(() => setDeskOn(true), 500);
+    return () => window.clearTimeout(start);
+  }, [name, step, deskOn]);
+
+  useEffect(() => {
+    if (!deskOn) return;
+    let n = 0;
+    const id = window.setInterval(
+      () => {
+        const [label, dir] = DESK_WORK[n % DESK_WORK.length];
+        n += 1;
+        fly(label, dir);
+      },
+      step === "done" ? 820 : 1150
+    );
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deskOn, step]);
 
   // The orb does what the block is doing, and nothing else.
   const mode: Mode = step === "working" ? "think" : step === "done" ? "speak" : "listen";
@@ -371,11 +428,11 @@ export function Book() {
         <div className="book-talk">
           {step === "name" && (
             <>
-              <p className="book-say display">Put your details in and watch me start working.</p>
+              <p className="book-say display">Hold your seat and watch your assistant go to work.</p>
               <p className="book-sub">
-                Everything you type flies into the mark and everything that
+                Everything you type flies into the mark, and everything that
                 comes back out is real &mdash; the reference, the row, the
-                send. Sit there and watch it get handled.
+                send.
               </p>
               <form
                 className="book-row"
@@ -473,6 +530,13 @@ export function Book() {
             </>
           )}
 
+          {deskOn && (
+            <p className="desk-caption">
+              <span className="desk-live-dot" aria-hidden />
+              Val is running the job list you will be building on the 2nd
+            </p>
+          )}
+
           {step === "working" && <LevelUp first={name.trim().split(/\s+/)[0] ?? ""} />}
 
           <p className="book-fineprint">
@@ -538,6 +602,21 @@ export function Book() {
             </a>
             <a href={mailto}>Send it to his inbox too</a>
           </div>
+
+          {deskOn && (
+            <div className="desk-live">
+              <p className="desk-live-h">
+                <span className="desk-live-dot" aria-hidden />
+                Your desk, running
+              </p>
+              <p className="desk-live-p">
+                That is the job list &mdash; the buyer at eleven at night, the
+                follow-up you would have forgotten, the contract dates, the
+                MLS question, and the answer it refuses to make up. You build
+                every one of them on the 2nd, on your own account.
+              </p>
+            </div>
+          )}
 
           {/* ---- BRING SOMEONE. The cheapest seat in the room is the one
               somebody already coming brings with them, and the moment to ask

@@ -4344,3 +4344,94 @@ body {
   line-height: 1.55;
   color: var(--color-soft);
 }
+
+/* ── the desk, running ──────────────────────────────────────────────────── */
+.desk-live {
+  margin-top: 1.4rem;
+  padding: 1.05rem 1.1rem 1.15rem;
+  border: 1px solid rgba(217, 119, 87, 0.42);
+  border-left: 3px solid #d97757;
+  border-radius: 0 14px 14px 0;
+  background: linear-gradient(180deg, rgba(217, 119, 87, 0.13), var(--surface-3) 62%);
+  box-shadow: var(--lift-1);
+}
+.desk-live-h {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.45rem;
+  font-variation-settings: "wdth" 108;
+  font-weight: 800;
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+  color: var(--color-cream);
+}
+.desk-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #d97757;
+  box-shadow: 0 0 0 0 rgba(217, 119, 87, 0.7);
+  animation: desk-pulse 1.8s ease-out infinite;
+}
+@keyframes desk-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(217, 119, 87, 0.65); }
+  70%  { box-shadow: 0 0 0 9px rgba(217, 119, 87, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(217, 119, 87, 0); }
+}
+.desk-live-p { margin: 0; font-size: 0.875rem; line-height: 1.55; color: var(--color-soft); }
+@media (prefers-reduced-motion: reduce) { .desk-live-dot { animation: none; } }
+
+.desk-caption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.9rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-faint);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE REEL STACKS — the nameplate was fighting the sentence for the same space
+   ──────────────────────────────────────────────────────────────────────────
+   The orb sat in a centring flex row with the nameplate pinned by a calc off
+   the centre line and the sentence pinned to the bottom by percentage. Two
+   absolute elements measured from different anchors will collide at some
+   viewport, and on a phone they did — VAL crammed onto the line Val was
+   saying. They are flow items in a column now: the mark, its nameplate, then
+   the sentence, each with its own space, at every width there is.
+   ════════════════════════════════════════════════════════════════════════ */
+.reel {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  height: auto !important;
+  padding: 0.25rem 0 0.5rem;
+}
+.reel-orb { flex: 0 0 auto; }
+.reel-name {
+  position: static;
+  transform: none;
+  top: auto;
+  left: auto;
+  margin: 0.55rem 0 0;
+  gap: 0.75rem;
+}
+.reel-say {
+  position: static;
+  transform: none;
+  bottom: auto;
+  left: auto;
+  width: min(30rem, 92%);
+  margin: 0.3rem auto 0;
+}
+
+/* On a narrow phone the nameplate gets its own line rather than sitting
+   shoulder to shoulder with the state, which is where it ran out of room. */
+@media (max-width: 400px) {
+  .reel-name { flex-direction: column; gap: 0.25rem; }
+  .reel-name-word { font-size: 0.875rem; letter-spacing: 0.3em; text-indent: 0.3em; }
+  .reel-name-state { font-size: 0.625rem; }
+}
