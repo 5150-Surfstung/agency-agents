@@ -98,10 +98,10 @@ export default function OgCard() {
       <div className="absolute bottom-[38px] left-[64px] z-10 flex items-center gap-[16px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/headshot-2026.jpg"
+          src="/headshot-torso-2026.jpg"
           alt=""
-          width={560}
-          height={700}
+          width={640}
+          height={800}
           className="h-[112px] w-[90px] rounded-[4px] border border-gold/50 object-cover object-center"
         />
         <div>
