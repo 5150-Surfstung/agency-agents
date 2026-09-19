@@ -238,6 +238,12 @@ export function Book() {
     return () => window.clearTimeout(id);
   }, [name]);
 
+  // What counts as reachable. The server enforces the same two rules; this is
+  // here so nobody gets to the end of the flow and is told no.
+  const digits = cell.replace(/\D/g, "");
+  const cellOk = digits.length >= 10;
+  const emailOk = /^[^\s@]+@[^\s@.]+\.[^\s@]{2,}$/.test(email.trim());
+
   const parts = name.trim().split(/\s+/).filter(Boolean);
   const first = parts[0] ?? "";
   // She can hold about eight letters legibly at the size the mark runs on a
@@ -290,7 +296,11 @@ export function Book() {
         const j = await r.json().catch(() => null);
         if (!r.ok || !j?.ok) {
           setTrouble(
-            j?.error === "too_many"
+            j?.error === "need_cell"
+              ? "I need a ten-digit number before I can hold that seat — nobody can confirm a row they cannot reach."
+              : j?.error === "need_email"
+              ? "That email did not look deliverable, and your confirmation has nowhere to go without one."
+              : j?.error === "too_many"
               ? "The list is taking more than it can right now. Give it a minute, or just send Mike the message below — that works either way."
               : "That did not save. Nothing was recorded, so try again — or send the message below and you are on the list the old way."
           );
@@ -496,38 +506,54 @@ export function Book() {
           {step === "cell" && (
             <>
               <p className="book-say display">
-                Noted, {name.trim().split(/\s+/)[0]}. Best number to reach you — or skip
-                it, you&rsquo;re in either way.
+                Got you, {name.trim().split(/\s+/)[0]}. What is the best number?
+              </p>
+              <p className="book-why">
+                Two of us need to reach you: Mike if the room moves, and me if
+                anything about Friday changes. It is one row next to your name
+                &mdash; never a list, never sold, never a text you did not ask
+                for.
               </p>
               <form
                 className="book-row"
-                onSubmit={(e) => { e.preventDefault(); setStep("email"); }}
+                onSubmit={(e) => { e.preventDefault(); if (cellOk) setStep("email"); }}
               >
                 <input
                   inputMode="tel"
                   autoComplete="tel"
                   value={cell}
                   onChange={(e) => setCell(e.target.value.slice(0, 32))}
-                  placeholder="Cell — optional"
-                  aria-label="Your cell, optional"
+                  placeholder="(843) 555-0101"
+                  aria-label="Your cell"
+                  required
                 />
-                <button type="submit">{cell.trim() ? "Use that" : "Skip it"}</button>
+                <button type="submit" disabled={!cellOk}>
+                  {cellOk ? "That's me" : "Keep going"}
+                </button>
               </form>
+              {cell.trim().length > 0 && !cellOk && (
+                <p className="book-nudge">
+                  That is {digits.length} digit{digits.length === 1 ? "" : "s"}
+                  {" "}&mdash; I need ten before I can hold the seat.
+                </p>
+              )}
             </>
           )}
 
           {step === "email" && (
             <>
               <p className="book-say display">
-                Where do I send your kit?
+                Last one. Where does your confirmation go?
               </p>
               <p className="book-why">
-                Both prompts, every step written out, and your reference — one
-                email, no list, no newsletter, no second one unless you ask.
+                Your reference, the address, the bring list and a calendar file
+                land there the second I write the row &mdash; and the Zoom link
+                before the 2nd if you need it. One email. No list, no
+                newsletter, no second one unless you ask.
               </p>
               <form
                 className="book-row"
-                onSubmit={(e) => { e.preventDefault(); setStep("attend"); }}
+                onSubmit={(e) => { e.preventDefault(); if (emailOk) setStep("attend"); }}
               >
                 <input
                   type="email"
@@ -537,9 +563,18 @@ export function Book() {
                   onChange={(e) => setEmail(e.target.value.slice(0, 160))}
                   placeholder="you@wherever.com"
                   aria-label="Your email"
+                  required
                 />
-                <button type="submit">{email.trim() ? "Send it there" : "Skip it"}</button>
+                <button type="submit" disabled={!emailOk}>
+                  {emailOk ? "Send it there" : "Keep going"}
+                </button>
               </form>
+              {email.trim().length > 2 && !emailOk && (
+                <p className="book-nudge">
+                  I cannot post to that one yet &mdash; it needs an @ and a
+                  domain after it.
+                </p>
+              )}
             </>
           )}
 

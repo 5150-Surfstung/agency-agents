@@ -4934,3 +4934,15 @@ html {
   border-radius: 999px;
 }
 .claude-band { flex-wrap: wrap; }
+
+/* Val's nudge when something is not quite there yet — a correction, not an
+   error: nothing has failed, she just cannot finish without it. */
+.book-nudge {
+  margin: 0.7rem auto 0;
+  max-width: 34ch;
+  text-align: center;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-gold-bright);
+}
+@media (min-width: 720px) { .book-nudge { margin-left: 0; text-align: left; } }

@@ -54,8 +54,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
   }
 
+  // A SEAT HAS TO BE REACHABLE.
+  //
+  // Both fields were optional and the form offered to skip them, so somebody
+  // booked with a name and nothing else — a row nobody can confirm, remind or
+  // send a Zoom link to, which is not a reservation, it is a gap in a list.
+  // The gate lives here rather than only in the browser: the page can be
+  // bypassed, this cannot.
+  const digits = cell.replace(/\D/g, "");
   if (name.length < 2) {
     return NextResponse.json({ ok: false, error: "need_name" }, { status: 400 });
+  }
+  if (digits.length < 10) {
+    return NextResponse.json({ ok: false, error: "need_cell" }, { status: 400 });
+  }
+  if (!looksLikeEmail(email)) {
+    return NextResponse.json({ ok: false, error: "need_email" }, { status: 400 });
   }
   if (!["in-person", "zoom", "either"].includes(attend)) attend = "in-person";
   if (!/^EA-[A-Z0-9]{6}$/.test(ref)) ref = makeRef();
