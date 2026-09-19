@@ -4602,3 +4602,32 @@ body {
 }
 .invite-foot p { color: #a8bccd; }
 .invite-legal { color: rgba(168, 188, 205, 0.7) !important; }
+
+/* ── the lift, corrected ────────────────────────────────────────────────────
+   The first pass carried a stray `#08152400` stop at 0% — eight-digit hex with
+   an alpha of zero. The gradient therefore interpolated from TRANSPARENT to
+   opaque across the first fifth of the document, letting the near-black html
+   layer show straight through the part of the page everybody sees first. That
+   is the opposite of brightening it.
+   The ramp now lives on `html` rather than `body`. An html background paints
+   the whole canvas, so it covers the viewport at any scroll position and on
+   the rubber-band overscroll at either end — no band of a different colour
+   under the footer, which is what happens when a body gradient stops exactly
+   where the content does. */
+html {
+  background: #060f1a;
+  background-image: linear-gradient(
+    180deg,
+    #071320 0%,
+    #0a1a2b 18%,
+    #0d2033 42%,
+    #11273e 66%,
+    #16304b 86%,
+    #1a3855 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-attachment: scroll;
+  min-height: 100%;
+}
+body { background: transparent; }
