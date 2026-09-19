@@ -41,6 +41,19 @@ export async function POST(req: NextRequest) {
   }
 
   const rows = (data ?? []) as { ref: string; name: string; email: string }[];
+
+  // A rehearsal proves the auth, the recipient list and the wiring without
+  // putting a prompt in four inboxes a fortnight early. The console never
+  // sends this flag; it exists so the run can be checked before it matters.
+  if (req.nextUrl.searchParams.get("dry") === "1") {
+    return NextResponse.json({
+      ok: true,
+      dry: true,
+      room: rows.length,
+      wouldSendTo: rows.map((r) => r.email.replace(/^(.).*(@.*)$/, "$1***$2")),
+    });
+  }
+
   let sent = 0;
   const failed: string[] = [];
   for (const r of rows) {
