@@ -4631,3 +4631,162 @@ html {
   min-height: 100%;
 }
 body { background: transparent; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MEET VAL & SURFSTUNG SYSTEMS
+   ══════════════════════════════════════════════════════════════════════════ */
+.valhero {
+  position: relative;
+  margin-top: 2rem;
+  padding: 2rem 1.35rem 2.1rem;
+  border: 1px solid var(--color-rule-strong);
+  border-top: 2px solid var(--color-gold);
+  border-radius: 4px 4px 20px 20px;
+  background:
+    radial-gradient(110% 80% at 82% 0%, rgba(217, 174, 100, 0.2), transparent 62%),
+    linear-gradient(180deg, #1a3352, #101f30);
+  box-shadow: var(--lift-2);
+  overflow: hidden;
+}
+.valhero-orb {
+  position: absolute;
+  right: -5rem;
+  top: 50%;
+  width: 24rem;
+  height: 24rem;
+  transform: translateY(-50%);
+  opacity: 0.6;
+}
+.valhero-said { position: relative; z-index: 1; max-width: 34rem; }
+.valhero-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold-bright);
+}
+.valhero-h {
+  margin: 0;
+  font-variation-settings: "wdth" 112;
+  font-weight: 800;
+  font-size: clamp(2.35rem, 10.5vw, 4.4rem);
+  line-height: 0.94;
+  letter-spacing: -0.04em;
+  color: var(--color-cream);
+}
+.valhero-sub {
+  margin: 0.75rem 0 0;
+  font-size: clamp(1.15rem, 5vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-gold-bright);
+}
+.valhero-lede {
+  margin: 1.15rem 0 0;
+  font-size: clamp(1.0625rem, 4.4vw, 1.25rem);
+  line-height: 1.5;
+  color: #cfdcea;
+}
+.valhero-lede b { color: var(--color-cream); }
+.valhero-go { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
+
+.valbody {
+  margin: 0 0 0.9rem;
+  font-size: clamp(1.0625rem, 4.3vw, 1.1875rem);
+  line-height: 1.62;
+  color: #c3d2e0;
+}
+.valbody:last-child { margin-bottom: 0; }
+
+/* ── what is already live ───────────────────────────────────────────────── */
+.buildlist { list-style: none; margin: 1.4rem 0 0; padding: 0; display: grid; gap: 0.75rem; }
+.buildlist li {
+  padding: 1.05rem 1.1rem 1.15rem;
+  border: 1px solid var(--color-rule);
+  border-left: 3px solid var(--color-gold);
+  border-radius: 0 14px 14px 0;
+  background: linear-gradient(180deg, var(--surface-3), #101f30);
+  box-shadow: var(--lift-1);
+}
+.invite .buildlist a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.7rem;
+  text-decoration: none;
+}
+.buildlist-name {
+  font-variation-settings: "wdth" 108;
+  font-weight: 800;
+  font-size: 1.3125rem;
+  letter-spacing: -0.024em;
+  color: var(--color-cream);
+}
+.buildlist-url {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  color: var(--color-gold-bright);
+}
+.buildlist li p {
+  margin: 0.55rem 0 0;
+  font-size: 1rem;
+  line-height: 1.58;
+  color: #bccbdb;
+}
+
+/* ── what Surfstung builds for anyone ───────────────────────────────────── */
+.solgrid { list-style: none; margin: 1.4rem 0 0; padding: 0; display: grid; gap: 0.7rem; }
+.solgrid li {
+  padding: 1rem 1.05rem 1.1rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--surface-3), #101f30);
+  box-shadow: var(--lift-1);
+}
+.solgrid h3 {
+  margin: 0 0 0.35rem;
+  font-variation-settings: "wdth" 106;
+  font-weight: 800;
+  font-size: 1.1875rem;
+  letter-spacing: -0.02em;
+  color: var(--color-gold-bright);
+}
+.solgrid li p { margin: 0; font-size: 0.9875rem; line-height: 1.55; color: #bccbdb; }
+
+@media (min-width: 760px) {
+  .buildlist { grid-template-columns: repeat(2, 1fr); }
+  .solgrid { grid-template-columns: repeat(3, 1fr); }
+  .valhero { padding: 2.75rem 2.4rem 2.9rem; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BIGGER, BRIGHTER TYPE WHERE PEOPLE ARE ACTUALLY READING
+   ──────────────────────────────────────────────────────────────────────────
+   The intake and the assistant panel were set at the size of supporting copy
+   while being the two places somebody reads word for word — on a phone, in
+   the sun, deciding. Up a step, and off the faint greys onto something with
+   contrast against the lifted panels.
+   ════════════════════════════════════════════════════════════════════════ */
+.book-talk > .book-say { font-size: clamp(1.6rem, 6.6vw, 2.3rem); }
+.book-talk > .book-sub { font-size: clamp(1.0625rem, 4.3vw, 1.1875rem); color: #c3d2e0; }
+.book-fineprint { font-size: 0.875rem; color: #9fb2c4; }
+
+.askval-h { font-size: clamp(1.4rem, 6vw, 1.8rem); }
+.askval-sub { font-size: 1rem; line-height: 1.6; color: #c3d2e0; }
+.askval-q { font-size: 1.0625rem; }
+.askval-a { font-size: 1.0625rem; line-height: 1.62; }
+.askval-form input { font-size: 17px; }
+
+.desk-live-h { font-size: 1.25rem; }
+.desk-live-p { font-size: 0.9875rem; color: #c3d2e0; }
+.desk-caption { font-size: 0.8125rem; color: #9fb2c4; }
+
+.hour-list li p { font-size: 1.03125rem; line-height: 1.6; color: #c3d2e0; }
+.hour-calm p, .hour-stay p { font-size: 1.03125rem; line-height: 1.62; color: #c3d2e0; }
+.install-h { font-size: 1.03125rem; color: #c3d2e0; }
+.share-p { font-size: 1rem; color: #c3d2e0; }
+.invite-lede-fine { color: #a9bccd; }

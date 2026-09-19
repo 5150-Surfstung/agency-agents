@@ -242,8 +242,9 @@ export default function LivePage() {
 
       <footer className="invite-foot">
         <p>
-          Curious what the assistant is? <Link href="/val">Meet Val</Link>. The
-          prompts are yours the moment you take a seat.
+          <Link href="/val">Meet Val &amp; Surfstung Systems</Link> &mdash; Mike
+          Olson&rsquo;s tech company, and everything already built and running
+          for agents. The prompts are yours the moment you take a seat.
         </p>
         <p className="invite-sponsor">
           Hosted by {HOST.org}. Built and sponsored by Surfstung Systems.

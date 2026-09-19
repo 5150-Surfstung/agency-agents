@@ -1,226 +1,220 @@
 import type { Metadata } from "next";
-import { ValParticles } from "@/app/stage/val-particles";
+import Link from "next/link";
+import { OrbLazy } from "./orb-lazy";
+import { ClaudeMark } from "@/app/live/claude-mark";
 import { HOST } from "@/lib/contact";
 
+// MEET VAL & SURFSTUNG SYSTEMS.
+//
+// The old version of this page described Val as a pattern library, which is
+// true and is also the least interesting true thing about it. Somebody reaches
+// this from the bottom of the invite asking one question — who is this guy and
+// what does he actually build — and the answer was a shelf list.
+//
+// It is the company page now. Every product named below is live at the URL
+// printed next to it; every line of the Surfstung copy is lifted from
+// surfstung.vercel.app rather than written fresh, because a second set of
+// words for the same company is how two pages end up disagreeing.
+//
+// Nothing here claims a price, a timeline or a result that Mike has not said.
+
 export const metadata: Metadata = {
-  title: "Val — the library every build comes out of",
+  title: "Meet Val & Surfstung Systems — Mike Olson's tech company",
   description:
-    "Val is Surfstung's pattern library: the operating rules and proven builds behind the systems The AGENT Connection runs on. What it is, why it exists, and what's already on the shelf for real estate.",
+    "Val is the assistant behind every build. Surfstung Systems is Mike Olson's software company in Charleston — custom tools for agents, brokerages and local business. See what is already live.",
 };
 
-/** The shelves, described by what they do for an AGENT rather than by what
- *  they do for a build. Every one of these is a pattern that already shipped —
- *  that is the entire bar for getting into the library. */
-const SHELVES: { name: string; pull: string; agent: string }[] = [
+/** Every one of these is shipped and reachable. A link that 404s on a page
+ *  whose whole argument is "we actually build things" costs more than the
+ *  product it was pointing at. */
+const BUILDS: { name: string; url: string; what: string }[] = [
   {
-    name: "AI front desk",
-    pull: "Missed calls, after-hours phone, intake and lead qualification.",
-    agent:
-      "The receptionist that answers when you can't — qualifies the caller, offers real showing windows, and hands you a warm lead instead of a voicemail. This is the one you built in the room.",
+    name: "Track to Keys",
+    url: "https://tracktokeys.app",
+    what: "The deal OS for a South Carolina agent. Every contract date counted from the ratified date, e-signatures, showing feedback, seller updates and a neighbour card — so nothing depends on remembering.",
   },
   {
-    name: "Speed to lead / QR",
-    pull: "Yard signs, riders, table tents, stickers, per-listing pages, 'scan to…'.",
-    agent:
-      "Owning the first sixty seconds at the physical edge. The rider becomes a front door: a scan lands on a page that already knows the house and already knows what to ask.",
+    name: "Living CMA",
+    url: "https://living-cma.vercel.app",
+    what: "A homeowner keeps an eye on their own place — county record, nearby closings, a net sheet — and the ones who are actually thinking about selling surface themselves on an intent-scored desk.",
   },
   {
-    name: "Curated corpus",
-    pull: "Building a knowledge base, a prompt system, or a grounded assistant.",
-    agent:
-      "How you feed a system your market so it stops guessing — the fact sheet discipline, the source-of-truth rules, and the refusal behavior that keeps a made-up comp off your listing.",
+    name: "AI Receptionist",
+    url: "https://ai-receptionist-opal.vercel.app",
+    what: "Answers the phone when you cannot, qualifies the caller, offers real windows, and hands over a warm lead instead of a voicemail. Built to say it does not know rather than invent.",
   },
   {
-    name: "Staged workflow",
-    pull: "Sequential stages, human review gates, a process that reruns.",
-    agent:
-      "A transaction is a pipeline with deadlines and handoffs. This is the shape behind Track to Keys — what runs automatically, and exactly where a human has to sign off.",
+    name: "Mount Pleasant Index",
+    url: "https://mtp-index.vercel.app",
+    what: "A seven-neighbourhood farming platform built on public deed records. One agent owns the data story for their patch instead of renting leads.",
   },
   {
-    name: "Live room",
-    pull: "Audience phones in a presentation, polls, second screen, class scoring.",
-    agent:
-      "Your own listing presentation, open house, or lunch-and-learn with the room's phones in it. This hour is running on this shelf right now.",
+    name: "Bring Your Numbers",
+    url: "https://bring-your-numbers.vercel.app",
+    what: "An agent puts their own production in and sees what the maths actually does — no pitch attached to the output.",
   },
   {
-    name: "In-home / iPad consult",
-    pull: "A tablet in front of a customer, guided consult, rep-facing flow.",
-    agent:
-      "The listing appointment itself: what goes on the screen, in what order, and what you never make a seller read upside down.",
-  },
-  {
-    name: "Model routing",
-    pull: "The same operation run N times — per listing, per row — and 'this is expensive'.",
-    agent:
-      "Running something across 400 listings without a surprise bill. Which work needs the expensive model and which does not.",
-  },
-  {
-    name: "Bookings",
-    pull: "Tours, rentals, day passes, deposits online.",
-    agent:
-      "Short-term rentals and investment property: taking a booking and a deposit without a human in the loop.",
-  },
-  {
-    name: "Deal shape",
-    pull: "Pricing, packaging, scoping, retainers.",
-    agent:
-      "For the ones who start selling this: what to charge, what to include, and what never to include.",
+    name: "The AGENT Connection",
+    url: "https://theagentconnection.com",
+    what: "Speed to lead for a real brokerage: a consumer arrives, Val answers instantly, the agents get blasted, and one desk controls where every message goes.",
   },
 ];
 
-/** Lines from the doctrine that a REALTOR feels immediately. Quoted because
- *  they are the actual rules, not a marketing paraphrase of them. */
-const DOCTRINE = [
-  "Smallest thing that proves it. Ship that. Widen only on evidence.",
-  "Remove the step, don't polish it: a tap beats a field, two taps beat five.",
-  "Verify before you fix. An unverified finding is a rumor.",
-  "Never claim a number you can't defend on the client's own data.",
-  "Own the edge — the physical object, the first scan, the first sixty seconds.",
-  "The client owns the asset. Recurring revenue comes from the thing that keeps working, not from lock-in.",
+/** Straight from surfstung.vercel.app. Same company, same words. */
+const SOLUTIONS: { title: string; body: string }[] = [
+  {
+    title: "AI assistants",
+    body: "An assistant that answers your customers from your documents — accurately, 24/7, with receipts.",
+  },
+  {
+    title: "Websites that win business",
+    body: "Fast, sharp sites that turn visitors into calls — built around your actual services, not a template.",
+  },
+  {
+    title: "Client portals",
+    body: "Give customers one login to see progress, documents, and messages — instead of a hundred emails.",
+  },
+  {
+    title: "Booking & payments",
+    body: "Appointments, sign-ups, and payments in one flow — no more chasing checks or double-booked Saturdays.",
+  },
+  {
+    title: "Ops dashboards",
+    body: "Your whole operation on one screen — who's signed, who's paid, what needs you today.",
+  },
+  {
+    title: "Team & league scheduling",
+    body: "Seasons, game days, rosters, and reminders that run themselves — coaches and parents always know what's next.",
+  },
 ];
 
 export default function ValPage() {
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-5xl px-5 py-10 sm:px-8">
-      <header className="relative overflow-hidden rounded-3xl border border-rule bg-sheet-2 p-7 sm:p-10">
-        <ValParticles className="pointer-events-none absolute -right-16 top-1/2 hidden h-[26rem] w-[26rem] -translate-y-1/2 opacity-80 sm:block" />
-        <div className="relative max-w-xl">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gold">
-            Surfstung Systems · The AGENT Connection™
+    <main className="stage invite">
+      <section className="valhero">
+        <OrbLazy className="valhero-orb pointer-events-none" />
+        <div className="valhero-said">
+          <p className="valhero-kicker">
+            <ClaudeMark size={26} />
+            Surfstung Systems · Charleston, SC
           </p>
-          <h1 className="mt-2 display text-5xl font-extrabold text-cream sm:text-7xl">
-            Val
+          <h1 className="display valhero-h">
+            Meet Val &amp;
+            <br />
+            Surfstung Systems
           </h1>
-          <p className="mt-3 text-[17px] leading-relaxed text-soft">
-            Val is the library every one of our builds comes out of. Not an app you log into —
-            the accumulated <span className="text-cream">operating rules</span> and{" "}
-            <span className="text-cream">proven patterns</span> that a system gets built from,
-            so nobody has to rediscover what already works.
+          <p className="valhero-sub">Mike Olson&rsquo;s tech company.</p>
+          <p className="valhero-lede">
+            <b>The tool you wish existed? We build it.</b> Websites, apps and
+            systems shaped to exactly how you run things &mdash; a brokerage, a
+            league, a business. A working concept in your hands within a week
+            of kickoff, and more affordable than you would think.
           </p>
-          <p className="mt-3 text-[17px] leading-relaxed text-soft">
-            It goes in as a scar. It comes back out as a default.
-          </p>
+          <div className="valhero-go">
+            <a className="invite-cta" href={`tel:${HOST.cellE164}`}>
+              Call Mike &mdash; {HOST.cell}
+            </a>
+            <a className="share-secondary" href={`mailto:${HOST.email}`}>
+              Email him
+            </a>
+          </div>
         </div>
-      </header>
+      </section>
 
-      <Section title="Why it exists">
-        <p className="text-[17px] leading-relaxed text-soft">
-          Anyone can buy the same AI you can. What nobody can buy is the notes from every time one
-          of these systems broke in front of a real client — the poll that sat waiting on a button
-          nobody knew about, the function that worked locally and failed in production, the
-          assistant that sounded great until somebody asked it a question the fact sheet
-          didn&apos;t cover.
+      <section className="hour" data-reveal>
+        <h2 className="display">Who Val is.</h2>
+        <p className="valbody">
+          Val is the assistant inside every build on this page. One set of
+          operating rules, reused: answer from what you actually gave it, say
+          plainly when it has not been told something, never claim it sent or
+          filed anything, and never guess at a number with your name on it.
         </p>
-        <p className="mt-3 text-[17px] leading-relaxed text-soft">
-          Every one of those became a rule. The rules are why the next build doesn&apos;t make the
-          same mistake — and why your build starts somewhere better than a blank page.
+        <p className="valbody">
+          That last part is the whole product. An assistant that makes things
+          up is not a faster assistant, it is a liability with your licence
+          attached &mdash; so every one of these is built to refuse first and be
+          impressive second.
         </p>
-        <div className="mt-5 rounded-2xl border border-gold/50 bg-sheet-2 p-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-gold">The bar to get in</p>
-          <p className="mt-2 text-[15px] leading-relaxed text-soft">
-            A pattern earns a place only if it is <span className="text-cream">reusable</span>,{" "}
-            <span className="text-cream">non-obvious</span>,{" "}
-            <span className="text-cream">load-bearing</span>, and{" "}
-            <span className="text-cream">still true</span> six months from now. The default answer
-            to a new entry is <span className="font-bold text-gold-bright">no</span>. That is the
-            whole reason the library is worth reading — it stayed small on purpose.
-          </p>
-        </div>
-      </Section>
+      </section>
 
-      <Section title="The rules that are always on">
-        <ul className="grid gap-3 md:grid-cols-2">
-          {DOCTRINE.map((d) => (
-            <li key={d} className="rounded-2xl border border-rule bg-sheet-2 p-4 text-[15px] leading-relaxed text-soft">
-              <span className="mr-2 text-gold">—</span>
-              {d}
+      <section className="hour" data-reveal>
+        <h2 className="display">Already built. Already running.</h2>
+        <p className="valbody">
+          Real estate first, because that is the business Mike has been in for
+          twenty years. Every one of these is live right now &mdash; open them.
+        </p>
+        <ul className="buildlist">
+          {BUILDS.map((b) => (
+            <li key={b.name}>
+              <a href={b.url} target="_blank" rel="noopener noreferrer">
+                <span className="buildlist-name">{b.name}</span>
+                <span className="buildlist-url">{b.url.replace("https://", "")}</span>
+              </a>
+              <p>{b.what}</p>
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-sm leading-relaxed text-faint">
-          You heard the fourth one all hour. It isn&apos;t a slogan we wrote for the class; it&apos;s
-          line six of the doctrine, and it&apos;s why the assistant you built would rather tell a
-          stranger &ldquo;that&apos;s not on the sheet&rdquo; than invent an answer that costs you a
-          client.
-        </p>
-      </Section>
+      </section>
 
-      <Section title="What's already on the shelf for real estate">
-        <p className="text-[17px] leading-relaxed text-soft">
-          These aren&apos;t ideas. Each one is a pattern that has already shipped and been confirmed
-          in production — which is the only way anything gets in here.
+      <section className="hour" data-reveal>
+        <h2 className="display">Built for exactly what you do.</h2>
+        <p className="valbody">
+          No bloated licences. No features you will never open. Your workflow,
+          turned into software &mdash; and not only for agents.
         </p>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {SHELVES.map((sh) => (
-            <article key={sh.name} className="rounded-3xl border border-rule bg-sheet-2 p-5">
-              <h3 className="display text-xl font-extrabold text-cream">
-                {sh.name}
-              </h3>
-              <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-gold">
-                pulled when: {sh.pull}
-              </p>
-              <p className="mt-2 text-[15px] leading-relaxed text-soft">{sh.agent}</p>
-            </article>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="What you get at The AGENT Connection">
-        <ul className="space-y-3">
-          {[
-            ["The Val chatbot", "Every agent here gets it — the same library, answering your questions instead of you reading it."],
-            ["Your agent site, run on Val", "The skills and automations get pulled off the shelf rather than rebuilt from scratch for you."],
-            ["An on-site Director", `${HOST.full} is in ${HOST.city}. We sit down with your listings, your farm, your live transaction — and build the thing.`],
-            ["The rules, not just the tools", "You learn why each system is shaped the way it is, so you can extend it after we leave the table."],
-          ].map(([t, d]) => (
-            <li key={t} className="rounded-2xl border border-rule bg-sheet-2 p-4">
-              <p className="display text-lg font-extrabold text-cream">{t}</p>
-              <p className="mt-1 text-[15px] leading-relaxed text-soft">{d}</p>
+        <ul className="solgrid">
+          {SOLUTIONS.map((s) => (
+            <li key={s.title}>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
             </li>
           ))}
         </ul>
-        <p className="mt-5 rounded-2xl border border-rule bg-sheet-2 p-4 text-sm leading-relaxed text-faint">
-          Val isn&apos;t for sale and it isn&apos;t a subscription. It came out of our own builds,
-          which is exactly why it isn&apos;t available anywhere else — and why the honest version of
-          this pitch is: you can build all of it yourself, you just can&apos;t skip the part where it
-          breaks first.
-        </p>
-      </Section>
+      </section>
 
-      <footer className="mt-14 border-t border-rule pt-6">
-        <p className="display text-2xl font-extrabold text-cream">{HOST.full}</p>
-        <p className="mt-1 text-[15px] text-soft">
-          {HOST.title} · {HOST.org}
-          <br />
-          REALTOR® · {HOST.brokerage} · {HOST.city}, {HOST.state}
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <a href="/api/vcard" className="rounded-full border border-gold/60 px-4 py-2 text-xs font-bold text-gold">
-            ⬇ Save my contact
-          </a>
-          <a href={`tel:${HOST.cellE164}`} className="rounded-full border border-rule px-4 py-2 text-xs font-bold text-soft">
-            {HOST.cell}
-          </a>
-          <a href={`mailto:${HOST.email}`} className="rounded-full border border-rule px-4 py-2 text-xs font-bold text-soft">
-            {HOST.email}
-          </a>
-          <a href="/kit" className="rounded-full border border-rule px-4 py-2 text-xs font-bold text-soft">
-            The kit →
-          </a>
+      <section className="share-block" data-reveal>
+        <div className="share">
+          <p className="share-h display">Want one of these for your business?</p>
+          <p className="share-p">
+            Mike builds these himself, in Charleston. Tell him what you wish
+            existed and he will tell you straight whether it is worth building.
+          </p>
+          <div className="share-go">
+            <a className="share-primary" href={`tel:${HOST.cellE164}`}>
+              {HOST.cell}
+            </a>
+            <a className="share-secondary" href={`mailto:${HOST.email}`}>
+              {HOST.email}
+            </a>
+            <a className="share-secondary" href="https://surfstung.vercel.app" target="_blank" rel="noopener noreferrer">
+              surfstung.com
+            </a>
+          </div>
         </div>
+      </section>
+
+      <div className="claude-band" data-reveal>
+        <ClaudeMark size={58} />
+        <div>
+          <p className="claude-band-h">Come and build one.</p>
+          <p className="claude-band-p">
+            The Equipped Agent, Friday October 2 at noon.{" "}
+            <Link href="/live">Take a seat</Link>.
+          </p>
+        </div>
+      </div>
+
+      <footer className="invite-foot">
+        <p className="invite-sponsor">
+          {HOST.full} &middot; {HOST.title}, {HOST.org} &middot; REALTOR
+          <sup>&reg;</sup>, {HOST.brokerage}
+        </p>
+        <p className="invite-legal">
+          Claude is a product of Anthropic. Surfstung Systems is an independent
+          company and is not affiliated with, sponsored by or endorsed by
+          Anthropic.
+        </p>
       </footer>
     </main>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mt-14">
-      <h2 className="display text-3xl font-extrabold text-cream sm:text-4xl">
-        {title}
-      </h2>
-      <span className="mt-2 block h-[3px] w-24 rounded-full bg-gold" />
-      <div className="mt-5">{children}</div>
-    </section>
   );
 }
