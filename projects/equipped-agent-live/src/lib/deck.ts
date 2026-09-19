@@ -92,13 +92,31 @@ export const DECK: Slide[] = [
     eyebrow: "The deal for the next hour",
     heading: "You don't leave with notes. You leave with things that run.",
     lines: [
-      "ONE — Claude on your phone, and the one skill that makes it useful.",
-      "TWO — a live assistant for one of your listings. Real page, real QR, answers at 11pm.",
-      "THREE — your deal's entire date chain, computed, with a client version you can text tonight.",
-      "FOUR — the one-week plan and every prompt I use. Free, no email required.",
+      "ONE — Claude on the work you already do. Today's follow-up, this week's dates.",
+      "TWO — your own Val. Built here, on your account, in your voice. Yours to keep.",
+      "THREE — the new flexmls MCP, wired live on the screen, on your own login.",
     ],
     quote: "If you walk out of here with nothing running, I wasted your lunch.",
-    cue: "This is the contract with the room. Say all four out loud and point at the fourth one twice — 'no email required' is what buys you their attention for the next fifty-five minutes. Do NOT hedge any of the four; every one of them is built and you will deliver it.",
+    cue: "THE CONTRACT WITH THE ROOM — word for word what the ad promised them, which is deliberate, so do not improvise a fourth. Say all three out loud and point at THREE twice: almost nobody in this market has connected Claude to the MLS and it is why most of them are sitting here. Then tell them the prompt for TWO lands on their screen in about ten minutes, so they are watching for it rather than surprised by it. All three are built and you will deliver all three.",
+  },
+  {
+    id: "the-send",
+    valSymbol: "key",
+    kind: "content",
+    eyebrow: "Val is emailing the room · open your laptop",
+    heading: "Build your own Val. Right now, while we sit here.",
+    lines: [
+      "Open the address below on your laptop. One button copies the prompt.",
+      "Paste it into Claude and press enter. A free account is fine.",
+      "It writes you a file. Save it, double-click it — that is your own mark, running.",
+    ],
+    link: {
+      href: "/prompt",
+      label: "the-equipped-agent.vercel.app/prompt",
+      note: "it is on your phone and in your inbox too — whichever is faster",
+    },
+    quote: "Since we have been sitting here, I had my assistant email you the thing that builds yours.",
+    cue: "PRESS SEND ON YOUR CONSOLE BEFORE YOU SAY A WORD and wait for the delivered count to move. Do not say the line until you can see it landed — then say it. The address is already on the wall and on their phones, so if anybody's email is slow it does not matter and nobody in the room can tell. Give them ninety seconds of quiet to paste it. Their Val builds in the background while you carry on, and by the listing demo everybody has an orb on their screen. If somebody is stuck it is almost always that they are not signed in to Claude — that is a neighbour's job, not yours. Keep moving.",
   },
   {
     id: "open-floor",
@@ -697,6 +715,9 @@ export const DECK: Slide[] = [
   },
   {
     id: "close",
+    /* THE HOUR ENDS HERE. Anything after this slide is spare material —
+       strong, but not what the ad promised, so it must never eat the flexmls
+       finale. Only go past this if you are genuinely ahead of the clock. */
     valSymbol: "key",
     kind: "close",
     eyebrow: "The Equipped Agent",

@@ -20,6 +20,11 @@ import { type Snapshot } from "@/app/stage/slide-stage";
 export function PresentClient({ presenterKey }: { presenterKey: string }) {
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [showLeads, setShowLeads] = useState(false);
+  // THE SEND. Deliberately never automatic: Mike presses it, watches the count
+  // move, and only then says the line. A send that fires on slide arrival
+  // would go while he is still walking to the laptop.
+  const [sendState, setSendState] = useState<"idle" | "sending" | "done" | "failed">("idle");
+  const [sendCount, setSendCount] = useState<{ sent: number; room: number } | null>(null);
   const [showQr, setShowQr] = useState(false);
   const [showBoard, setShowBoard] = useState(false);
   const [showFloor, setShowFloor] = useState(false);
@@ -98,6 +103,23 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
       </main>
     );
   }
+
+  const sendPrompt = async () => {
+    if (sendState === "sending") return;
+    setSendState("sending");
+    try {
+      const r = await fetch(`/api/send-prompt?key=${encodeURIComponent(presenterKey)}`, { method: "POST" });
+      const j = await r.json().catch(() => null);
+      if (r.ok && j?.ok) {
+        setSendCount({ sent: Number(j.sent) || 0, room: Number(j.room) || 0 });
+        setSendState("done");
+      } else {
+        setSendState("failed");
+      }
+    } catch {
+      setSendState("failed");
+    }
+  };
 
   const slide = DECK[snap.step] ?? DECK[0];
   const next = DECK[snap.step + 1];
@@ -313,6 +335,32 @@ export function PresentClient({ presenterKey }: { presenterKey: string }) {
           <div className="min-h-0 flex-1">
             <Switchboard seatKey={presenterKey} fallbackName="Mike Olson" />
           </div>
+        </div>
+      )}
+
+      {/* ——— THE SEND. Only on its own slide, so it cannot be hit by accident,
+            and it reports what actually went rather than just saying "sent". ——— */}
+      {slide.id === "the-send" && (
+        <div className="fixed bottom-6 left-1/2 z-30 w-[min(34rem,92vw)] -translate-x-1/2 rounded-2xl border border-gold/60 bg-sheet-2/97 p-4 backdrop-blur">
+          <button
+            type="button"
+            onClick={() => void sendPrompt()}
+            disabled={sendState === "sending"}
+            className="w-full rounded-xl bg-gold px-6 py-5 text-xl font-extrabold text-sheet disabled:opacity-60"
+          >
+            {sendState === "sending"
+              ? "Sending…"
+              : sendState === "done"
+                ? "Send again"
+                : "Send the prompt to the room"}
+          </button>
+          <p className="mt-3 text-center text-sm font-bold text-cream">
+            {sendState === "done" && sendCount
+              ? `Delivered to ${sendCount.sent} of ${sendCount.room}. Say the line.`
+              : sendState === "failed"
+                ? "That did not send. The address is on the wall and their phones — say the line anyway and carry on."
+                : "The address is already on the wall. Press this, watch the count, then say the line."}
+          </p>
         </div>
       )}
 
