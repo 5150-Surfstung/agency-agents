@@ -23,6 +23,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ValReel, type Mode } from "./val-reel";
+import { ClaudeMark } from "./claude-mark";
 import { Console } from "./console";
 import { LEARNS } from "./learns";
 import { HOST } from "@/lib/contact";
@@ -506,7 +507,10 @@ export function Book() {
               the same engine the room runs on. The refusals are the feature:
               ask it about parking and watch it decline rather than guess. */}
           <div className="askval">
-            <p className="askval-h display">Ask me anything about Friday.</p>
+            <p className="askval-h display">
+              <ClaudeMark size={26} className="askval-mark" />
+              Ask me anything about Friday.
+            </p>
             <p className="askval-sub">
               This is the real thing, on the same engine you will build with.
               Ask it something nobody told it and watch it refuse instead of

@@ -5,6 +5,7 @@ import { Profile } from "./profile";
 import { Room } from "./room";
 import { Book } from "./book";
 import { Reveal } from "./reveal";
+import { ClaudeMark } from "./claude-mark";
 import { Closer } from "./closer";
 import { Seats } from "./seats";
 import { HOST } from "@/lib/contact";
@@ -61,7 +62,10 @@ export default function LivePage() {
               <br />
               Agent
             </h1>
-            <p className="invite-kicker" data-reveal>Charleston&rsquo;s Claude community for tech-forward agents.</p>
+            <p className="invite-kicker" data-reveal>
+              <ClaudeMark size={30} className="kicker-mark" />
+              Charleston&rsquo;s Claude community for tech-forward agents.
+            </p>
             <p className="invite-lede" data-reveal>
               <b>Not keeping up with AI? You are already behind.</b>{" "}
               One hour. You build a working assistant on your own Claude
@@ -182,6 +186,16 @@ export default function LivePage() {
 
       <Closer />
 
+      <div className="claude-band" data-reveal>
+        <ClaudeMark size={62} />
+        <div>
+          <p className="claude-band-h">Built on Claude.</p>
+          <p className="claude-band-p">
+            Bring it on your phone and your laptop. The free tier is fine.
+          </p>
+        </div>
+      </div>
+
       <footer className="invite-foot">
         <p>
           Curious what the assistant is? <Link href="/val">Meet Val</Link>. The
@@ -192,6 +206,11 @@ export default function LivePage() {
         </p>
         <p className="invite-pillars">
           Smarter tools. Stronger agents. Bigger opportunities. Real impact.
+        </p>
+        <p className="invite-legal">
+          Claude is a product of Anthropic. The Equipped Agent is an
+          independent meetup and is not affiliated with, sponsored by or
+          endorsed by Anthropic.
         </p>
       </footer>
     </main>

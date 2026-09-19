@@ -3893,3 +3893,67 @@ body {
 .invite a.invite-cta:focus-visible {
   background: var(--color-gold-bright);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE CLAUDE ASTERISK
+   ──────────────────────────────────────────────────────────────────────────
+   The one colour on the invite that is neither Mike's navy nor his gold, which
+   is the entire job: an agent scrolling a feed full of "AI" should be able to
+   tell in half a second that this hour is about Claude specifically. It spins
+   slowly enough to read as alive rather than as a loading spinner.
+   ════════════════════════════════════════════════════════════════════════ */
+.claude-mark {
+  color: #d97757;
+  display: inline-block;
+  vertical-align: middle;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 0 10px rgba(217, 119, 87, 0.42));
+}
+.claude-mark.is-spinning { animation: claude-spin 26s linear infinite; }
+@keyframes claude-spin { to { transform: rotate(360deg); } }
+
+.invite-kicker { display: flex; align-items: center; gap: 0.55rem; }
+.kicker-mark { margin-top: -1px; }
+
+.askval-h { display: flex; align-items: center; gap: 0.5rem; }
+
+/* The band: the signal at full size, once, where the page hands off to the
+   footer — so the last thing seen before the fine print is what this is for. */
+.claude-band {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.25rem;
+  padding: 1.15rem 1.2rem;
+  border: 1px solid var(--color-rule-strong);
+  border-left: 3px solid #d97757;
+  border-radius: 0 16px 16px 0;
+  background:
+    radial-gradient(120% 140% at 0% 50%, rgba(217, 119, 87, 0.16), transparent 60%),
+    var(--color-sheet-2);
+}
+.claude-band-h {
+  margin: 0 0 0.2rem;
+  font-variation-settings: "wdth" 108;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  color: var(--color-cream);
+}
+.claude-band-p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-soft);
+}
+
+.invite-legal {
+  margin-top: 0.85rem !important;
+  font-size: 0.6875rem !important;
+  line-height: 1.5;
+  color: rgba(100, 120, 141, 0.85) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .claude-mark.is-spinning { animation: none; }
+}
