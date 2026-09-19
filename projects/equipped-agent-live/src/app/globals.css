@@ -4435,3 +4435,63 @@ body {
   .reel-name-word { font-size: 0.875rem; letter-spacing: 0.3em; text-indent: 0.3em; }
   .reel-name-state { font-size: 0.625rem; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EVERYTHING UNDER VAL SHARES ONE CENTRE LINE
+   ──────────────────────────────────────────────────────────────────────────
+   The orb, its nameplate and the sentence beneath it are centred; the block
+   under them ran full width with its own ragged wrap, so on a phone the eye
+   got a centred cluster sitting on a left-hanging one and read the whole
+   thing as crooked. Each line under Val is now centred on the same axis,
+   width-limited so it breaks where a designer would break it, and balanced so
+   two-line wraps do not leave one word stranded.
+   ════════════════════════════════════════════════════════════════════════ */
+.book-holding {
+  max-width: 34ch;
+  margin-left: auto;
+  margin-right: auto;
+  text-wrap: balance;
+}
+
+.book > .book-stage .book-talk > .book-say,
+.book-talk > .book-sub {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  max-width: 24ch;
+  text-wrap: balance;
+}
+.book-talk > .book-sub { max-width: 42ch; }
+
+/* The running status sits on the same axis instead of hanging off the left. */
+.desk-caption {
+  justify-content: center;
+  text-align: center;
+  max-width: 40ch;
+  margin-left: auto;
+  margin-right: auto;
+  text-wrap: balance;
+}
+
+/* The fineprint under the form belongs to the same column. */
+.book-fineprint {
+  max-width: 44ch;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* On a phone the whole intake column centres; from tablet up it keeps the
+   page's left edge, because a wide centred column of small type is harder to
+   read than a left-aligned one. */
+@media (min-width: 720px) {
+  .book > .book-stage .book-talk > .book-say,
+  .book-talk > .book-sub,
+  .book-fineprint,
+  .desk-caption {
+    margin-left: 0;
+    text-align: left;
+  }
+  .desk-caption { justify-content: flex-start; }
+}
