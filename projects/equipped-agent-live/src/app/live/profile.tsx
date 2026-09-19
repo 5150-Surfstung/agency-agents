@@ -8,9 +8,14 @@
 // own Add Contact sheet opens, and the number that lands in their phone is the
 // same string the slide shows, because both read lib/contact.
 //
-// The photo: the file is dropped at /public/headshot.jpg and appears. Until it
-// is there, the frame holds a monogram at the same weight rather than a broken
-// image or a grey person icon, so the card is never waiting to look finished.
+// The photo: /public/headshot-torso-2026.jpg — head, suit and tie down to the
+// jacket button, on the marsh. Two earlier crops were wrong in opposite
+// directions: the original was framed so tight that `object-top` sliced the
+// top of his head off in the share card, and the first replacement was
+// head-and-shoulders, which reads as a passport photo rather than a person who
+// shows up to a listing appointment. Until a file is there the frame holds a
+// monogram at the same weight rather than a broken image, so the card is never
+// waiting to look finished.
 
 import { useState } from "react";
 import { HOST } from "@/lib/contact";
@@ -34,7 +39,7 @@ export function Profile() {
           ) : (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
-              src="/headshot.jpg"
+              src="/headshot-torso-2026.jpg"
               alt={`${HOST.full}, ${HOST.title} at ${HOST.org}`}
               width={360}
               height={360}
