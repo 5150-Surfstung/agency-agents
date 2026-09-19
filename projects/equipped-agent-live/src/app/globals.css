@@ -4274,7 +4274,7 @@ body {
 .reel-name {
   position: absolute;
   left: 50%;
-  top: calc(50% + min(var(--orb), 80vw) / 2 - 0.35rem);
+  top: calc(50% + min(var(--orb), 80vw) / 2 - 1.35rem);
   transform: translateX(-50%);
   margin: 0;
   white-space: nowrap;
