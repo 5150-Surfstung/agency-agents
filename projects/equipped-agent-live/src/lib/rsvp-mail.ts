@@ -63,6 +63,8 @@ export function seatText(name: string, ref: string, attend: Attend): string {
     ``,
     `THE EQUIPPED AGENT — a Claude meetup for Charleston agents`,
     `${eventLine()}`,
+    `Doors ${EVENT.doors} — come early, get set up and network.`,
+    `${EVENT.guests} will be there as well.`,
     `${placeFor(attend)}`,
     `Reference ${ref}`,
     ``,
@@ -141,6 +143,8 @@ export function seatHtml(name: string, ref: string, attend: Attend): string {
     <tr><td style="padding:16px 18px">
       <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:${SOFT}">When</div>
       <div style="font-size:20px;font-weight:800;color:${CREAM};letter-spacing:-.01em">${esc(eventLine())}</div>
+      <div style="margin-top:4px;font-size:14px;color:${GOLD};font-weight:700">Doors ${esc(EVENT.doors)} — get set up and network</div>
+      <div style="margin-top:3px;font-size:13px;color:${SOFT}">${esc(EVENT.guests)} will be there as well.</div>
     </td></tr>
     <tr><td style="padding:16px 18px;${rule}">
       <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:${SOFT}">Where</div>

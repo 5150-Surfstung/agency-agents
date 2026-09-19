@@ -18,6 +18,14 @@ export const EVENT = {
   series: "AI REvealed with Mike Olson · a first-Friday series",
   date: "Friday, October 2, 2026",
   time: "12:00pm noon ET",
+  /** DOORS, half an hour early. Not hospitality — it is the difference
+   *  between an hour of building and forty minutes of building while three
+   *  people hunt for the wifi password. Everywhere the start time appears,
+   *  this appears with it. */
+  doors: "11:30am",
+  /** Who else is in the room before it starts. Stated plainly, as given —
+   *  no arrangement is described or implied. */
+  guests: "Tabor Mortgage",
   /** One hour, and it starts on time. */
   duration: "one hour",
   /** Street address — shown on the page, in the reveal, and in the message. */

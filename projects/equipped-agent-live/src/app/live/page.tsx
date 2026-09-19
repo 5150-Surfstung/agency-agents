@@ -112,6 +112,10 @@ export default function LivePage() {
                 <dd>
                   <b>Friday, October 2</b>
                   <span className="stamp-num">12:00pm ET</span>
+                  <span>
+                    Doors {EVENT.doors} — get set up and network. {EVENT.guests}{" "}
+                    will be there too.
+                  </span>
                 </dd>
               </div>
               <div>

@@ -60,6 +60,9 @@ export function remindText(kind: Kind, name: string, ref: string, attend: Attend
   return [
     ...head,
     ``,
+    `Doors ${EVENT.doors} — come early, get set up and network. It starts at noon.`,
+    `${EVENT.guests} will be there as well.`,
+    ``,
     attend === "zoom" ? `On Zoom:` : `Where: ${EVENT.place}`,
     ...(wantsZoom(attend)
       ? [EVENT.zoomUrl, `Meeting ID ${EVENT.zoomId} — the passcode is in the link.`]
@@ -128,6 +131,7 @@ export function remindHtml(kind: Kind, name: string, ref: string, attend: Attend
       <div style="font-size:16px;font-weight:700;line-height:1.45;color:${CREAM}">${
         attend === "zoom" ? "On Zoom" : esc(EVENT.place)
       }</div>
+      <div style="margin-top:5px;font-size:14px;color:${GOLD};font-weight:700">Doors ${esc(EVENT.doors)} — get set up and network</div>
     </td></tr>
     <tr><td style="padding:15px 18px;border-top:1px solid rgba(217,174,100,.22)">
       <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:${SOFT}">Reference</div>
