@@ -27,21 +27,33 @@ import { EVENT } from "@/lib/event";
 // page makes the case, the kit is the payoff. A page carrying both was
 // fifteen phone screens and asked somebody to choose between four demos,
 // which is how you get "later" instead of a seat.
+// THE CARD IS A VERSIONED FILE, ON PURPOSE.
+//
+// It shipped as /og.png, which a CDN is entitled to hold for a year and which
+// Facebook had already fetched with the old crop in it. Renaming the file
+// means every fresh fetch — a new share, a new scrape, any platform that has
+// not seen this page before — gets the corrected card, and nothing anywhere
+// can still be serving the one with the top of his head cut off.
+//
+// What it does NOT do is clear what Facebook already has against THIS page
+// URL. That cache is keyed on the page, not the image, and only a scrape from
+// the Sharing Debugger clears it.
 export const metadata: Metadata = {
   title: "The Equipped Agent",
-  description: "Mike Olson · Friday, October 2 · noon ET",
+  description:
+    "Charleston's Claude community. Friday, October 2, noon ET — build a working AI assistant in an hour and take it home.",
   robots: { index: true },
   openGraph: {
     title: "The Equipped Agent",
     description: "Mike Olson · Friday, October 2 · noon ET",
     type: "website",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "The Equipped Agent" }],
+    images: [{ url: "/og-oct2.png", width: 1200, height: 630, alt: "The Equipped Agent" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "The Equipped Agent",
     description: "Mike Olson · Friday, October 2 · noon ET",
-    images: ["/og.png"],
+    images: ["/og-oct2.png"],
   },
 };
 

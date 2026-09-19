@@ -9,7 +9,7 @@ import { HOST } from "@/lib/contact";
 // at request time is an OG image that eventually shows up blank in somebody's
 // feed, and the feed is the one place you never get a second look. This renders
 // at exactly 1200×630 with the real typeface and the real orb, gets
-// screenshotted into public/og.png, and ships as a file. Change the date and
+// screenshotted into public/og-oct2.png, and ships as a file. Change the date and
 // re-render it.
 //
 // Two decisions that matter more than anything else here:
