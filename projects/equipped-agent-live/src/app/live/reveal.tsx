@@ -54,6 +54,16 @@ export function Reveal() {
     return () => {
       io.disconnect();
       window.clearTimeout(backstop);
+      // AND THE CLASS COMES BACK OFF.
+      //
+      // Leaving it on was a blank page waiting to happen, and it happened:
+      // `reveal-on` lives on the document, so a client-side navigation away
+      // from this page took the observer with it and left the class behind.
+      // Every `data-reveal` element on the NEXT page then sat at opacity zero
+      // with nothing left running to turn it back on — a page that rendered
+      // perfectly, answered 200, and showed the visitor nothing at all.
+      document.documentElement.classList.remove("reveal-on");
+      for (const el of els) el.classList.remove("is-in");
     };
   }, []);
 

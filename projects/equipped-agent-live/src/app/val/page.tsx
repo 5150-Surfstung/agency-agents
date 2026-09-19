@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { OrbLazy } from "./orb-lazy";
+import { Reveal } from "@/app/live/reveal";
 import { ClaudeMark } from "@/app/live/claude-mark";
 import { HOST } from "@/lib/contact";
 
@@ -91,6 +92,7 @@ const SOLUTIONS: { title: string; body: string }[] = [
 export default function ValPage() {
   return (
     <main className="stage invite">
+      <Reveal />
       <section className="valhero">
         <OrbLazy className="valhero-orb pointer-events-none" />
         <div className="valhero-said">
