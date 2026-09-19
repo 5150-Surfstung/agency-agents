@@ -8,15 +8,20 @@
 // browser and drawn on the screen, because a confirmation nothing performed
 // is exactly the kind of demo this hour teaches against.
 //
-// What this does NOT claim: nothing here emails or texts anybody. The page
-// says so, and it offers the visitor their own mail app alongside, so the
-// reservation lands in a human's inbox as well as in the table.
+// WHAT IT SENDS, AND WHAT IT WILL NOT PRETEND TO SEND. A reservation now
+// produces two emails: the attendee's confirmation with the bring list and a
+// calendar file, and an alert to Mike with Melanie copied. Both report back
+// what the provider actually did — `emailed` and `notified` are return values,
+// not hopes — so the page can say "check your inbox" only when something went,
+// and can hand over the mail-app fallback when it did not. Nothing here texts
+// anybody, so nothing here says it did.
 
 import { NextRequest, NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { emailOnline, looksLikeEmail, sendEmail } from "@/lib/mailer";
-import { kitHtml, kitText } from "@/lib/kit";
 import { HOST } from "@/lib/contact";
+import { RSVP_CC, RSVP_TO } from "@/lib/signup";
+import { alertHtml, alertText, seatHtml, seatText, type Attend } from "@/lib/rsvp-mail";
 
 /** Short, unambiguous, sayable down a phone: no O/0, no I/1. */
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -58,21 +63,53 @@ export async function POST(req: NextRequest) {
   try {
     const at = await getStore().rsvpAdd({ ref, name, cell, attend, note });
 
-    // THE KIT. `emailed` is what the sender actually returned — the page
-    // branches on it and only says "check your inbox" when something really
-    // went. With no provider configured this is false and the page hands over
-    // the file instead, which is the honest fallback rather than a promise.
-    let emailed = false;
-    if (email && looksLikeEmail(email) && emailOnline()) {
-      emailed = await sendEmail({
-        to: email,
-        replyTo: HOST.email,
-        subject: `Your kit — The Equipped Agent (${ref})`,
-        text: kitText(name, ref),
-        html: kitHtml(name, ref),
-      });
-    }
-    return NextResponse.json({ ok: true, ref, at, emailed });
+    // TWO SENDS, AND BOTH REPORT WHAT ACTUALLY HAPPENED.
+    //
+    //   emailed  — the attendee got their confirmation, the bring list and a
+    //              calendar file. Only true when the provider said so.
+    //   notified — Mike was told, with Melanie copied. This one fires on every
+    //              reservation, including the ones with no email address,
+    //              because a seat nobody knows about is the failure this whole
+    //              flow exists to stop.
+    //
+    // Neither can take the reservation down with it: the row is already
+    // written, so a mail outage costs a notification, never a seat.
+    const when = new Date(at).toLocaleString("en-US", {
+      weekday: "short", month: "short", day: "numeric",
+      hour: "numeric", minute: "2-digit", timeZone: "America/New_York",
+    });
+    const wants = attend as Attend;
+    const canMail = emailOnline();
+    const toAttendee = Boolean(email && looksLikeEmail(email) && canMail);
+
+    const [confirm, alert] = await Promise.allSettled([
+      toAttendee
+        ? sendEmail({
+            to: email,
+            replyTo: HOST.email,
+            subject: `Your seat — The Equipped Agent, ${ref}`,
+            text: seatText(name, ref, wants),
+            html: seatHtml(name, ref, wants),
+          })
+        : Promise.resolve(false),
+      canMail
+        ? sendEmail({
+            to: RSVP_TO,
+            cc: RSVP_CC,
+            replyTo: email && looksLikeEmail(email) ? email : HOST.email,
+            subject: `New seat — ${name} (${ref})`,
+            text: alertText({ name, cell, email, attend: wants, note, ref, at: when }),
+            html: alertHtml({ name, cell, email, attend: wants, note, ref, at: when }),
+          })
+        : Promise.resolve(false),
+    ]);
+
+    const emailed = confirm.status === "fulfilled" && confirm.value === true;
+    const notified = alert.status === "fulfilled" && alert.value === true;
+    // A reservation that nobody was told about is an incident, not a detail.
+    if (!notified) console.error("[rsvp] NOT NOTIFIED", ref, name, canMail ? "send failed" : "mailer offline");
+
+    return NextResponse.json({ ok: true, ref, at, emailed, notified });
   } catch (e) {
     const msg = String(e);
     const known = /too_many/.test(msg) ? "too_many" : /need_name/.test(msg) ? "need_name" : "store_error";

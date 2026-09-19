@@ -17,7 +17,9 @@ export function emailOnline(): boolean {
 }
 
 export async function sendEmail(opts: {
-  to: string;
+  /** One address or several. Several is what a notification to two people is. */
+  to: string | string[];
+  cc?: string | string[];
   subject: string;
   text: string;
   html: string;
@@ -26,6 +28,11 @@ export async function sendEmail(opts: {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM;
   if (!key || !from) return false;
+  const list = (v: string | string[] | undefined) =>
+    v === undefined ? undefined : (Array.isArray(v) ? v : [v]).map((s) => s.trim()).filter(Boolean);
+  const to = list(opts.to);
+  if (!to || to.length === 0) return false;
+  const cc = list(opts.cc);
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -35,15 +42,22 @@ export async function sendEmail(opts: {
       },
       body: JSON.stringify({
         from,
-        to: [opts.to],
+        to,
+        ...(cc && cc.length ? { cc } : {}),
         subject: opts.subject,
         text: opts.text,
         html: opts.html,
         ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
       }),
     });
+    if (!res.ok) {
+      // A send that fails must be loud in the log, or a dead key looks like a
+      // quiet week. The caller still gets `false` and tells the truth on screen.
+      console.error("[mailer] resend rejected", res.status, await res.text().catch(() => ""));
+    }
     return res.ok;
-  } catch {
+  } catch (e) {
+    console.error("[mailer] resend threw", String(e));
     return false;
   }
 }

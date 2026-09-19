@@ -787,6 +787,28 @@ body {
   color: var(--color-cream);
 }
 
+/* WHAT IT IS, before what happens in it. A stranger scrolling a Facebook post
+   decides on this line — "Claude meetup" is the thing that separates this room
+   from every other AI panel in their feed, so it lands above the lede and in
+   gold, where the eye already is. */
+.invite-kicker {
+  margin: 1.1rem 0 0;
+  font-variation-settings: "wdth" 108;
+  font-weight: 800;
+  font-size: clamp(1.02rem, 4vw, 1.22rem);
+  letter-spacing: -0.012em;
+  line-height: 1.25;
+  color: var(--color-gold-bright);
+}
+/* The three words that answer the question everybody is silently asking. */
+.invite-lede-fine {
+  margin: 0.7rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--color-soft);
+}
+
 /* The stamp: what a recorded document does with the facts that must not be
    misread — a label column, a value column, hairlines between. */
 .stamp {
@@ -2833,6 +2855,22 @@ body {
   color: var(--color-cream) !important;
 }
 .hour-bring b { color: var(--color-gold-bright); }
+
+/* ── then stay ─────────────────────────────────────────────────────────
+   The part people come back for, and the part a one-hour invite always
+   forgets to mention. Same frame as the calm block so they read as a pair,
+   but cream-on-gold rather than bordered, because this one is an invitation
+   rather than a reassurance. */
+.hour-stay {
+  margin-top: 1rem;
+  padding: 1.15rem 1.2rem 1.25rem;
+  border: 1px solid var(--color-rule-strong);
+  border-left: 2px solid var(--color-gold-bright);
+  border-radius: 0 10px 10px 0;
+  background: linear-gradient(90deg, rgba(217, 174, 100, 0.08), var(--color-sheet-2) 60%);
+}
+.hour-stay p { margin: 0; font-size: 0.9375rem; line-height: 1.62; color: var(--color-soft); }
+.hour-stay .hour-calm-h { margin: 0 0 0.5rem; }
 
 /* ── build it before you come ──────────────────────────────────────────
    The one place on a take-home page that writes to a database, so it looks

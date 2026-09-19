@@ -79,6 +79,17 @@ export default function OgCard() {
           </p>
         </div>
 
+        {/* WHAT IT IS, in the words a tech-forward agent stops for. The card
+            had the name, the date and the shape but never said the word
+            Claude — and "Claude meetup" is the whole reason this room is
+            different from every other AI panel in the feed. */}
+        <p className="mt-[18px] text-[19px] font-bold leading-snug text-cream">
+          A Claude meetup for tech-forward agents.
+        </p>
+        <p className="mt-[5px] text-[16px] leading-snug text-soft">
+          Build it in the hour. Take it home working. No pitch.
+        </p>
+
       </div>
 
       {/* THE CREDIT BLOCK. This is the part a thumb sees in a feed at the size
@@ -87,11 +98,11 @@ export default function OgCard() {
       <div className="absolute bottom-[38px] left-[64px] z-10 flex items-center gap-[16px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/headshot.jpg"
+          src="/headshot-2026.jpg"
           alt=""
-          width={132}
-          height={165}
-          className="h-[92px] w-[74px] rounded-[3px] border border-gold/50 object-cover object-top"
+          width={560}
+          height={700}
+          className="h-[112px] w-[90px] rounded-[4px] border border-gold/50 object-cover object-center"
         />
         <div>
           <p className="display text-[30px] font-extrabold leading-none text-cream [font-variation-settings:'wdth'_112] [letter-spacing:-0.035em]">
