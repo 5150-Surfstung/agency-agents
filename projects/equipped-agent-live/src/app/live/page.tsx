@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Top } from "./top";
-import { MarketPanel } from "./market-panel";
 import { Profile } from "./profile";
 import { Room } from "./room";
 import { Book } from "./book";
@@ -60,7 +59,7 @@ export default function LivePage() {
               <br />
               Agent
             </h1>
-            <p className="invite-kicker">A Claude meetup for tech-forward agents.</p>
+            <p className="invite-kicker">Charleston&rsquo;s Claude community for tech-forward agents.</p>
             <p className="invite-lede">
               One hour in our West Ashley office. No slideshow about AI — you
               build something on your own Claude account that answers a real
@@ -101,10 +100,7 @@ export default function LivePage() {
         }
       />
 
-      {/* ---- 1. Proof, before any claim. Real numbers, zero input. ---- */}
-      <MarketPanel />
-
-      {/* ---- 2. The hour itself, in three lines. ---- */}
+      {/* ---- 1. The hour itself, in three lines. ---- */}
       <section className="hour">
         <h2 className="display">The hour, start to finish.</h2>
         <ol className="hour-list">
@@ -170,10 +166,10 @@ export default function LivePage() {
         </div>
       </section>
 
-      {/* ---- 3. Who else is in the room. ---- */}
+      {/* ---- 2. Who else is in the room. ---- */}
       <Room />
 
-      {/* ---- 4. Who is running it. ---- */}
+      {/* ---- 3. Who is running it. ---- */}
       <section className="invite-who">
         <h2 className="display">The job title is new. The twenty years are not.</h2>
         <Profile />
@@ -185,7 +181,7 @@ export default function LivePage() {
         </p>
       </section>
 
-      {/* ---- 5. The one action. ---- */}
+      {/* ---- 4. The one action. ---- */}
       <Book />
 
       <Closer />
