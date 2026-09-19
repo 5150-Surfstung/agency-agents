@@ -20,9 +20,9 @@
 // read "no" as a yes or invent a detail, and a booking that is wrong is worse
 // than no booking. Val's voice is in the writing; the booking is code.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ValReel, type Mode } from "./val-reel";
+import { ValReel, type Mode, type Packet } from "./val-reel";
 import { ClaudeMark } from "./claude-mark";
 import { Share } from "./share";
 import { Console } from "./console";
@@ -109,6 +109,17 @@ export function Book() {
   // is already in hand and true before any of it is shown, so this is paced
   // disclosure of a fact, never an animation standing in for one.
   const [reveal, setReveal] = useState(0);
+  // THE TRAFFIC. Each packet is a thing that moved: a field committed on its
+  // way in, a value the server handed back on its way out. Nothing is emitted
+  // for effect, which is what makes watching the machinery worth more than
+  // watching an animation of it.
+  const [packets, setPackets] = useState<Packet[]>([]);
+  const pktId = useRef(0);
+  const fly = useCallback((label: string, dir: "in" | "out") => {
+    pktId.current += 1;
+    const id = pktId.current;
+    setPackets((p) => [...p.slice(-7), { id, label, dir }]);
+  }, []);
   // ASK VAL. The point of the whole panel: a real turn, on a real key, with a
   // real refusal when the question is not on the sheet. Nothing here is
   // scripted — if the engine is off or the cap is hit, the honest sentence the
@@ -123,6 +134,20 @@ export function Book() {
   // not pretending to save anything here, the row beside it is the save.
   const [boom, setBoom] = useState("");
   const [flung, setFlung] = useState(false);
+
+  // Each field flies into the mark at the moment it is actually committed,
+  // never on keystroke — what is drawn arriving is what Val now holds.
+  const lastStep = useRef<Step>("name");
+  useEffect(() => {
+    const was = lastStep.current;
+    lastStep.current = step;
+    if (was === step) return;
+    if (was === "name" && name.trim()) fly(name.trim().split(/\s+/)[0].toUpperCase(), "in");
+    else if (was === "cell") fly(cell.trim() ? "CELL" : "NO CELL", "in");
+    else if (was === "email") fly(email.trim() ? "EMAIL" : "NO EMAIL", "in");
+    else if (was === "attend") fly(attend === "zoom" ? "ZOOM" : "IN PERSON", "in");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   // The orb does what the block is doing, and nothing else.
   const mode: Mode = step === "working" ? "think" : step === "done" ? "speak" : "listen";
@@ -188,6 +213,12 @@ export function Book() {
         setRef(String(j.ref));
         setAt(String(j.at));
         setEmailed(Boolean(j.emailed));
+        // Out it comes: only what the server actually returned.
+        fly(String(j.ref), "out");
+        window.setTimeout(() => fly("ROW WRITTEN", "out"), 260);
+        if (j.emailed) window.setTimeout(() => fly("EMAIL SENT", "out"), 520);
+        window.setTimeout(() => fly("CALENDAR READY", "out"), 780);
+        window.setTimeout(() => fly("SEAT HELD", "out"), 1040);
         await floor;
         setStep("done");
         // It landed: hit the orb once, then let the ticket arrive in beats.
@@ -302,6 +333,7 @@ export function Book() {
         orb="28vh"
         mode={mode}
         busy
+        packets={packets}
         beat={beat}
         spell={spell}
         spellAccent={spellAccent}
@@ -339,7 +371,12 @@ export function Book() {
         <div className="book-talk">
           {step === "name" && (
             <>
-              <p className="book-say display">I&rsquo;ll hold you a seat. Who am I holding it for?</p>
+              <p className="book-say display">Put your details in and watch me start working.</p>
+              <p className="book-sub">
+                Everything you type flies into the mark and everything that
+                comes back out is real &mdash; the reference, the row, the
+                send. Sit there and watch it get handled.
+              </p>
               <form
                 className="book-row"
                 onSubmit={(e) => {

@@ -21,6 +21,14 @@ import { ValParticles } from "@/app/stage/val-particles";
 
 export type Mode = "listen" | "think" | "speak" | null;
 
+/** A LABELLED PIECE OF REAL TRAFFIC.
+ *  Every packet the reel draws corresponds to something that actually moved:
+ *  a field the visitor committed on its way in, or a value the server handed
+ *  back on its way out. Nothing is emitted for effect — if it is on screen,
+ *  it happened, which is the only reason showing the machinery is worth more
+ *  than animating it. */
+export type Packet = { id: number; label: string; dir: "in" | "out" };
+
 const WIND = 620;   // spinning up
 const BRAKE = 980;  // slowing down — the line arrives here
 const HOLD = 3000;  // the line sits still and gets read
@@ -39,12 +47,15 @@ export function ValReel({
   beat,
   spell = "",
   spellAccent,
+  packets = [],
 }: {
   /** The lines, in order. Each one is a full sentence — the orb is not
    *  labelling itself, it is telling somebody what they will be able to do. */
   facts: string[];
   height?: string;
   orb?: string;
+  /** Real traffic to draw flying into and out of the mark. */
+  packets?: Packet[];
   /** When the desk is working, it owns the orb and the reel steps aside. */
   mode?: Mode;
   busy?: boolean;
@@ -138,6 +149,20 @@ export function ValReel({
         />
         <div className="holo-scan pointer-events-none absolute inset-0" aria-hidden />
       </div>
+
+      {packets.length > 0 && (
+        <div className="reel-traffic" aria-hidden>
+          {packets.map((pk) => (
+            <span
+              key={pk.id}
+              className={`pkt pkt-${pk.dir}`}
+              style={{ ["--a" as string]: `${(pk.id * 67) % 360}deg` }}
+            >
+              {pk.label}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* THE NAMEPLATE. The orb was doing all the talking anonymously — people
           watched a shape say clever things and had no idea what they were
