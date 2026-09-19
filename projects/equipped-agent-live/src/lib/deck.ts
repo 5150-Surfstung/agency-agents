@@ -62,6 +62,20 @@ export const DECK: Slide[] = [
     cue: "Second poll, faster energy. On the reveal, narrate the split: 'listing copy is where everyone starts — and it is the SHALLOWEST end of the pool. By minute forty you'll be somewhere no listing-copy prompt can follow.' The 'nothing yet' number is your permission slip to keep every single thing hands-on.",
   },
   {
+    id: "doom",
+    valSymbol: "lockbox",
+    kind: "content",
+    eyebrow: "The thing somebody in this room is already thinking",
+    heading: "So is this going to kill us all?",
+    lines: [
+      "You have seen the clips. Somebody with a big audience says we are all finished, and it travels further than anything careful ever does.",
+      "Here is the part that actually tells you something: the companies BUILDING this have gone in front of governments and asked to be regulated. Nobody does that about a fad.",
+      "Take it seriously. Then look at the risk that is actually in your business this year — and it is not a robot.",
+    ],
+    quote: "The thing that can cost you this year is an assistant that makes up a number with your licence on it.",
+    cue: "DO NOT SKIP THIS AND DO NOT RUSH IT — somebody in that room came in with exactly this worry and will not hear a word of the next forty minutes until it is named out loud. Play it straight: you are not the guy telling them it is all fine. Say the second line slowly; the fact that the builders themselves asked to be regulated is the most persuasive sentence on this slide and it is doing double duty, because it also tells them this is not a gimmick that will be gone by spring. Then land the quote and pivot — the extinction argument is above all our pay grades, the made-up square footage is not, and refusing to invent is the thing you are about to show them. NEVER name the person from the clip. You do not need them and a wrong name on stage is the only own goal available here.",
+  },
+  {
     id: "host",
     valSymbol: "lens",
     kind: "content",
@@ -712,6 +726,19 @@ export const DECK: Slide[] = [
       ],
     },
     cue: "Votes are leads. Names land on your console in real time — first replies go out before the room empties. That is not a flourish; it is the last thing you teach them tonight.",
+  },
+  {
+    id: "only-limitation",
+    kind: "content",
+    eyebrow: "Where this actually goes",
+    heading: "With AI, the only limitation is you.",
+    lines: [
+      "Everybody in this room just built the same thing in the same hour. What you do with it on Monday is not going to be the same.",
+      "Not the smartest one wins. The one who opens it tomorrow, and the day after, and asks it something harder than they asked today.",
+      "There is no queue for this and nobody is holding a spot. The tool does not care how long you have been licensed.",
+    ],
+    quote: "It will go exactly as far as you take it, and it will stop the day you stop.",
+    cue: "SLOW DOWN. This is the last thing they hear before the close and it is the line they repeat in the car. Look at the room, not the screen. If somebody in there has been in the business two years and somebody else twenty-five, say that out loud — they both left with the same assistant today, and the tool genuinely does not care which is which. Do not turn this into a pitch; it lands because it is not one.",
   },
   {
     id: "close",
