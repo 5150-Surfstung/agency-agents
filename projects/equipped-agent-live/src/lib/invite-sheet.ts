@@ -27,7 +27,12 @@ EVENT
   Date: ${EVENT.date}
   Start: ${EVENT.time}. It runs ${EVENT.duration} and starts on time.
   Where: ${EVENT.place}. That is West Ashley.
-  Attendance: ${EVENT.online}. The Zoom link is emailed before the 2nd; it is not minted yet.
+  Attendance: ${EVENT.online}.
+  THE ZOOM LINK IS NOT YOURS TO GIVE OUT. It goes only in the confirmation
+    email to a named reservation, because it carries its own passcode and you
+    are talking to strangers. If somebody asks for it, tell them it arrives in
+    their confirmation the moment they book a Zoom seat, and that Mike can
+    resend it. Never print it, never read it out, never hint at the meeting ID.
 
 BRING — the only preparation there is
   A laptop AND a phone, with Claude installed on both BEFORE arriving.

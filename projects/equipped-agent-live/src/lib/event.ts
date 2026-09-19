@@ -27,6 +27,16 @@ export const EVENT = {
   online: "in person, or on Zoom",
   /** The official reservation page from the flyer's QR code. */
   rsvpUrl: "https://theagentconnection.com/#rsvp",
+
+  /** THE ZOOM ROOM — for people who booked, and nowhere else.
+   *
+   *  This link carries its own passcode in the query string, so anybody
+   *  holding it can walk in. It belongs in the confirmation email that goes to
+   *  a named reservation and it does NOT belong on the public page, in a share
+   *  card, or in anything Val says — Val answers strangers, and a meeting link
+   *  on an indexed page is how a room gets crashed. */
+  zoomUrl: "https://us06web.zoom.us/j/87491686734?pwd=wH6jv67bt96b0hRyEWH1VN31Y0dHU6.1",
+  zoomId: "874 9168 6734",
 } as const;
 
 export const eventIsSet = Boolean(EVENT.date);

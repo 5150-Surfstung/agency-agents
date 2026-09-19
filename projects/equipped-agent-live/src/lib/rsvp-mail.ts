@@ -41,9 +41,14 @@ function esc(s: string): string {
 }
 
 function placeFor(attend: Attend): string {
-  if (attend === "zoom") return "On Zoom — the link comes to this address before the 2nd.";
-  if (attend === "either") return `${EVENT.place} — or on Zoom. The link comes to this address before the 2nd.`;
+  if (attend === "zoom") return `On Zoom — meeting ID ${EVENT.zoomId}. Your link is below.`;
+  if (attend === "either") return `${EVENT.place} — or on Zoom, meeting ID ${EVENT.zoomId}. Link below.`;
   return EVENT.place;
+}
+
+/** Only somebody holding a reservation gets the room. */
+export function wantsZoom(attend: Attend): boolean {
+  return attend === "zoom" || attend === "either";
 }
 
 /* ─────────────────────── 1. To the person who booked ─────────────────────── */
@@ -90,6 +95,17 @@ export function seatText(name: string, ref: string, attend: Attend): string {
     `estate with people who are actually building. That part is`,
     `usually the best part of the whole thing.`,
     ``,
+    ...(wantsZoom(attend)
+      ? [
+          `────────────────────────────────────────`,
+          `YOUR ZOOM ROOM`,
+          `────────────────────────────────────────`,
+          EVENT.zoomUrl,
+          `Meeting ID ${EVENT.zoomId}. The passcode is already in that link.`,
+          `It is the same room every first Friday — save it.`,
+          ``,
+        ]
+      : []),
     `Add it to your calendar:`,
     `${SITE}/api/ics?ref=${encodeURIComponent(ref)}&attend=${encodeURIComponent(attend)}`,
     ``,
@@ -135,6 +151,17 @@ export function seatHtml(name: string, ref: string, attend: Attend): string {
       <div style="font-size:26px;font-weight:800;letter-spacing:.08em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:${GOLD}">${esc(ref)}</div>
     </td></tr>
   </table>
+
+  ${
+    wantsZoom(attend)
+      ? `<div style="margin:26px 0 0;padding:20px 18px;border:1px solid rgba(217,119,87,.5);border-radius:16px;background:rgba(217,119,87,.12)">
+    ${kicker("Your Zoom room")}
+    <p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:${SOFT}">Same room every first Friday. Meeting ID <b style="color:${CREAM}">${esc(EVENT.zoomId)}</b> &mdash; the passcode is already in the link.</p>
+    <p style="margin:0"><a href="${esc(EVENT.zoomUrl)}" style="display:inline-block;background:#d97757;color:#0e1519;text-decoration:none;font-weight:800;font-size:15px;padding:13px 22px;border-radius:12px">Join the Zoom room</a></p>
+    <p style="margin:12px 0 0;font-size:12px;line-height:1.5;color:rgba(185,194,198,.8)">This link is yours because you booked. Please do not post it anywhere public.</p>
+  </div>`
+      : ""
+  }
 
   <p style="margin:28px 0 0">
     <a href="${esc(ics)}" style="display:block;text-align:center;background:${GOLD};color:${SHEET};text-decoration:none;font-weight:800;font-size:16px;padding:16px 22px;border-radius:14px">Put it on my calendar</a>
