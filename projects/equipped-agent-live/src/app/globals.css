@@ -4790,3 +4790,107 @@ body { background: transparent; }
 .install-h { font-size: 1.03125rem; color: #c3d2e0; }
 .share-p { font-size: 1rem; color: #c3d2e0; }
 .invite-lede-fine { color: #a9bccd; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DEEP BASE, STRONG LIGHT — undoing the wash
+   ──────────────────────────────────────────────────────────────────────────
+   Brightening the page by raising the base navy was the wrong move and it
+   showed: lift the floor and every panel sitting on it loses its separation,
+   every grey loses its contrast, and the bottom of the page goes pale and
+   washed out — brighter and worse at the same time.
+   Richness comes from a DEEP base carrying SATURATED light, not from a pale
+   base carrying none. So the ramp stays dark and gains colour instead: the
+   sheet warms toward a deep petrol blue rather than a milky one, the glows
+   roughly double, and the panels go back to sitting darker than the field
+   they are on so their edges cut again. Type goes back up to cream.
+   ════════════════════════════════════════════════════════════════════════ */
+html {
+  background: #050d17;
+  background-image: linear-gradient(
+    180deg,
+    #050d17 0%,
+    #071523 20%,
+    #081c2e 44%,
+    #0a2237 66%,
+    #0b2740 86%,
+    #0c2a46 100%
+  );
+}
+
+/* The light does the work now, and there is more of it. */
+.invite::before {
+  background:
+    radial-gradient(78% 32% at 80% 3%, rgba(217, 174, 100, 0.3), transparent 62%),
+    radial-gradient(62% 28% at 6% 44%, rgba(120, 180, 255, 0.16), transparent 64%),
+    radial-gradient(56% 22% at 94% 70%, rgba(217, 174, 100, 0.24), transparent 64%),
+    radial-gradient(100% 34% at 50% 101%, rgba(217, 119, 87, 0.34), transparent 66%);
+}
+.invite::after {
+  background-image:
+    linear-gradient(rgba(242, 239, 231, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 239, 231, 0.045) 1px, transparent 1px);
+}
+
+/* Panels sit DARKER than the field again, so every edge reads. */
+:root {
+  --surface-2: #0a1725;
+  --surface-3: #0e2033;
+}
+.hour,
+.invite-who,
+.share,
+.askval,
+.valhero {
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(217, 174, 100, 0.13), transparent 60%),
+    linear-gradient(180deg, #0c1c2d, #071523);
+  border-color: rgba(217, 174, 100, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(242, 239, 231, 0.1),
+    0 26px 56px -28px rgba(0, 0, 0, 1);
+}
+.valhero {
+  background:
+    radial-gradient(110% 80% at 82% 0%, rgba(217, 174, 100, 0.26), transparent 60%),
+    linear-gradient(180deg, #0e2136, #07131f);
+}
+.claude-band {
+  background:
+    radial-gradient(120% 140% at 0% 50%, rgba(217, 119, 87, 0.28), transparent 60%),
+    linear-gradient(180deg, #0f2133, #081521);
+  border-color: rgba(217, 119, 87, 0.5);
+}
+
+.hour-list li,
+.hour-calm,
+.install,
+.buildlist li,
+.solgrid li,
+.stamp {
+  background: linear-gradient(180deg, #102438, #0a1a2a);
+  border-color: rgba(242, 239, 231, 0.1);
+}
+.hour-stay {
+  background: linear-gradient(180deg, rgba(217, 174, 100, 0.2), #0d2033 62%);
+}
+.install {
+  background: linear-gradient(180deg, rgba(217, 174, 100, 0.19), #0d2033 62%);
+  border-color: rgba(217, 174, 100, 0.55);
+}
+
+/* Contrast back into the type — pale greys on a pale field was the wash. */
+.hour-list li p,
+.hour-calm p,
+.hour-stay p,
+.valbody,
+.buildlist li p,
+.solgrid li p,
+.share-p,
+.askval-sub,
+.book-talk > .book-sub,
+.desk-live-p,
+.valhero-lede { color: #d6e2ee; }
+.install-h { color: #e2ebf4; }
+.invite-foot p { color: #b9cbdb; }
+.book-fineprint, .desk-caption { color: #9db2c6; }
+.invite-lede-fine { color: #bccddd; }
