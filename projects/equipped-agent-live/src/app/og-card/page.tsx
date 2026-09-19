@@ -81,13 +81,11 @@ export default function OgCard() {
 
         {/* WHAT IT IS, in the words a tech-forward agent stops for. The card
             had the name, the date and the shape but never said the word
-            Claude — and "Claude meetup" is the whole reason this room is
-            different from every other AI panel in the feed. */}
-        <p className="mt-[18px] text-[19px] font-bold leading-snug text-cream">
-          A Claude meetup for tech-forward agents.
-        </p>
-        <p className="mt-[5px] text-[16px] leading-snug text-soft">
-          Build it in the hour. Take it home working. No pitch.
+            Claude — and that is the whole reason this room is different from
+            every other AI panel in the feed. ONE line: a second one ran under
+            the credit block and came out sliced behind the photo. */}
+        <p className="mt-[16px] text-[20px] font-bold leading-snug text-cream">
+          Charleston&rsquo;s Claude community for tech-forward agents.
         </p>
 
       </div>
@@ -95,14 +93,14 @@ export default function OgCard() {
       {/* THE CREDIT BLOCK. This is the part a thumb sees in a feed at the size
           of a postage stamp, so it carries the face and the name rather than a
           tracked-out line of small caps nobody reads. */}
-      <div className="absolute bottom-[38px] left-[64px] z-10 flex items-center gap-[16px]">
+      <div className="absolute bottom-[30px] left-[64px] z-10 flex items-center gap-[16px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/headshot-torso-2026.jpg"
           alt=""
           width={640}
           height={800}
-          className="h-[112px] w-[90px] rounded-[4px] border border-gold/50 object-cover object-center"
+          className="h-[104px] w-[84px] rounded-[4px] border border-gold/50 object-cover object-center"
         />
         <div>
           <p className="display text-[30px] font-extrabold leading-none text-cream [font-variation-settings:'wdth'_112] [letter-spacing:-0.035em]">
