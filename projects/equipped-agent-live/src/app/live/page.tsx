@@ -4,6 +4,7 @@ import { Top } from "./top";
 import { Profile } from "./profile";
 import { Room } from "./room";
 import { Book } from "./book";
+import { Reveal } from "./reveal";
 import { Closer } from "./closer";
 import { Seats } from "./seats";
 import { HOST } from "@/lib/contact";
@@ -42,6 +43,7 @@ export const metadata: Metadata = {
 export default function LivePage() {
   return (
     <main className="stage invite">
+      <Reveal />
       <div className="rail">
         <span className="rail-mark">
           <i aria-hidden />
@@ -59,19 +61,19 @@ export default function LivePage() {
               <br />
               Agent
             </h1>
-            <p className="invite-kicker">Charleston&rsquo;s Claude community for tech-forward agents.</p>
-            <p className="invite-lede">
+            <p className="invite-kicker" data-reveal>Charleston&rsquo;s Claude community for tech-forward agents.</p>
+            <p className="invite-lede" data-reveal>
               <b>Not keeping up with AI? You are already behind.</b>{" "}
               One hour. You build a working assistant on your own Claude
               account and walk out with it running.
             </p>
-            <p className="invite-lede-fine">No pitch. Nothing to buy.</p>
-            <a className="invite-cta" href="#seat">Save my seat</a>
+            <p className="invite-lede-fine" data-reveal>No pitch. Nothing to buy.</p>
+            <a className="invite-cta" href="#seat" data-reveal>Save my seat</a>
           </header>
         }
         details={
           <div className="invite-details">
-            <dl className="stamp">
+            <dl className="stamp" data-reveal>
               <div>
                 <dt>When</dt>
                 <dd>
@@ -100,10 +102,10 @@ export default function LivePage() {
       />
 
       {/* ---- 1. The hour itself, in three lines. ---- */}
-      <section className="hour">
+      <section className="hour" data-reveal>
         <h2 className="display">One hour. Three things.</h2>
         <ol className="hour-list">
-          <li>
+          <li data-reveal>
             <span>First fifteen</span>
             <p>
               Claude on the work you already do. Then a listing answers its own
@@ -111,14 +113,14 @@ export default function LivePage() {
               That refusal is why this is safe in front of a client.
             </p>
           </li>
-          <li>
+          <li data-reveal>
             <span>Next thirty</span>
             <p>
               You build your own agent. Your listing, your account, your number
               &mdash; working before you leave, with a QR code for a real sign.
             </p>
           </li>
-          <li>
+          <li data-reveal>
             <span>Last fifteen</span>
             <p>
               <b>The new flexmls MCP.</b>{" "}We hook Claude straight into the MLS,
@@ -128,7 +130,7 @@ export default function LivePage() {
             </p>
           </li>
         </ol>
-        <p className="hour-after">
+        <p className="hour-after" data-reveal>
           <b>Have Claude installed on your phone and your laptop before you
           come.</b> That is the only homework.
         </p>
@@ -137,7 +139,7 @@ export default function LivePage() {
             page rather than in the room they did not come to — and answered
             SHORT. This block used to run four long paragraphs and cost more
             seats than it saved. Somebody deciding in a feed reads two. */}
-        <div className="hour-calm">
+        <div className="hour-calm" data-reveal>
           <p className="hour-calm-h display">Watching everyone else pull ahead?</p>
           <p>
             Most agents are not behind on effort. They are behind because
@@ -151,7 +153,7 @@ export default function LivePage() {
         </div>
 
         {/* The part people actually come back for. */}
-        <div className="hour-stay">
+        <div className="hour-stay" data-reveal>
           <p className="hour-calm-h display">Then stay and show off.</p>
           <p>
             Bring what you have built &mdash; half finished counts. Builds go
@@ -165,7 +167,7 @@ export default function LivePage() {
       <Room />
 
       {/* ---- 3. Who is running it. ---- */}
-      <section className="invite-who">
+      <section className="invite-who" data-reveal>
         <h2 className="display">The job title is new. The twenty years are not.</h2>
         <Profile />
         <p>
