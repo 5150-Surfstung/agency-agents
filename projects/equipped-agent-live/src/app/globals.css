@@ -4518,3 +4518,87 @@ body {
   align-self: center;
   text-align: center;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ATMOSPHERE — the page was dying into flat black below the fold
+   ──────────────────────────────────────────────────────────────────────────
+   One value of navy held the whole document, so everything above the fold was
+   carried by the orb's own light and everything below it had none. By the
+   share block and the footer there was nothing lighting the page at all, which
+   reads as the thing having run out rather than having ended.
+   So the sheet LIFTS as you scroll — deepest at the top where the orb needs
+   the contrast, opening to a lighter navy by the foot — with four soft sources
+   sitting on it: gold high right where the mark is, a cool wash mid left, and
+   warm light rising from the bottom so the close and the Claude band are the
+   brightest part of the page rather than the darkest.
+   A hairline grid holds it all together and, more practically, gives the big
+   empty areas something to catch the light on. No blend modes: those cost a
+   compositing layer on iOS and have bitten this project before.
+   ════════════════════════════════════════════════════════════════════════ */
+html { background: #060f1a; }
+body {
+  background:
+    linear-gradient(
+      180deg,
+      #060f1a 0%,
+      #08152400 0%,
+      #081524 22%,
+      #0b1c2e 46%,
+      #0f2439 70%,
+      #142e49 88%,
+      #18344f 100%
+    );
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.invite::before,
+.invite::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* The light sources. */
+.invite::before {
+  background:
+    radial-gradient(78% 34% at 80% 4%, rgba(217, 174, 100, 0.17), transparent 64%),
+    radial-gradient(64% 30% at 8% 46%, rgba(159, 198, 255, 0.085), transparent 66%),
+    radial-gradient(58% 24% at 92% 72%, rgba(217, 174, 100, 0.13), transparent 66%),
+    radial-gradient(96% 30% at 50% 100%, rgba(217, 119, 87, 0.2), transparent 70%);
+}
+
+/* The grid, faded in and out so it never reads as a wallpaper. */
+.invite::after {
+  background-image:
+    linear-gradient(rgba(242, 239, 231, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 239, 231, 0.03) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 74%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 74%, transparent 100%);
+}
+
+/* Content rides above the atmosphere. */
+.invite > * { position: relative; z-index: 1; }
+
+/* The bottom of the page is now the brightest part of it, so the panels down
+   there step up to match rather than sitting like holes. */
+.share,
+.claude-band {
+  background:
+    radial-gradient(120% 100% at 50% -10%, rgba(217, 174, 100, 0.1), transparent 62%),
+    radial-gradient(120% 100% at 50% -10%, rgba(217, 174, 100, 0.1), transparent 62%),
+    linear-gradient(180deg, #1a3350, #12253a);
+}
+.claude-band {
+  background:
+    radial-gradient(120% 140% at 0% 50%, rgba(217, 119, 87, 0.2), transparent 62%),
+    linear-gradient(180deg, #1b3452, #13263c);
+}
+.invite-foot {
+  border-top-color: rgba(242, 239, 231, 0.14);
+}
+.invite-foot p { color: #a8bccd; }
+.invite-legal { color: rgba(168, 188, 205, 0.7) !important; }
