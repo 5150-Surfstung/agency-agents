@@ -208,8 +208,12 @@ export default function ValPage() {
         <div>
           <p className="claude-band-h">Come and build one.</p>
           <p className="claude-band-p">
-            The Equipped Agent, Friday October 2 at noon.{" "}
-            <Link href="/live">Take a seat</Link>.
+            The Equipped Agent, Friday October 2 at noon.
+          </p>
+          <p className="band-go">
+            <Link href="/live" className="share-primary">
+              Take a seat
+            </Link>
           </p>
         </div>
       </div>

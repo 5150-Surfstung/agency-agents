@@ -4922,3 +4922,15 @@ html {
   .rail-logo { height: 2.6rem; }
   .valhero-logo { width: min(22rem, 60%); }
 }
+
+/* The band's link was a 16px tap target — the one route from the company page
+   back to the thing it is selling. */
+.band-go { margin: 0.75rem 0 0 !important; }
+.invite .band-go a.share-primary {
+  display: inline-block;
+  min-height: 44px;
+  line-height: 1.5;
+  padding: 0.7rem 1.35rem;
+  border-radius: 999px;
+}
+.claude-band { flex-wrap: wrap; }
