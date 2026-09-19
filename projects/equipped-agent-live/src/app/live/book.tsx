@@ -20,7 +20,7 @@
 // read "no" as a yes or invent a detail, and a booking that is wrong is worse
 // than no booking. Val's voice is in the writing; the booking is code.
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ValReel, type Mode } from "./val-reel";
 import { Console } from "./console";
@@ -38,6 +38,53 @@ const ATTEND_SAYS: Record<Attend, string> = {
   zoom: "On Zoom",
   either: "Either works",
 };
+
+/** THE LEVEL-UP, WHILE THE ROW IS BEING WRITTEN.
+ *
+ *  Two different kinds of sentence share this screen and they are not allowed
+ *  to blur together. "Saving your seat" is a claim about right now, and it is
+ *  true — the POST is in flight while it is on screen. Everything after it is
+ *  labelled as what gets built on the 2nd, because an assistant that lists
+ *  "MCP server" as though it were installing one is exactly the lie this hour
+ *  teaches against. The label under the reel carries that distinction, and the
+ *  confirmation still does not appear until the database has answered. */
+function LevelUp({ first }: { first: string }) {
+  const beats = [
+    { t: `Saving your seat`, kind: "now" as const },
+    { t: `Leveling up ${first || "you"}`, kind: "hype" as const },
+    { t: "Claude upgrades", kind: "build" as const },
+    { t: "MCP server", kind: "build" as const },
+    { t: "AI agent", kind: "build" as const },
+    { t: "Social media manager", kind: "build" as const },
+    { t: "Friday, October 2", kind: "hype" as const },
+  ];
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (calm) return;
+    const id = window.setInterval(() => setI((n) => (n + 1 < beats.length ? n + 1 : n)), 430);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const b = beats[i];
+  return (
+    <div className="levelup" role="status" aria-live="polite">
+      <p className={`levelup-line levelup-${b.kind}`} key={i}>
+        {b.t}
+      </p>
+      <div className="levelup-rack" aria-hidden>
+        {beats.filter((x) => x.kind === "build").map((x, n) => (
+          <span key={x.t} className={beats.indexOf(x) <= i ? "is-lit" : ""} style={{ transitionDelay: `${n * 60}ms` }}>
+            {x.t}
+          </span>
+        ))}
+      </div>
+      <p className="levelup-foot">
+        The seat is being written now. The rest is what you build on the 2nd.
+      </p>
+    </div>
+  );
+}
 
 export function Book() {
   const [step, setStep] = useState<Step>("name");
@@ -60,6 +107,13 @@ export function Book() {
   // is already in hand and true before any of it is shown, so this is paced
   // disclosure of a fact, never an animation standing in for one.
   const [reveal, setReveal] = useState(0);
+  // ASK VAL. The point of the whole panel: a real turn, on a real key, with a
+  // real refusal when the question is not on the sheet. Nothing here is
+  // scripted — if the engine is off or the cap is hit, the honest sentence the
+  // server returns is what appears.
+  const [askQ, setAskQ] = useState("");
+  const [askBusy, setAskBusy] = useState(false);
+  const [askLog, setAskLog] = useState<{ q: string; a: string; refused: boolean }[]>([]);
   const [beat, setBeat] = useState(0);
   // THE NAME LANDS BIG. `boom` is the word on screen at full size; `flung` is
   // the second half of the same move, where it collapses into the record on
@@ -106,6 +160,11 @@ export function Book() {
     async (chosen: Attend) => {
       setStep("working");
       setTrouble("");
+      // The write usually answers in a few hundred milliseconds, which is
+      // faster than a human can read one line. The reel is given its three
+      // seconds; the CONFIRMATION still waits on the database, so nothing is
+      // shown as done before it is.
+      const floor = new Promise<void>((r) => setTimeout(r, 3000));
       try {
         const r = await fetch("/api/rsvp", {
           method: "POST",
@@ -127,6 +186,7 @@ export function Book() {
         setRef(String(j.ref));
         setAt(String(j.at));
         setEmailed(Boolean(j.emailed));
+        await floor;
         setStep("done");
         // It landed: hit the orb once, then let the ticket arrive in beats.
         setBeat((n) => n + 1);
@@ -144,6 +204,37 @@ export function Book() {
       }
     },
     [name, cell, ref]
+  );
+
+  const ask = useCallback(
+    async (question: string) => {
+      const q = question.trim();
+      if (!q || askBusy) return;
+      setAskBusy(true);
+      setAskQ("");
+      try {
+        const r = await fetch("/api/val", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ q }),
+        });
+        const j = await r.json().catch(() => null);
+        // A reply we did not get is not a reply we invent.
+        setAskLog((l) => [
+          ...l,
+          j?.ok && j.reply
+            ? { q, a: String(j.reply), refused: Boolean(j.refused) }
+            : { q, a: "I could not reach my own engine just then, so I would rather not guess. Mike is on " + HOST.cell + ".", refused: true },
+        ]);
+      } catch {
+        setAskLog((l) => [
+          ...l,
+          { q, a: "No connection on my end. Mike is on " + HOST.cell + ".", refused: true },
+        ]);
+      }
+      setAskBusy(false);
+    },
+    [askBusy]
   );
 
   // Handed over at the moment they are most likely to actually do it.
@@ -343,11 +434,7 @@ export function Book() {
             </>
           )}
 
-          {step === "working" && (
-            <p className="book-say display" role="status">
-              Sending it to Val…
-            </p>
-          )}
+          {step === "working" && <LevelUp first={name.trim().split(/\s+/)[0] ?? ""} />}
 
           <p className="book-fineprint">
             Val is taking this, not a form. Your name and number go in one row
@@ -389,7 +476,7 @@ export function Book() {
             </div>
             <div>
               <dt>Bring</dt>
-              <dd>A laptop with Claude on it, and your phone</dd>
+              <dd>Claude installed on your phone and your laptop</dd>
             </div>
             <div className="dash-pending">
               <dt>Zoom link</dt>
@@ -411,6 +498,59 @@ export function Book() {
               Save Mike&rsquo;s contact
             </a>
             <a href={mailto}>Send it to his inbox too</a>
+          </div>
+
+          {/* ---- ASK VAL. The hour, demonstrated on the way in the door. ----
+              A page can claim an assistant will refuse to make things up. This
+              one lets a stranger prove it, thirty seconds after booking, using
+              the same engine the room runs on. The refusals are the feature:
+              ask it about parking and watch it decline rather than guess. */}
+          <div className="askval">
+            <p className="askval-h display">Ask me anything about Friday.</p>
+            <p className="askval-sub">
+              This is the real thing, on the same engine you will build with.
+              Ask it something nobody told it and watch it refuse instead of
+              making something up. That refusal is the whole hour.
+            </p>
+
+            {askLog.map((t, i) => (
+              <div className="askval-turn" key={i}>
+                <p className="askval-q">{t.q}</p>
+                <p className={t.refused ? "askval-a is-refusal" : "askval-a"}>
+                  {t.a}
+                  {t.refused && <span className="askval-tag">refused to invent</span>}
+                </p>
+              </div>
+            ))}
+
+            {askBusy && <p className="askval-thinking">Val is thinking…</p>}
+
+            <form
+              className="askval-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void ask(askQ);
+              }}
+            >
+              <input
+                value={askQ}
+                onChange={(e) => setAskQ(e.target.value)}
+                placeholder="What should I bring?"
+                aria-label="Ask Val about Friday"
+                maxLength={400}
+              />
+              <button type="submit" disabled={askBusy || askQ.trim().length < 2}>
+                Ask
+              </button>
+            </form>
+
+            <div className="askval-seeds">
+              {["What do I need to bring?", "Is there parking?", "What is the flexmls MCP?"].map((sd) => (
+                <button key={sd} type="button" onClick={() => void ask(sd)} disabled={askBusy}>
+                  {sd}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ---- the room ---- */}
